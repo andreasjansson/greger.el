@@ -408,13 +408,15 @@ OpenAI function calling doesn't support default values."
     (setf (greger-openrouter-state-accumulated-output state) accumulated)))
 
 (defun greger-openrouter--handle-event (data-json state)
-  "Handle OpenAI-style streaming event."
+  "Handle OpenAI-style streaming event.
+Supports both Chat Completions and Responses API formats."
 
   (message "data-json: %s" data-json)
 
   (condition-case err
       (let* ((data (json-read-from-string data-json))
-             (error-data (alist-get 'error data)))
+             (error-data (alist-get 'error data))
+             (event-type (alist-get 'type data)))
         
         ;; Check for API errors first
         (when error-data
@@ -425,52 +427,104 @@ OpenAI function calling doesn't support default values."
             (message "OpenRouter error: %s" error-message)
             (error error-message)))
         
-        (let* ((choices (alist-get 'choices data))
-               (choice (when choices (aref choices 0)))
-               (delta (alist-get 'delta choice))
-               (message (alist-get 'message choice))
-               (finish-reason (alist-get 'finish_reason choice)))
-          
-          (when delta
-            (cond
-             ((or (alist-get 'reasoning delta) (alist-get 'reasoning_details delta))
-              (greger-openrouter--handle-reasoning-delta delta state))
-             
-             ((and (alist-get 'content delta)
-                   (not (string-empty-p (alist-get 'content delta))))
-              (let ((text (alist-get 'content delta))
-                    (block-start-callback (greger-openrouter-state-block-start-callback state))
-                    (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-                
-                (unless (greger-openrouter-state-text-started state)
-                  (setf (greger-openrouter-state-text-started state) t)
-                  (when block-start-callback
-                    (funcall block-start-callback
-                             `((type . "text")
-                               (text . "")))))
-                
-                (setf (greger-openrouter-state-current-text state)
-                      (concat (greger-openrouter-state-current-text state) text))
-                (when text-delta-callback
-                  (funcall text-delta-callback text))))
-             
-             ((alist-get 'tool_calls delta)
-              (greger-openrouter--accumulate-tool-calls delta state)))
-            
-            (when (alist-get 'annotations delta)
-              (setf (greger-openrouter-state-annotations state)
-                    (alist-get 'annotations delta))))
-          
-          (when (and message (alist-get 'annotations message))
-            (setf (greger-openrouter-state-annotations state)
-                  (alist-get 'annotations message)))
-          
-          (when finish-reason
-            (greger-openrouter--handle-finish state finish-reason))))
+        ;; Handle Responses API format
+        (if event-type
+            (greger-openrouter--handle-responses-event data state)
+          ;; Handle Chat Completions format
+          (greger-openrouter--handle-chat-event data state)))
     (error
      (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
        (setf (greger-openrouter-state-error-message state) error-message)
        (message "OpenRouter parse error: %s" error-message)))))
+
+(defun greger-openrouter--handle-chat-event (data state)
+  "Handle Chat Completions API streaming event."
+  (let* ((choices (alist-get 'choices data))
+         (choice (when choices (aref choices 0)))
+         (delta (alist-get 'delta choice))
+         (message (alist-get 'message choice))
+         (finish-reason (alist-get 'finish_reason choice)))
+    
+    (when delta
+      (cond
+       ((or (alist-get 'reasoning delta) (alist-get 'reasoning_details delta))
+        (greger-openrouter--handle-reasoning-delta delta state))
+       
+       ((and (alist-get 'content delta)
+             (not (string-empty-p (alist-get 'content delta))))
+        (let ((text (alist-get 'content delta))
+              (block-start-callback (greger-openrouter-state-block-start-callback state))
+              (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+          
+          (unless (greger-openrouter-state-text-started state)
+            (setf (greger-openrouter-state-text-started state) t)
+            (when block-start-callback
+              (funcall block-start-callback
+                       `((type . "text")
+                         (text . "")))))
+          
+          (setf (greger-openrouter-state-current-text state)
+                (concat (greger-openrouter-state-current-text state) text))
+          (when text-delta-callback
+            (funcall text-delta-callback text))))
+       
+       ((alist-get 'tool_calls delta)
+        (greger-openrouter--accumulate-tool-calls delta state)))
+      
+      (when (alist-get 'annotations delta)
+        (setf (greger-openrouter-state-annotations state)
+              (alist-get 'annotations delta))))
+    
+    (when (and message (alist-get 'annotations message))
+      (setf (greger-openrouter-state-annotations state)
+            (alist-get 'annotations message)))
+    
+    (when finish-reason
+      (greger-openrouter--handle-finish state finish-reason))))
+
+(defun greger-openrouter--handle-responses-event (data state)
+  "Handle Responses API streaming event."
+  (let* ((event-type (alist-get 'type data))
+         (item (alist-get 'item data))
+         (content-part (alist-get 'content_part data))
+         (response (alist-get 'response data)))
+    
+    (cond
+     ((string= event-type "response.content_part.delta")
+      (when-let* ((part-type (alist-get 'type content-part))
+                  ((string= part-type "output_text"))
+                  (text (alist-get 'text content-part)))
+        (let ((block-start-callback (greger-openrouter-state-block-start-callback state))
+              (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+          
+          (unless (greger-openrouter-state-text-started state)
+            (setf (greger-openrouter-state-text-started state) t)
+            (when block-start-callback
+              (funcall block-start-callback
+                       `((type . "text")
+                         (text . "")))))
+          
+          (setf (greger-openrouter-state-current-text state)
+                (concat (greger-openrouter-state-current-text state) text))
+          (when text-delta-callback
+            (funcall text-delta-callback text)))))
+     
+     ((string= event-type "response.completed")
+      (when response
+        (greger-openrouter--handle-responses-completion response state))))))
+
+(defun greger-openrouter--handle-responses-completion (response state)
+  "Handle Responses API completion event."
+  (let* ((output (alist-get 'output response))
+         (message-item (when output (aref output 0)))
+         (content (when message-item (alist-get 'content message-item)))
+         (text-content (when content (aref content 0)))
+         (annotations (when text-content (alist-get 'annotations text-content))))
+    
+    (when annotations
+      (setf (greger-openrouter-state-annotations state) annotations))
+    
+    (greger-openrouter--handle-finish state "stop")))
 
 (defun greger-openrouter--handle-reasoning-delta (delta state)
   "Handle reasoning/thinking delta and convert to Greger thinking format.
