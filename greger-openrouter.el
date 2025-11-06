@@ -309,14 +309,10 @@ OpenAI function calling doesn't support default values."
 (defun greger-openrouter--handle-event (data-json state)
   "Handle Responses API streaming event."
 
-  (message "OPENROUTER EVENT JSON: %s" data-json)
-
   (condition-case err
       (let* ((data (json-read-from-string data-json))
              (error-data (alist-get 'error data))
              (event-type (alist-get 'type data)))
-        
-        (message "OPENROUTER EVENT TYPE: %s" event-type)
         
         ;; Check for API errors first
         (when error-data
