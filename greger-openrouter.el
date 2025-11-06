@@ -163,7 +163,7 @@ This format is used for web search functionality."
     (json-encode request-data)))
 
 (defun greger-openrouter--convert-dialog-to-messages (dialog)
-  "Convert Greger dialog format to OpenAI message format."
+  "Convert Greger dialog format to OpenAI Chat Completions message format."
   (let (messages
         system-message)
     (dolist (msg dialog)
@@ -185,6 +185,40 @@ This format is used for web search functionality."
     (let ((result (nreverse messages)))
       (when system-message
         (setq result (cons `((role . "system") (content . ,system-message)) result)))
+      result)))
+
+(defun greger-openrouter--convert-dialog-to-responses-messages (dialog)
+  "Convert Greger dialog format to OpenAI Responses API input format.
+The Responses API uses a different message structure with type fields."
+  (let (messages
+        system-content)
+    (dolist (msg dialog)
+      (let ((role (alist-get 'role msg))
+            (content (alist-get 'content msg)))
+        
+        (cond
+         ((string= role "system")
+          (setq system-content content))
+         
+         ((stringp content)
+          (push `((type . "message")
+                  (role . ,role)
+                  (content . [((type . "input_text")
+                               (text . ,content))]))
+                messages))
+         
+         ((listp content)
+          (let ((converted (greger-openrouter--convert-content-blocks-to-responses role content)))
+            (when converted
+              (setq messages (append converted messages))))))))
+    
+    (let ((result (nreverse messages)))
+      (when system-content
+        (setq result (cons `((type . "message")
+                             (role . "system")
+                             (content . [((type . "input_text")
+                                          (text . ,system-content))]))
+                           result)))
       result)))
 
 (defun greger-openrouter--convert-content-blocks (role content-blocks)
