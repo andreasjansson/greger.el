@@ -120,7 +120,7 @@ Uses Responses API when web search is enabled, Chat Completions API otherwise."
     ("X-Title" . "Greger.el")))
 
 (defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
-  "Build OpenRouter request data in OpenAI format."
+  "Build OpenRouter request data in OpenAI Chat Completions format."
   (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
          (actual-model (if enable-web-search
                            (concat model ":online")
@@ -139,6 +139,26 @@ Uses Responses API when web search is enabled, Chat Completions API otherwise."
     (when (and thinking-budget (> thinking-budget 0))
       (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
       (push `("include_reasoning" . t) request-data))
+    
+    (json-encode request-data)))
+
+(defun greger-openrouter--build-responses-data (model dialog tools thinking-budget max-tokens)
+  "Build OpenRouter request data in OpenAI Responses API format.
+This format is used for web search functionality."
+  (let* ((messages (greger-openrouter--convert-dialog-to-responses-messages dialog))
+         (request-data `(("model" . ,model)
+                         ("max_output_tokens" . ,max-tokens)
+                         ("stream" . t)
+                         ("plugins" . [((id . "web") (max_results . 5))]))))
+    
+    (push `("input" . ,messages) request-data)
+    
+    (when tools
+      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+        (push `("tools" . ,converted-tools) request-data)))
+    
+    (when (and thinking-budget (> thinking-budget 0))
+      (push `("reasoning" . (("effort" . "medium"))) request-data))
     
     (json-encode request-data)))
 

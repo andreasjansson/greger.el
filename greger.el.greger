@@ -7944,5 +7944,108 @@ Use Responses API for web search in greger-openrouter
 ID: toolu_01RJqKuYaHbTs2cAdD1gswZS
 
 <tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Use Responses API for web search in greger-openrouter
 </tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+
+# ASSISTANT
+
+Now I'll add the function to build Responses API data format:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_019KLQaMMXZNKSR5Na1RQ4nq
+
+## path
+
+<tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
+greger-openrouter.el
+</tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
+
+## original-content
+
+<tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
+(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+  "Build OpenRouter request data in OpenAI format."
+  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+         (actual-model (if enable-web-search
+                           (concat model ":online")
+                         model))
+         (request-data `(("model" . ,actual-model)
+                         ("max_tokens" . ,max-tokens)
+                         ("stream" . t))))
+    
+    (push `("messages" . ,messages) request-data)
+    
+    (when tools
+      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+        (push `("tools" . ,converted-tools) request-data)
+        (push `("tool_choice" . "auto") request-data)))
+    
+    (when (and thinking-budget (> thinking-budget 0))
+      (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
+      (push `("include_reasoning" . t) request-data))
+    
+    (json-encode request-data)))
+</tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
+
+## new-content
+
+<tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
+(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+  "Build OpenRouter request data in OpenAI Chat Completions format."
+  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+         (actual-model (if enable-web-search
+                           (concat model ":online")
+                         model))
+         (request-data `(("model" . ,actual-model)
+                         ("max_tokens" . ,max-tokens)
+                         ("stream" . t))))
+    
+    (push `("messages" . ,messages) request-data)
+    
+    (when tools
+      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+        (push `("tools" . ,converted-tools) request-data)
+        (push `("tool_choice" . "auto") request-data)))
+    
+    (when (and thinking-budget (> thinking-budget 0))
+      (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
+      (push `("include_reasoning" . t) request-data))
+    
+    (json-encode request-data)))
+
+(defun greger-openrouter--build-responses-data (model dialog tools thinking-budget max-tokens)
+  "Build OpenRouter request data in OpenAI Responses API format.
+This format is used for web search functionality."
+  (let* ((messages (greger-openrouter--convert-dialog-to-responses-messages dialog))
+         (request-data `(("model" . ,model)
+                         ("max_output_tokens" . ,max-tokens)
+                         ("stream" . t)
+                         ("plugins" . [((id . "web") (max_results . 5))]))))
+    
+    (push `("input" . ,messages) request-data)
+    
+    (when tools
+      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+        (push `("tools" . ,converted-tools) request-data)))
+    
+    (when (and thinking-budget (> thinking-budget 0))
+      (push `("reasoning" . (("effort" . "medium"))) request-data))
+    
+    (json-encode request-data)))
+</tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
+
+## git-commit-message
+
+<tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
+Add Responses API data builder for web search
+</tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
+
+# TOOL RESULT
+
+ID: toolu_019KLQaMMXZNKSR5Na1RQ4nq
+
+<tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
+
+</tool.toolu_019KLQaMMXZNKSR5Na1RQ4nq>
