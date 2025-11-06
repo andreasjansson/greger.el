@@ -474,18 +474,18 @@ The existing `greger-parser--thinking-section-to-content-block` already extracts
 
 ## OpenRouter Message Conversion
 
-### Converting Content Blocks to OpenRouter Messages
+### Converting THINKING Blocks to OpenRouter Messages
 
 In `greger-openrouter.el`:
 
 ```elisp
 (defun greger-openrouter--convert-content-blocks (role content-blocks)
   "Convert Greger content blocks to OpenRouter message format.
-Handles reasoning blocks by extracting reasoning_details for the message."
+Handles thinking blocks by decoding reasoning_details from signature field."
   (let (result-messages
         current-text
         tool-calls
-        reasoning-details)  ; NEW: accumulate reasoning_details
+        reasoning-details)
     
     (dolist (block content-blocks)
       (let ((type (alist-get 'type block)))
@@ -494,17 +494,25 @@ Handles reasoning blocks by extracting reasoning_details for the message."
          ((string= type "text")
           (setq current-text (alist-get 'text block)))
          
-         ;; Reasoning - extract both text and details
-         ((string= type "reasoning")
-          ;; For now, treat reasoning text like regular content
-          ;; (some models might want it visible, others might not care)
-          (setq current-text (alist-get 'reasoning block))
-          ;; Store reasoning_details to add to message
-          (setq reasoning-details (alist-get 'reasoning_details block)))
-         
-         ;; Thinking - convert to text (fallback for non-OpenRouter)
+         ;; Thinking - decode signature to get reasoning_details
          ((string= type "thinking")
-          (setq current-text (alist-get 'thinking block)))
+          (let ((thinking-text (alist-get 'thinking block))
+                (signature (alist-get 'signature block)))
+            
+            ;; Use thinking text as content
+            (setq current-text thinking-text)
+            
+            ;; Try to decode signature as base64 JSON (OpenRouter reasoning_details)
+            (when (and signature (not (string-empty-p signature)))
+              (condition-case nil
+                  (let* ((decoded (base64-decode-string signature))
+                         (parsed (json-read-from-string decoded)))
+                    ;; If it successfully parses as JSON array, it's reasoning_details
+                    (when (vectorp parsed)
+                      (setq reasoning-details parsed)))
+                ;; If decode/parse fails, it's Claude's cryptographic signature
+                ;; (ignore it - OpenRouter doesn't use it)
+                (error nil)))))
          
          ;; Tool use - convert to OpenAI tool call format
          ((string= type "tool_use")
@@ -528,7 +536,7 @@ Handles reasoning blocks by extracting reasoning_details for the message."
           (push `(content . ,current-text) msg))
         (when tool-calls
           (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
-        ;; CRITICAL: Add reasoning_details if present
+        ;; CRITICAL: Add reasoning_details if present (decoded from signature)
         (when reasoning-details
           (push `(reasoning_details . ,reasoning-details) msg))
         (push msg result-messages)))
@@ -536,7 +544,12 @@ Handles reasoning blocks by extracting reasoning_details for the message."
     (nreverse result-messages)))
 ```
 
-**Critical**: The `reasoning_details` field MUST be passed back exactly as received. Do not modify, filter, or rearrange the array.
+**Critical Implementation Notes:**
+
+1. **Decode signature**: Try to base64-decode and JSON-parse the signature
+2. **If successful and vector**: It's OpenRouter reasoning_details → include in message
+3. **If parse fails**: It's Claude's cryptographic signature → ignore it
+4. **Pass verbatim**: The reasoning_details array MUST be passed back exactly as decoded
 
 ---
 

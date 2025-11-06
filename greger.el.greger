@@ -14858,5 +14858,131 @@ Update Dialog Parsing section for THINKING reuse
 ID: toolu_01Qsp6jvtCR3PQ8gEDuVnhx6
 
 <tool.toolu_01Qsp6jvtCR3PQ8gEDuVnhx6>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md. Successfully staged 2 file(s) and committed with message: Update Dialog Parsing section for THINKING reuse
 </tool.toolu_01Qsp6jvtCR3PQ8gEDuVnhx6>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01CUuDAKityLjYPSjwMjLKot
+
+## path
+
+<tool.toolu_01CUuDAKityLjYPSjwMjLKot>
+/Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md
+</tool.toolu_01CUuDAKityLjYPSjwMjLKot>
+
+## git-commit-message
+
+<tool.toolu_01CUuDAKityLjYPSjwMjLKot>
+Update OpenRouter Message Conversion for THINKING blocks
+</tool.toolu_01CUuDAKityLjYPSjwMjLKot>
+
+## diff
+
+<tool.toolu_01CUuDAKityLjYPSjwMjLKot>
+ ## OpenRouter Message Conversion
+ 
+-### Converting Content Blocks to OpenRouter Messages
++### Converting THINKING Blocks to OpenRouter Messages
+ 
+ In `greger-openrouter.el`:
+ 
+ ```elisp
+ (defun greger-openrouter--convert-content-blocks (role content-blocks)
+   "Convert Greger content blocks to OpenRouter message format.
+-Handles reasoning blocks by extracting reasoning_details for the message."
++Handles thinking blocks by decoding reasoning_details from signature field."
+   (let (result-messages
+         current-text
+         tool-calls
+-        reasoning-details)  ; NEW: accumulate reasoning_details
++        reasoning-details)
+     
+     (dolist (block content-blocks)
+       (let ((type (alist-get 'type block)))
+         (cond
+          ;; Text content
+          ((string= type "text")
+           (setq current-text (alist-get 'text block)))
+          
+-         ;; Reasoning - extract both text and details
+-         ((string= type "reasoning")
+-          ;; For now, treat reasoning text like regular content
+-          ;; (some models might want it visible, others might not care)
+-          (setq current-text (alist-get 'reasoning block))
+-          ;; Store reasoning_details to add to message
+-          (setq reasoning-details (alist-get 'reasoning_details block)))
+-         
+-         ;; Thinking - convert to text (fallback for non-OpenRouter)
++         ;; Thinking - decode signature to get reasoning_details
+          ((string= type "thinking")
+-          (setq current-text (alist-get 'thinking block)))
++          (let ((thinking-text (alist-get 'thinking block))
++                (signature (alist-get 'signature block)))
++            
++            ;; Use thinking text as content
++            (setq current-text thinking-text)
++            
++            ;; Try to decode signature as base64 JSON (OpenRouter reasoning_details)
++            (when (and signature (not (string-empty-p signature)))
++              (condition-case nil
++                  (let* ((decoded (base64-decode-string signature))
++                         (parsed (json-read-from-string decoded)))
++                    ;; If it successfully parses as JSON array, it's reasoning_details
++                    (when (vectorp parsed)
++                      (setq reasoning-details parsed)))
++                ;; If decode/parse fails, it's Claude's cryptographic signature
++                ;; (ignore it - OpenRouter doesn't use it)
++                (error nil)))))
+          
+          ;; Tool use - convert to OpenAI tool call format
+          ((string= type "tool_use")
+           (let ((tool-call `((id . ,(alist-get 'id block))
+                              (type . "function")
+                              (function . ((name . ,(alist-get 'name block))
+                                           (arguments . ,(json-encode (alist-get 'input block))))))))
+             (push tool-call tool-calls)))
+          
+          ;; Tool result - convert to OpenAI tool message format
+          ((string= type "tool_result")
+           (let ((tool-msg `((role . "tool")
+                             (tool_call_id . ,(alist-get 'tool_use_id block))
+                             (content . ,(alist-get 'content block)))))
+             (push tool-msg result-messages))))))
+     
+     ;; Build assistant message if we have content or tool calls
+     (when (or current-text tool-calls reasoning-details)
+       (let ((msg `((role . ,role))))
+         (when current-text
+           (push `(content . ,current-text) msg))
+         (when tool-calls
+           (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+-        ;; CRITICAL: Add reasoning_details if present
++        ;; CRITICAL: Add reasoning_details if present (decoded from signature)
+         (when reasoning-details
+           (push `(reasoning_details . ,reasoning-details) msg))
+         (push msg result-messages)))
+     
+     (nreverse result-messages)))
+ ```
+ 
+-**Critical**: The `reasoning_details` field MUST be passed back exactly as received. Do not modify, filter, or rearrange the array.
+\ No newline at end of file
++**Critical Implementation Notes:**
++
++1. **Decode signature**: Try to base64-decode and JSON-parse the signature
++2. **If successful and vector**: It's OpenRouter reasoning_details → include in message
++3. **If parse fails**: It's Claude's cryptographic signature → ignore it
++4. **Pass verbatim**: The reasoning_details array MUST be passed back exactly as decoded
+\ No newline at end of file
+
+</tool.toolu_01CUuDAKityLjYPSjwMjLKot>
+
+# TOOL RESULT
+
+ID: toolu_01CUuDAKityLjYPSjwMjLKot
+
+<tool.toolu_01CUuDAKityLjYPSjwMjLKot>
+
+</tool.toolu_01CUuDAKityLjYPSjwMjLKot>
