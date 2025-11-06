@@ -222,7 +222,7 @@ The Responses API uses a different message structure with type fields."
       result)))
 
 (defun greger-openrouter--convert-content-blocks (role content-blocks)
-  "Convert Greger content blocks to OpenRouter message format.
+  "Convert Greger content blocks to OpenRouter Chat Completions message format.
 Handles thinking blocks by decoding reasoning_details from signature field.
 Converts citations back to OpenRouter annotations format."
   (let (result-messages
@@ -272,6 +272,48 @@ Converts citations back to OpenRouter annotations format."
         (when reasoning-details
           (push `(reasoning_details . ,reasoning-details) msg))
         (push msg result-messages)))
+    
+    (nreverse result-messages)))
+
+(defun greger-openrouter--convert-content-blocks-to-responses (role content-blocks)
+  "Convert Greger content blocks to Responses API format.
+Uses structured content with type fields for the Responses API."
+  (let (result-messages
+        current-content-items)
+    
+    (dolist (block content-blocks)
+      (let ((type (alist-get 'type block)))
+        (cond
+         ((string= type "text")
+          (push `((type . "input_text")
+                  (text . ,(alist-get 'text block)))
+                current-content-items))
+         
+         ((string= type "thinking")
+          (push `((type . "input_text")
+                  (text . ,(alist-get 'thinking block)))
+                current-content-items))
+         
+         ((string= type "tool_use")
+          (when current-content-items
+            (push `((type . "message")
+                    (role . ,role)
+                    (content . ,(vconcat (nreverse current-content-items))))
+                  result-messages)
+            (setq current-content-items nil)))
+         
+         ((string= type "tool_result")
+          (push `((type . "message")
+                  (role . "user")
+                  (content . [((type . "input_text")
+                               (text . ,(alist-get 'content block)))]))
+                result-messages)))))
+    
+    (when current-content-items
+      (push `((type . "message")
+              (role . ,role)
+              (content . ,(vconcat (nreverse current-content-items))))
+            result-messages))
     
     (nreverse result-messages)))
 
