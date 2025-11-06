@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-175041866405>
+${greger-prompt-code-style<eval-result-175257047548>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-175041866405>}
+</eval-result-175257047548>}
 
-${:sh cat CLAUDE.md || true<eval-result-175041752500>cat: CLAUDE.md: No such file or directory
-</eval-result-175041752500>}
+${:sh cat CLAUDE.md || true<eval-result-175257307018>cat: CLAUDE.md: No such file or directory
+</eval-result-175257307018>}
 
 # USER
 
@@ -15916,47 +15916,32 @@ greger-openrouter.el
 Include thinking in content blocks
 </tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
 
-## original-content
+## diff
 
 <tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
-(defun greger-openrouter--build-content-blocks (state)
-  "Build Anthropic-style content blocks from accumulated state.
-Note: We don't include citations from web search because the text already
-contains inline markdown links to sources."
-  (let ((current-text (greger-openrouter-state-current-text state))
-        blocks)
-    
-    (when current-text
-      (push `((type . "text")
-              (text . ,current-text))
-            blocks))
-    
-    (nreverse blocks)))
-</tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+ (defun greger-openrouter--build-content-blocks (state)
+   "Build Anthropic-style content blocks from accumulated state.
+ Note: We don't include citations from web search because the text already
+ contains inline markdown links to sources."
+-  (let ((current-text (greger-openrouter-state-current-text state))
++  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
++        (current-text (greger-openrouter-state-current-text state))
+         blocks)
+     
++    (when reasoning-text
++      (push `((type . "thinking")
++              (thinking . ,reasoning-text)
++              (signature . ""))
++            blocks))
++    
+     (when current-text
+       (push `((type . "text")
+               (text . ,current-text))
+             blocks))
+     
+     (nreverse blocks)))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
-(defun greger-openrouter--build-content-blocks (state)
-  "Build Anthropic-style content blocks from accumulated state.
-Note: We don't include citations from web search because the text already
-contains inline markdown links to sources."
-  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
-        (current-text (greger-openrouter-state-current-text state))
-        blocks)
-    
-    (when reasoning-text
-      (push `((type . "thinking")
-              (thinking . ,reasoning-text)
-              (signature . ""))
-            blocks))
-    
-    (when current-text
-      (push `((type . "text")
-              (text . ,current-text))
-            blocks))
-    
-    (nreverse blocks)))
 </tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
 
 # TOOL RESULT
@@ -15964,5 +15949,190 @@ contains inline markdown links to sources."
 ID: toolu_01MT6u1pxhzvPAVmKM7wGw88
 
 <tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Include thinking in content blocks
 </tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+
+# USER
+
+Why do you need text-started and thinking-started? We don't have those in greger-client.el right?
+
+# THINKING
+
+Signature: EuIBCkYICRgCKkAu2dF+hK5IlixTHTrrDkqiaGuQ20gUFZMJ22Um0Vzsq3YiXEIOF57ZlzVyvZzNc/EchHaRNyDDbjWtl7CXoxJjEgwgYCT/8TfzEll4HzQaDPtCvh0J/xKYdD0LzSIwxhOrfLgZaBN5jX7xDKcIPbk2bED9xkffpRcpfNxONUOwI7VUN0eeWsFuBAP3aqCLKkpdx8c2Bb59KSPPXxpPG9pVEzVnr43Jvr8SQqftJl9gJNqiP3UpjbBvC84juZmJwQaPRF4M3ynyOgmEFX+riWzgKjUNkskwjuhb2BgB
+
+Let me check greger-client.el to see how it handles this.
+
+# ASSISTANT
+
+You're right! Let me check greger-client.el:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01BxQHkBddgn9gcLt6DLsd9y
+
+## pattern
+
+<tool.toolu_01BxQHkBddgn9gcLt6DLsd9y>
+text-started|thinking-started
+</tool.toolu_01BxQHkBddgn9gcLt6DLsd9y>
+
+## path
+
+<tool.toolu_01BxQHkBddgn9gcLt6DLsd9y>
+greger-client.el
+</tool.toolu_01BxQHkBddgn9gcLt6DLsd9y>
+
+# TOOL RESULT
+
+ID: toolu_01BxQHkBddgn9gcLt6DLsd9y
+
+<tool.toolu_01BxQHkBddgn9gcLt6DLsd9y>
+No matches found
+</tool.toolu_01BxQHkBddgn9gcLt6DLsd9y>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01Q6iVK8ouGR7i2ehVCxo3fb
+
+## pattern
+
+<tool.toolu_01Q6iVK8ouGR7i2ehVCxo3fb>
+block-start-callback
+</tool.toolu_01Q6iVK8ouGR7i2ehVCxo3fb>
+
+## path
+
+<tool.toolu_01Q6iVK8ouGR7i2ehVCxo3fb>
+greger-client.el
+</tool.toolu_01Q6iVK8ouGR7i2ehVCxo3fb>
+
+# TOOL RESULT
+
+ID: toolu_01Q6iVK8ouGR7i2ehVCxo3fb
+
+<tool.toolu_01Q6iVK8ouGR7i2ehVCxo3fb>
+49:  block-start-callback
+59:(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+66:BLOCK-START-CALLBACK is called when content blocks begin.
+89:                 :block-start-callback block-start-callback
+354:    (when-let ((callback (greger-client-state-block-start-callback state)))
+
+</tool.toolu_01Q6iVK8ouGR7i2ehVCxo3fb>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01QdSVKnkQ71NF9CQkVm3oGn
+
+## path
+
+<tool.toolu_01QdSVKnkQ71NF9CQkVm3oGn>
+greger-client.el
+</tool.toolu_01QdSVKnkQ71NF9CQkVm3oGn>
+
+## start-line
+
+<tool.toolu_01QdSVKnkQ71NF9CQkVm3oGn>
+350
+</tool.toolu_01QdSVKnkQ71NF9CQkVm3oGn>
+
+## end-line
+
+<tool.toolu_01QdSVKnkQ71NF9CQkVm3oGn>
+365
+</tool.toolu_01QdSVKnkQ71NF9CQkVm3oGn>
+
+# TOOL RESULT
+
+ID: toolu_01QdSVKnkQ71NF9CQkVm3oGn
+
+<tool.toolu_01QdSVKnkQ71NF9CQkVm3oGn>
+      (setf (alist-get 'thinking content-block) ""))
+     ;; web_search_tool_result blocks come pre-populated with content - no initialization needed
+     )
+
+    (when-let ((callback (greger-client-state-block-start-callback state)))
+      (funcall callback content-block))
+
+    ;; Add block at the right index
+    (greger-client--ensure-block-at-index blocks index content-block state)))
+
+(defun greger-client--handle-content-block-delta (data state)
+  "Process incremental content update from streaming DATA in STATE."
+  (let* ((index (alist-get 'index data))
+         (delta (alist-get 'delta data))
+         (delta-type (alist-get 'type delta))
+         (blocks (greger-client-state-content-blocks state))
+</tool.toolu_01QdSVKnkQ71NF9CQkVm3oGn>
+
+# ASSISTANT
+
+You're absolutely right! In greger-client.el, they just call `block-start-callback` directly when they get the event. We don't need to track whether we've started or not - we can just call it when we get the appropriate event. Let me simplify:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01FTWTkhtJUqWoBBsp1ZpBNd
+
+## path
+
+<tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+greger-openrouter.el
+</tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+
+## git-commit-message
+
+<tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+Remove unnecessary started tracking - just call callbacks directly
+</tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+
+## original-content
+
+<tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+(cl-defstruct greger-openrouter-state
+  accumulated-output
+  current-text
+  text-started
+  thinking-started
+  current-reasoning-text
+  annotations
+  process
+  output-buffer
+  undo-handle
+  block-start-callback
+  text-delta-callback
+  block-stop-callback
+  complete-callback
+  restore-callback
+  error-callback
+  error-message)
+</tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+
+## new-content
+
+<tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+(cl-defstruct greger-openrouter-state
+  accumulated-output
+  current-text
+  current-reasoning-text
+  process
+  output-buffer
+  undo-handle
+  block-start-callback
+  text-delta-callback
+  block-stop-callback
+  complete-callback
+  restore-callback
+  error-callback
+  error-message)
+</tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+
+# TOOL RESULT
+
+ID: toolu_01FTWTkhtJUqWoBBsp1ZpBNd
+
+<tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+
+</tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>

@@ -22,10 +22,7 @@
 (cl-defstruct greger-openrouter-state
   accumulated-output
   current-text
-  text-started
-  thinking-started
   current-reasoning-text
-  annotations
   process
   output-buffer
   undo-handle
