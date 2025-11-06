@@ -10710,5 +10710,60 @@ Remove annotation passback - not needed for API continuity
 ID: toolu_011w8x5WkqSfkxvXKTup657d
 
 <tool.toolu_011w8x5WkqSfkxvXKTup657d>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove annotation passback - not needed for API continuity
 </tool.toolu_011w8x5WkqSfkxvXKTup657d>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Bgox862DShVFKTe4LEzN91
+
+## path
+
+<tool.toolu_01Bgox862DShVFKTe4LEzN91>
+greger-openrouter.el
+</tool.toolu_01Bgox862DShVFKTe4LEzN91>
+
+## git-commit-message
+
+<tool.toolu_01Bgox862DShVFKTe4LEzN91>
+Remove annotations from message building
+</tool.toolu_01Bgox862DShVFKTe4LEzN91>
+
+## original-content
+
+<tool.toolu_01Bgox862DShVFKTe4LEzN91>
+    (when (or current-text tool-calls reasoning-details annotations)
+      (let ((msg `((role . ,role))))
+        (when current-text
+          (push `(content . ,current-text) msg))
+        (when tool-calls
+          (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+        (when reasoning-details
+          (push `(reasoning_details . ,reasoning-details) msg))
+        (when annotations
+          (push `(annotations . ,annotations) msg))
+        (push msg result-messages)))
+</tool.toolu_01Bgox862DShVFKTe4LEzN91>
+
+## new-content
+
+<tool.toolu_01Bgox862DShVFKTe4LEzN91>
+    (when (or current-text tool-calls reasoning-details)
+      (let ((msg `((role . ,role))))
+        (when current-text
+          (push `(content . ,current-text) msg))
+        (when tool-calls
+          (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+        (when reasoning-details
+          (push `(reasoning_details . ,reasoning-details) msg))
+        (push msg result-messages)))
+</tool.toolu_01Bgox862DShVFKTe4LEzN91>
+
+# TOOL RESULT
+
+ID: toolu_01Bgox862DShVFKTe4LEzN91
+
+<tool.toolu_01Bgox862DShVFKTe4LEzN91>
+
+</tool.toolu_01Bgox862DShVFKTe4LEzN91>

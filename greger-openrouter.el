@@ -199,7 +199,7 @@ Converts citations back to OpenRouter annotations format."
                             (content . ,(alist-get 'content block)))))
             (push tool-msg result-messages))))))
     
-    (when (or current-text tool-calls reasoning-details annotations)
+    (when (or current-text tool-calls reasoning-details)
       (let ((msg `((role . ,role))))
         (when current-text
           (push `(content . ,current-text) msg))
@@ -207,8 +207,6 @@ Converts citations back to OpenRouter annotations format."
           (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
         (when reasoning-details
           (push `(reasoning_details . ,reasoning-details) msg))
-        (when annotations
-          (push `(annotations . ,annotations) msg))
         (push msg result-messages)))
     
     (nreverse result-messages)))
