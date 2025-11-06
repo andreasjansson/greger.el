@@ -737,10 +737,14 @@ Cited text: quote from source
 - [ ] Verify :online variant support in `greger-openrouter--build-data`
 
 ### Phase 3: UI/Rendering
-- [ ] Add syntax highlighting for REASONING sections (similar to THINKING)
-- [ ] Add folding support for REASONING sections
-- [ ] Test rendering of reasoning_details JSON (should be hidden in fold)
-- [ ] Verify citations render with inline footnotes preserved
+**No UI changes needed!** THINKING blocks already have:
+- ✅ Syntax highlighting
+- ✅ Folding support
+- ✅ Signature display/hiding
+
+Just verify:
+- [ ] Long base64 signatures render acceptably in fold view
+- [ ] Citations render with inline footnotes preserved
 
 ### Phase 4: Testing
 - [ ] Test Turn 1: Basic reasoning response
