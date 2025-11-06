@@ -584,7 +584,9 @@ insert location information at the beginning of the user section."
 
      ;; If there's an active client state, cancel the streaming request
      ((and state (greger-state-client-state state))
-      (greger-client--cancel-request (greger-state-client-state state))
+      (if (eq greger-provider 'openrouter)
+          (greger-openrouter--cancel-request (greger-state-client-state state))
+        (greger-client--cancel-request (greger-state-client-state state)))
       (greger--finish-response state)
       'generating)
 
