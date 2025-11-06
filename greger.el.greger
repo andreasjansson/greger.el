@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-145222451706>
+${greger-prompt-code-style<eval-result-150033714368>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-145222451706>}
+</eval-result-150033714368>}
 
-${:sh cat CLAUDE.md || true<eval-result-145222891826>cat: CLAUDE.md: No such file or directory
-</eval-result-145222891826>}
+${:sh cat CLAUDE.md || true<eval-result-150033684734>cat: CLAUDE.md: No such file or directory
+</eval-result-150033684734>}
 
 # USER
 
@@ -8643,5 +8643,717 @@ Fix reasoning delta detection to handle encrypted blocks with null reasoning fie
 ID: toolu_01Lonm4UYd84nVyAtq3f3H23
 
 <tool.toolu_01Lonm4UYd84nVyAtq3f3H23>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Fix reasoning delta detection to handle encrypted blocks with null reasoning field
 </tool.toolu_01Lonm4UYd84nVyAtq3f3H23>
+
+# ASSISTANT
+
+Now re-evaluate `greger-openrouter.el` and try your query again. The encrypted reasoning block should now be captured in the signature. You can verify by decoding the signature - it should contain 7 objects (6 summary + 1 encrypted) instead of just 6.
+
+The encrypted block is critical for conversation continuity - without it, the model loses important reasoning context across turns!
+
+# USER
+
+Okay now it's this
+
+[{\"type\":\"reasoning.summary\",\"summary\":\"**Confirm\",\"format\":\"openai-responses-v1\",\"index\":0},{\"type\":\"reasoning.summary\",\"summary\":\"ing\",\"format\":\"openai-responses-v1\",\"index\":0},{\"type\":\"reasoning.summary\",\"summary\":\" 31\",\"format\":\"openai-responses-v1\",\"index\":0},{\"type\":\"reasoning.summary\",\"summary\":\"st\",\"format\":\"openai-responses-v1\",\"index\":0},{\"type\":\"reasoning.summary\",\"summary\":\" prime\",\"format\":\"openai-responses-v1\",\"index\":0},{\"type\":\"reasoning.summary\",\"summary\":\" number\",\"format\":\"openai-responses-v1\",\"index\":0},{\"type\":\"reasoning.summary\",\"summary\":\"**\",\"format\":\"openai-responses-v1\",\"index\":0},{\"type\":\"reasoning.encrypted\",\"data\":\"gAAAAABpDKhVmNWCU_f7wEd5_0rgdKJpKnIhnZJTPu2hmb8w8gZLugMFBIs5e_KNwfmOTnqLJyRFYFFxdsPAgxCD4N0fYvnV9oe9TF3oGXk2v8LuNJDW_htzyCsfN0KUo2bSsJsKyRP3-P7EdIqdnLwdwG_uuNdY62j-_fq0wsdEe-yOus_g1KaA3gqhBCL71IvLN2js4_Ix9JIY_gRU1fqzN0mLmzFnXIk0xr0y2yA7MYTLhcZNB6uqa1Lk20OeZD0CUFZ46OkpoBQ7shy2RIyMZj5J2yz0y_h21mQOQckXo5yC460gjSUbpV-_RZcBJLjHGR5UVeLUIAIRmZqqCjDrEVOgJ48pmoWukeocQXzDwEvE9ZwzX8TCb0Jk5RgrwNI54kX8XtJbjFlQQbHHLPxMbrF_GKMnq3jrv0FvkydWCZ9Fu_0aR6tezf4G_2C_roTw5E9qCvShBXKkGIs6l_GtgXNqe5voNTyi6Bo1sywFrwqI6VOkOAIy-HJo87qpeOBKFuJ-0g1hVxDvrll6XRrntwPb7usbA-PzHmqEPQ10s1KjtodQxKXdSx0lO214CWPH-w6r1Hrorb-FoaMJSYtoik13C_yg0EYQTzJKwspq8gwYqoDxxl7x7q6FHd_B82bxpHbO5bL6LrGo0V2bpdAjUzt55MKTUSDSAAFM4QBJpnVlTK8kOHfUU4uvXJduhBjx-UUhxiVE6K6N2Zg0DUKewfLPTiWv6nWzB4vHpv8_qomWJQyB5mxFE03xaWag9FBY6h4zZDHGcR3WxW6M-D7LAA3B3hQbGo6n5Cl2yWai-8o1hTjL8uf4yENok6zJMJBB4NT3DG0_IPB496Hl-KZBGrWqYQpA2a95vWpCD4PJjyJ2xl_WV_z_KwtOlLmEUFmQWMJkileisRUQ1h2xRfoUiyxqNnC3mRcqR4X12uLBdlymi7IFO-pFhbaWfuFFe7BWa7edCGPi9y6ee9ccPKcLxqHpBylsK-FUsmjx0mh10_2-5L5RpIwxpe7P6U2-JKL-XWHHDTDxI0G1Cc9ovH-7ULb2JfL2JCcEdneXmsm2FvZe6tLidLs9BVladYZ0Bix0GmyzsjW4LMykend9prsCz8fwfAYKT_KPjZ2kDWjb8vR7c4OWvLobyP7ygWaUFFVSicwRm-DkbXu0Oz3ZXc3Qf3B7ci9Gvw==\",\"id\":\"rs_0ac44e82d87c720401690ca854235c8194a30aedcf7462d83b\",\"format\":\"openai-responses-v1\",\"index\":0}]
+
+But what about this stuff?
+
+```
+data-json: {"id":"gen-1762437201-96c57AROmbdfzUbVoO8Z","provider":"OpenAI","model":"openai/gpt-5-codex","object":"chat.completion.chunk","created":1762437201,"choices":[{"index":0,"delta":{"role":"assistant","content":"","annotations":[{"type":"url_citation","url_citation":{"end_index":0,"start_index":0,"title":"31st prime is 127","url":"https://prime-numbers.info/number/31st-prime","content":"1. [Primes by type](https://prime-numbers.info/list/)\n2. [Prime numbers](https://prime-numbers.info/list/primes)\n3. [31st](https://prime-numbers.info/number/31st-prime)\n# 31st prime is 127\n31st prime is [127](https://prime-numbers.info/number/127).\n[127](https://prime-numbers.info/number/127) is [31st prime](https://prime-numbers.info/number/31st-prime).\nLearn more about [Prime numbers](https://prime-numbers.info/article/prime-numbers).\n## Neighbours [\\#](https://prime-numbers.info/number/31st-prime\\#neighbours)\n| | | | | |\n| --- | --- | --- | --- | --- |\n| [6718](https://prime-numbers.info/nu"}},{"type":"url_citation","url_citation":{"end_index":0,"start_index":0,"title":"31 is 11th prime","url":"https://prime-numbers.info/number/31","content":"1. [Numbers](https://prime-numbers.info/number/)\n2. [Number 31](https://prime-numbers.info/number/31)\n\n# Number 31\n\n31 is prime.\n\n31 prime factorization is [31](https://prime-numbers.info/number/31) 1\n\n31 prime factorization is [31](https://prime-numbers.info/number/31)\n\nDivisors (2): [1](https://prime-numbers.info/number/1), [31](https://prime-numbers.info/number/31)\n\noogle = window.adsbygoogle \\|\\| \\[\\]).push({});\n\n## Properties [\\#](https://prime-numbers.info/number/31\\#properties)\n\n- [31](https://prime-numbers.info/number/31) is [2nd centered decagonal prime](https://prime-numbers.info/num"}},{"type":"url_citation","url_citation":{"end_index":0,"start_index":0,"title":"Prime Numbers - Radix Tables - charlesreid1","url":"https://charlesreid1.github.io/radix-tables/primes.html","content":"# Prime Numbers\n\nA list of the first 5,000 prime numbers.\n\nThe following table lists the first several thousand prime numbers, indexed in column-major order:\nthat is, the first 100 primes are listed in the first column,\nthe second 100 primes in the second column, and so on.\n\nFor example: to look up the 709th prime, find the 700 column, then scroll down to row 9. The 709th prime is 5381.\n\n(709 is the 127th prime, 127 is the 31st prime, 31 is the 11th prime, 11 is the 5th prime, 5 is the 3rd prime, 3 is the 2nd prime, and 2 is the 1st prime.)\n\nNumbers in red indicate palindrome numbers.\n\nNumbers"}},{"type":"url_citation","url_citation":{"end_index":0,"start_index":0,"title":"List of Prime Numbers 1 to 1000 - BYJU'S","url":"https://byjus.com/maths/prime-numbers-from-1-to-1000/","content":"**Prime numbers from 1 to 1000** will include the list of primes, that have only two factors, i.e. 1 and the number itself. To find the prime numbers from 1 to 1000, we need to check if the number is a natural number and has no positive divisor other than 1 and itself. We do not consider 1 as a [prime number](https://byjus.com/maths/prime-numbers/), as it has only one factor but other prime numbers have two factors.\n\nFor example, 5 is a prime number, because it has only two factors, 1 and 5, such as;\n\n- 5 = 1 x 5\n\nBut 4 is not a prime number, as it has more than two factors, 1, 2, and 4, such "}},{"type":"url_citation","url_citation":{"end_index":0,"start_index":0,"title":"List of prime numbers - Wikipedia","url":"https://en.wikipedia.org/wiki/List_of_prime_numbers","content":"[Jump to content](https://en.wikipedia.org/en.wikipedia.org#bodyContent)\n\nFrom Wikipedia, the free encyclopedia\n\nThis is a [dynamic list](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Lists#Dynamic_lists) and may never be able to satisfy particular standards for completeness. You can help by [editing the page](https://en.wikipedia.org/wiki/Special:EditPage/List_of_prime_numbers) to add missing items, with references to [reliable sources](https://en.wikipedia.org/wiki/Wikipedia:Reliable_sources).\n\nThis is a list of articles about [prime numbers](https://en.wikipedia.org/wiki/Prime_number)"}}]},"finish_reason":null,"native_finish_reason":null,"logprobs":null}]}
+```
+
+shouldn't that be part of the reasoning object?
+
+# THINKING
+
+Signature: Ev8MCkYICRgCKkA7EKqBqyeN1IgqpiThxNnQG2FvCxEA8BRW1Cl3mDuIQznWWeDDOEkDWqU6mFqctiaIKAUSFff81loJrK4ngqhGEgwpZylZEhPQzi0TFTUaDAxveKx2dGzDaGOvIyIwkQdO6GzQGu70WnldVNZECUKELwZ+LfmyoWMi/eALIosH5KgswIje3tj6+wpl5WFYKuYLCpLC1xb8ujJOBbKqJsZoGcctyH6b0ZQXMEUNxb+llAwUO3oWmTCsL5h7UDhFjqmq4vb+KGZm8lSOwqjuUY6BeHUoVTevLukuuIOCi1C4s1GXpXjUFfSzdg+7qxtNkKYRlNdvazOPNTQKOIVj1A/GAkKIlMIRGkjXk4j5LIwkEnjbi/ZfnzZOHXOzcOcgfiT/dEWdvSHaVgw8ecybFinhrkMYVu2kpPlwkYQQKEnxOxYVB9SL/NPD2ytY4EihDlw6e5WkJkruigx+Q9sU1/ahKHSyCN7NaJMktu+JysQ+eAUIgr7qipYB7xebMKQAPVNmHcJI0whiZYtbbFMu7vprJOFX078qny03DPtg3nYfWq1yn2iSuc0XbTOuD8//vNtbc24k1dwjeGkGEV4mhk/gdjxoiBBUDWIqnEsmrRIcrd6L/NHa2h8pwPKmVMa77Nrd/sVwK51hVckFjeN9E1EJttUVPrDaVP6pUTg67jLbJt9Ecisl2t/PQCOClwXAcj0rAzmALD8Ft/Ik0muxfWifWRPuAnmmd17Hg2ufhy32OrYMWd9aXlcMs7+06a67CrwYChV+XPaWqbwaUhoxTAp4nutjL2zo8WcgTNxEUaivCIqyr81u+9yYAhS7pjl7GOdSM6LQGlUvtO5Td3tZUIR1jT2yhKPmAqZ1DHzLtjudkGYsDiYuZGDzjFxwY8ZvsxiFR+TD4isSzhMAqO2hgvT2fgRkqGVYgXXyKlLNNM88PNFcV53id+b/SIsluwpxFcycXGU30NLLZRtkdnqXtnUN89+88b5wVeZY/HdY7ovjREYCwVc/sICN9VS1V/P7w5Z9aWQb2em7q42zdpvk/punOPd8q2Q8Wj3jNWLPL3kJlsXJGsbcBq8l1bvyiAp+o5c524z4ytmYTtFC8qkR8u7Zpvy7lzx+5v9pv3p34fKaVVtyJhHz7tsNNCya7Wesy7FLqnBdOl/7egfbLyhusBptKllOTtqwNZQz0D7MjKNMgJ36Uk5hL++EJmvHcn9HtzneqDeXyeLONogOHnLaeSruaRdz6SDU8SkVA/x8KD286WuFankl79t9yKxXrINQ9M5b2eL+ATXNNwv7cRUhb4MGgQs4iX3vYyM3yvoDVmtH5kbkvneu4iquwt0AhHzDySB4LzNH5Nvm0zSM3bFXKUWkk92Pt8EVN6pl9IFXjRU29Gv9mRcvJ7/11PD5Ihb2SCSdOQNVBzLIbzf34fBZGlST5jwxsIqKCUZc8DPW6ENh0qJNOfq5164dZe1qeLiIRjf9NibyW5gX9bZTIbvssz2qlWfOp4xlLnNUZ4obxEQ8AwwEo2LU6qhUQNd/z0GVFmNCW3bH0olOSdP+LI+jBn8ZSALE1XDpYi7p5cdXRvdAfSdIRE2Qu5btVSwrJ5d7h7S7U0ujt+xwpjOCgqwtvVIr+g9wTIMqD7hJzDloP52qMMwWynmZ7FH7Y3AZgmAupUJuC3/QkfL9MgU4FpqUzSIB8PVqpeZ/AhaU++PRd+hR214QJMtUdDSIesoZHIa8i8mLn04UMWA+8wKuqgAZkbi+EyDHS1ilH6yr+mKC67D5Y7FDdNpYrwwuHYGnhqUkX69mgzB1tr7mG/LJaBAo5kMELAHxaBLXqTPza+u2e+nrejRYXdnnd3BZmMqx/e9ZMSpq93zp+rpulSr7Dekyxknpw2WO9Sx/QlFdUJReW6y5rRRSbD29vhuaWKjipW0IhUxS4ujrYQ4qIkikkG5sFaFcVzTZyxgwhAYeRmpcTqd+B0o+NlD8RtKHmjvPE7JqzJIEuJ+t3JRxcfGwj5Uchp+ms3ys7jtU4/Qg2r87Hlix0MOFbl9xdBmkzg+43cqc0plRtST+ju7lCAA9t4kANI0wtpf2gVf7dY0dMX68Kp747OMdzxjHP7Isid1yfJ9AMPXLdOunLdd1g2NU2YD1nFickbgpvlCvmHg7/uUbh36VhTvwnpaoiulkZaEcPeOVf1WkuVMlQiAnHhDl+5VLwXgd54Bkj+F0QxgB
+
+The user is asking why the annotations (web search citations) aren't part of the reasoning object. But they're actually two separate things:
+
+1. **Reasoning** (`reasoning` and `reasoning_details`) - the model's internal thought process
+2. **Annotations** (`annotations`) - metadata about web citations that were used
+
+Looking at the data structure, annotations come on the `message` object, not the `delta` object with reasoning:
+
+```json
+{
+  "message": {
+    "content": "...",
+    "annotations": [...]
+  }
+}
+```
+
+vs
+
+```json
+{
+  "delta": {
+    "reasoning": "...",
+    "reasoning_details": [...]
+  }
+}
+```
+
+So annotations are NOT part of reasoning - they're citation metadata from the `:online` web search feature. The model doesn't "think" about the raw web page content - that content is just provided as context for the user to see where the information came from.
+
+In the current implementation, we capture annotations and store them separately, which is correct. We don't include them in the reasoning block because:
+
+1. They're not reasoning - they're citation metadata
+2. They come from web search results, not from the model's thinking
+3. They're already being handled by `greger-openrouter--convert-annotation-to-citation`
+
+The user might be confused because they see this huge wall of text in the logs (the web page content inside annotations) and think it should be part of reasoning. But it's actually citation metadata that gets rendered differently.
+
+Let me explain this clearly.
+
+# ASSISTANT
+
+No, those annotations are **separate from reasoning** - they're citation metadata from the `:online` web search feature. Let me explain the difference:
+
+## Two Separate Features:
+
+### 1. **Reasoning** (thinking process)
+```json
+{
+  "delta": {
+    "reasoning": "**Confirming 31st prime number**",
+    "reasoning_details": [
+      {"type": "reasoning.summary", "summary": "..."},
+      {"type": "reasoning.encrypted", "data": "..."}
+    ]
+  }
+}
+```
+- This is the model's **internal thought process**
+- Goes in the `# THINKING` block
+- Signature contains base64-encoded reasoning_details
+
+### 2. **Annotations** (web search citations)
+```json
+{
+  "message": {
+    "content": "...",
+    "annotations": [
+      {
+        "type": "url_citation",
+        "url_citation": {
+          "title": "31st prime is 127",
+          "url": "https://prime-numbers.info/...",
+          "content": "1. [Primes by type]..."  // ← This huge text blob
+        }
+      }
+    ]
+  }
+}
+```
+- This is **web page content** from search results
+- Used for citations in the response
+- NOT part of reasoning - it's source material
+
+The huge text blobs you're seeing are the actual content of the web pages that were searched. The model doesn't include those in its reasoning - they're metadata about where the information came from.
+
+In your current output, the annotations are being captured (you can see the citation in your assistant response with the URL), which is working correctly!
+
+The reasoning (`**Confirming 31st prime number**`) is separate and much more concise - that's the actual thinking. The web page content is just source material for citations.
+
+# USER
+
+Okay but surely that has important information if we want the greger chat to be reproducible and complete? Search the web for how openrouter expects that type of content in the conversation format when it's sent back in subsequent messages. Then think about how we should lay it out in the greger buffer.
+
+# THINKING
+
+Signature: EsQECkYICRgCKkDrYwoFd48A0fJF14eNFnXKQyd44/Xb7V485sxoHeySBFVnWUqtaepL5+3/udW1N0G9liACVxjArinfgoxxXttvEgy0kNBNyQpPcK4riRQaDNthKvKWNG9kTkJaMiIww1gtJbmtJTbPvPjAPkPrza3TFRaZPU6bS/JVhDy691pds00AIi/0+thkx4bYeDmdKqsDB7m38k6e/SGnknima4UZ3O5VKaz5xTmBJAbHAZlYBBPPkkILgkVpCY0W2rLxk0OEjiF5b66g7Lo/S2DeZN0QPzYxGfkNX4hQcxfba78jGeeY+/fsVbxoW3wB/jPJhREv3GzayOjUgkfIl0Fit8LIHYP7198mIjyB2/Q9wP1nBmdjK7GSXS/wfAjtZqKHdL4VO8PwvmYDWEY9LdeYXCQ6SPo6N7mAfxc7O9Cn/J+0noinUN72Nl93D3hAJq8Q1yU1GCBq27FFFv/VvCpHD8+8alXK7esseJCeDMzNXpdXsmjLs7DZHFSKv1McNXbLKdYFim+t9KcsEfWfvZ1qMGsUCV4NadQTEKJ1Hixh8ml4NXFCksxxjAAgaBRFp9oNdT8AeesHBxHeKwJyVOOmGzd2UgtgxxcOpEytuNLzcX2TjmKYkKBxgSp/Gx32wfj6Si3LBHbgPKhwHbNqxgs1J9W9kEKgjOgHy3p4yA8sPPEmcxAR3HNP958+ezxmGz5arDnSBVWOk+y0kyZhmFWXO+MDwk5di2C1j/qV2zVBgcmlSSjt5l7IAQk4bmkxLhgB
+
+The user is asking me to search for how OpenRouter expects annotations/citations to be passed back in subsequent messages. This is a good point - if the model performed a web search and got citations, those citations might need to be preserved in the conversation history for reproducibility.
+
+Let me search for OpenRouter's documentation on how to handle annotations and citations in multi-turn conversations.
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_01P5cryugSU12X6pSvrFqtsN
+
+## query
+
+<tool.srvtoolu_01P5cryugSU12X6pSvrFqtsN>
+OpenRouter annotations citations conversation format
+</tool.srvtoolu_01P5cryugSU12X6pSvrFqtsN>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_01P5cryugSU12X6pSvrFqtsN
+
+<tool.srvtoolu_01P5cryugSU12X6pSvrFqtsN>
+[
+  {
+    "type": "web_search_result",
+    "title": "GitHub - mmeerrkkaa/openrouter-kit: Powerful & flexible TypeScript SDK for the OpenRouter API. Streamlines building LLM applications with easy chat, adapter-based history, secure tool calling (function calling), cost tracking, and plugin support.",
+    "url": "https://github.com/mmeerrkkaa/openrouter-kit",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter Integration for OpenWebUI Function • Open WebUI Community",
+    "url": "https://openwebui.com/f/preswest/openrouter_integration_for_openwebui",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Openrouter",
+    "url": "https://openrouter.ai/docs/llms.txt",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "[FEAT]: showing citations when using Perplexity through OpenRouter · Issue #3581 · Mintplex-Labs/anything-llm",
+    "url": "https://github.com/Mintplex-Labs/anything-llm/issues/3581",
+    "encrypted_content": "EuAKCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDKWvKyV6aS0S/kMU4BoMul1FOntxiFWrG47bIjDdTUNJUGXaKCPC7JT90sg6AoNsOpfe7uYJVXWBx5uzoOardI4FXzBY634aJnueC5cq4wlXlqnCWpr/ahG1spfMJ6MnRWv1nW89pfn1F2bug126rWQHcZ4nK1BdzJCDjsuIhva+eTOFF1B3rlySBSXag2WUTu+UDXD7asY9eQXwDIFAgmJ00uGbPrCt/5WKqx25FhZ9WQ3e+D2nXHXcBM+yJQ1bFzmLK1SkGjzGEEaLgK1AzCciOE3zPuR+b7c3rVxBFpa92Tb0HeWR/BFDox4r30bf//svbCz/HLgH49ZytJRrx9qD9VriQf+j7pd/69TRRP5C1Y5jO9jYL0/27hvcA2rNXu3PShAWNMM6XNS4krXiFmSz6Q5zYEDWnK40njXQAp+QHRVqoPEcR8tKt7yg3V8vHkG8onR01Gj63pEEui4IZS2UAc8KjOYzGhRqVGqQ8bLr4/KTBHG0VvOe+ScsF+VO+G38Di3WYcr/bXzbsrHyk/zj8cZdSvbSZKpR+evNGB3sVEEeBMmaFF327avNrGegtgD8vgzfC7s76CYjRqdx2sMerKYfVye97L6n5T/rh7Ow5NyVXsXRcuOXAf5Jnd7nURv9b+zkyWJeS77V70eGIm5GMck//7u8C50hvwX2TvFG86s+gSIP0rrcKomi1YxBBG4vIsNp3QUFei6h01lsT3x4ya2oMY4uUTzoWZXiJCXYWOf2JJf4hvQu9IFps8xe4x/RoUXndQ3RChSgShw04KQ47gxp2W+aLvG9D+ZF3s3CmGNFuo9Yc1hLG+abhMdaWq6ZvyZ1xENEruN8fBx0rnUowX6Z/LOoEmpTrnKBTyKh11P3xDa+1rMOB0aFwio7tXxVMDLMYQ0UQ5z6keH8wBeYqY08XnE/mLepdO40SR2QU8O9hatYPj9IxGj73exmF98psZIZj346mMUFd5Vb1jfKdEBuLXTwrhTT2ddrrsVw6IR9ClHA9+hYy0h0CgiYTXaNY2z91xKctmOjhmLr0Yce/jQbxKWzWT/sN7YrIP0HXgAVYUeBsbCsXshtr32qXFxujIAOtNB2FmqojKIXgOoaNtvYOIC0FTQusOi1yiJgoheLa7zhVjtzjjmhddhsSZK/fz9AXfELo0bCUGTnd+u9l8YN1VVcVMKB0IuBdSvCkK+LCVTP800q04DWc0r8cXgJJxRIIBQFnM6STi52TQBHV9XFEmEo0peJj51T/Bf+V/UGIYfjy1sZw36L4YqiHmROnt/4gnTJcCC0opQwv9qoKzCbYmhjR72mnUjB8GaZk8cS6QoH5o/J0qn2XIzeOIsH5aScQn6eAgAt1yeXB8oaBZIeU3aUtRmlZWf72W/hd0AzkuXy/YAzbSxleQmA5H8QW8KQ3Eh9kuZ2fMgPLWNxY6gde68bGX4EIoX31qXcObB4t19gRfoUlK5BwpEmgp5/3i5k0OGng2bxPZUc9DRCwSJ7KfvkFFmdgoLdSwYGXC4+IINXEBxR76LZ6qd5cSD5RFCCUYI/5gks7WHnfK/EteVoblFvbx0hiZC2NTi7LGyTIQ0QEUSYK7Mws3WMicbyxrNVxhE9RrUJb2y9ITNjnzcZpQc/9WStcqqm0eC8hyhtPARdW8deKj2YpO5p/HeJehMDQkbVC07jiEdL7cJS/IDYOCNfTseLW/wXqqPGJEppHHbUIanjBPh0MX4kAOBctTImgl7vCcryVqloH+ZNP3Xn4SWpJz4ao0GOg99oCx0YAw==",
+    "page_age": "April 2, 2025"
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter FAQ | Developer Documentation | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/faq",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter · GitHub",
+    "url": "https://gist.github.com/rbiswasfc/f38ea50e1fa12058645e6077101d55bb",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "API Parameters | Configure OpenRouter API Requests | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/api-reference/parameters",
+    "encrypted_content": "EpQJCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDH0vcVydiQDRM5VrKBoM3HodXYgA7NeOB1fYIjBUbR8el17Mt42v27UOPf38jaKleJmIjofXmvYYeOIe33fb+Y9tTzoPr9dvBzfNieEqlwhs08h6M1PE1U1ddVS/22BUVSEzF1pWT2BFMk0TD8M5SlZPF+Gj0fBwP7YMH2Q3nf1nq+Vi5RaWdr67bGATCB3bCDhyvStqKxJe60bqi5aPAi/o/CUgjxRamKHb3Old7BcoAmUN/jeqws72fGCawV1ZkRoUcGuRSQT3ervj0t6uIi7GUv612LHX1r+Q/ErQ4Aq4hQxhG6L5mmkT/inK/4DHJ65jO4z2rHCCHcIH+8KhnNDeNDU0FvY8dbWcboRGUDf9PljWJnXxz6FSVaItpFTpn0o6hjjL5dqC4rBKEwGnuwphsZqPToFMm7k+omfh+zjtZSLbjuV/U0K0SqbAuPGlslC9hjJ2UxQQ5lc7hXbJbuHh0ymyJR/JiPswTlVwAiBGu5UI2qLs03NT8SaS1bSdG8y4h7roQtc90It+fxiqzsxU8iTidPC/HZrz4Ok+iuDavWyN8bbTj2ebAjkq7kvl3tiaevucXF1MRVhfdLSG+XqVSgFPP5Axoi47DWGtPVm7OnswXDRFNO6NE2X/Jg4nI5cJpZi4/8+vYyL8uqVneuf0MesHEQPwZF+ycV5BwXCz4XM6s8VPtqgukdk2rlamzIuMSrPeDkrXfTZ/VogC8m7JWL/91LNGiX10aaYFyHY/KRlv8U7nJBNnprHaW/1+qRq7OpH8sjapaQGxaeLBlstf26a1KKFfUCnbObY4NsvzD2Y8ku1gWtvPEWUZFXeO+7AlnUEceSuddYUGEuGrb1LrBk8EnrtwmNaKmG2LPCsjpWyBbRbJH15Nws+q2z2G1nyA/sNEYFdDb6XW7cO0jbiYnonPBRhv2XixcXq/+22IDTYhAR4Muee3kyyitoZ26IFs+3PhD2a3poBoH/OS6y1ShMAgEVcaP5tLuf+ckXbzEwc/HIC3gVSaEzBSXirlz2a0kLSzTWnfVoy4taFVJvy2Bbh4CnxdxY5tCuXiY8E5QLk8gKrjHp51w+S03xxeDAnPReN4+m6fqNdZ3A8OLFBKHkeGpqysYnfOnanVwXeI9veEklU7JNebXvi8xgJJl32DlXhwwNBeONG/XIftxaY7KaSPBnVfGvyJkxittZxtw/o/uwTmkZjYgAjB8ZRidSIPmQW+OCcbMp7qCodub92/M8r1geO1LvJUw1fzfRXFqIUc6DITWAn50c0nyO/3Clc9qVHXPRcJIkoE0IkOFts9nvfDJZGSiZ3RLaGqvKUCSO3edLjnDzJCL3xQ7PfHlQg5EVJoQIMVkXAnudRGRkGFPOSJNcQcFxKthA8ROWR5W5ZLW2UZufOwwaBP6ehTnHV7kKQExbK6QQn2K8JWok264i5PinzGeATo7oRSSsR5vEn8CVfawUu7CLVDalrGAV95fZGXTXs33Wp/yA50eIej9uu5VakYAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter PDF Inputs | Complete Documentation | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/features/multimodal/pdfs",
+    "encrypted_content": "EuYECioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDJWQ5qJwzs9W3t56OxoM4dCtU4mvXBjXIG7mIjBFyYfBGUk3Lft313OxaZdsNE/75dSqB1TYNsphj+3+JRHsE2Ls8RACCoADDgP9+60q6QPPwGmkzEvaNUz6L6vQ8hzMDxmttHuORpAr1zoV6VAacAFEgn8uVN3cCdtzNkiB1c4AqUUIzu+wjvq/498M898mSUMhEne33a2sw8MNtuk1eq/YcWKy3k1WeOly8+/ojR+g9HFdvzjdQwqLRcL6NbgmNETUduT07ReKlpv2IdXAluId8X9IZGLDQBT1w9uEyHisO/QmD6dniGkZxTSXkdVNVhTJ75vSv9YDtH6tFtYQJxJQAAgkrQ7C11I9tCnBK2x+3Z6Kvp4pBFrl7iSQVDhgGZLAYnQwEMf/zegJHxTkHW+klWwk1KVAI/Hs2Zc3iVUxB20t9YjFDqxsFFmTfurUIzBksHjCxMHOsh8GoIwFPprW338tRfEapyckxFAA9qXtoFds5QjpalTYBNHOp6mR0l3by68tKc5PVQ5llCAhMwnCEvbEwtvBN76FmoFv6VVqaVgmqwd0dNbH1lx1dTlOuLmCEczcYIuV+1e1iKmuHB79aEwSD1w1HTuHakeVukBSfLXP24rlbUZazFHedfg+6ZrphJAMo4SdrQS5tAEjY9dm0GqMHz/jRmtmgU/JTQgIWuPnZBGcI+cCX7JNKUcscL2MKgcPN4c6DD4KQnRfgv9EAYj1TU25VAv36SXahtzqg52eJdbAGx0YAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter on X: \"Hitting any supported model for a structured output is as simple as requesting a \"response_format\" Get started with the example in our docs! https://t.co/L8MctSpQcH https://t.co/BSTWeKyEmp\" / X",
+    "url": "https://x.com/OpenRouterAI/status/1869077917759922471",
+    "encrypted_content": "Ev8FCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDD9J6GxxO2ErUPQMgRoMN28tEZkD86pt+Yx5IjB0S2zJ8VJsphDb+DkKmfFTpPztqWGXimvM1bSufJA3m6VYDlKE5NPMNFkO2v3hs2wqggVnQ/VdbNs2orAtEB1lr7cYIfSW93wz/eV0/DDvLoqa7RB9GrkmdQjy9Gf/Cl2qs2PqDqy204zcTQ0G7cNlYB/qNX7EOAzunQBfheg2lKVrsrXYboGhPU3OFoMy96k1RIPcEZ2PjISlS4E8EHpvYoX2dX5MnxhaaAgcgqaw6Ixoh0P46N0jHpfAd5djsbdnzzQe//O2XJuzfhUShbPszzFomyvau4Q8p88A0qTy+yG5JeGAF2Apue0IhLJH1u7tOIVrEwplB3RwXeyEnnVXk+eo5ZwCmFwl7Ucfet93GzE7pe9GzX//I31WGQRdjZWpivXKNAHstnFI797kZtrpT+Yqh2S1WestB+/5Thi74Qw7dR+JQotlAGy04onAghbWqyJ7BPL9SD7j9u12DsEzbUhre/YZP+R9nZuoFCkjgXBOKFY94fdkfx2uq8tVT+522RsEyTm5rAR5AvZbdXm+0yNt8D315LHBnP73BUVgNN7dgBpfYVWoUjPWXKHXnh2UYhz06hk4dY9Q7DMWB9IrSI+yuNrhttedPwWg2MGbaAF1kFVvZRYADvBWpkgCc9k2gkCh2J6yT3aK0MDY5s6otnnCYhyjvIIpyOvoegjQDTh94uc3e7GSQVXSDTEfKkDQAqD3H7xCRUpTtPjlgwYIrSWd/DfJNMYNDb3dFD0kCkKcXbMua3oLuXHd/82hvyc+X0+nherNExIGD7dl9F4RcLTcKf+/dI7UdmrbTBoDug4bVxmdjb5PYYMbfOaDBUskcps6ehVn+xihc6HukCZjJb//Pdw9RpGI/lfKr6EAWIodBD8OMlsopq5b/KVWbK5S/eCA61wIFoa3jJYGWQIxLFQ7oN4YAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter on X: \"A highly-requested feature: web search now returns citations in the API 🌐 We've standardized them for all models, including native online models like OpenAI's web tool and Perplexity: https://t.co/sWd6CT8A52\" / X",
+    "url": "https://x.com/OpenRouterAI/status/1907623560522379436",
+    "encrypted_content": "Eu8FCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDLev2ntXWOk55VeUQBoMPeLiRjvD09e/e2JiIjAg+3/ReKtDkYe40V+wGeCXhrrxMZogm3YPg+HsUIldCBiFd9XXsAZzNgd7doeFQYkq8gSlkfo7qP9EOX2dbFhD4jvXk2O2rOjOR0PylamYA35icktyRVqzPTghoFCBEL5cXCfjjz+aCya08T653p/9+QepjUUNfA2hMfzH8UYObSR93lgYU/hRY2MAyBBfC3o6y14+BVSpS5PxHjd+CB+aSjLOJaotcgEhiYIW0/vDggqlEt6Jo5ojvPJM06Q2lbGXJssvdYEZ9OpBlshFFr+bGa88NZIkEyBZMz9xE8CgzOFaEb0p22+1QIYYnMzrHvgeAv/fjlv098Br7kKKKVt9vBTMaWcUr85KwA4cjfT90NxzqiB1uoda8ohPwqttcD6/3Rb8nlEoly+aQEY51TkQUE+rH6WAfaGbKuPeBW/jgpL/+I6cNB/NsaH/4pzrTyGpNmoUQzmivPvmAsCTbQbJ7K3GVQS/zczT+0qFDsvIZCfEIHVMCzR7AtVM/N8dSnPy0M8REqLt9z+rkW9AYi90h2d2O3PeSEQsmuOIkTjMDhCTMWo/BViQ198h9S6WRqE8XQJY+olKvilRQugX6NmfLvmA3LZKn7NUd3ND2P2G63MMtLSPKhytHatKUmAwIJeiqwkW+yaeNpiw35Z2J5vXinsdcuTjANjEL0+FRHSTlTtRGp+CPgefJvfDCTouoDU+oXMdDdp6lTPMnLs7NPCZL/Scy6XiFnZ19Zs2CpBKe7lUxr8O1lyJULRTnRyQQZP5OHtbyL5wPkgnL5ODG/cMHzXobfx3l5RypdXt8OIJ5q8srtF1qa6l7cyoXrZtmeyay2kmiB0iKdr1uAkRAdekaQdw7ZDAczIph/sCZegiUe1x0IOLF7jFPC9GfO8gHiVFha9UPBgD",
+    "page_age": null
+  }
+]
+</tool.srvtoolu_01P5cryugSU12X6pSvrFqtsN>
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_011JHZbxQ3kX4yTqKoYVBVPQ
+
+## query
+
+<tool.srvtoolu_011JHZbxQ3kX4yTqKoYVBVPQ>
+OpenRouter web search annotations message format subsequent requests
+</tool.srvtoolu_011JHZbxQ3kX4yTqKoYVBVPQ>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_011JHZbxQ3kX4yTqKoYVBVPQ
+
+<tool.srvtoolu_011JHZbxQ3kX4yTqKoYVBVPQ>
+[
+  {
+    "type": "web_search_result",
+    "title": "Web Search | Add Real-time Web Data to AI Model Responses | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/features/web-search",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter API Reference | Complete API Documentation | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/api-reference/overview",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "API Parameters | Configure OpenRouter API Requests | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/api-reference/parameters",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Turn Any LLM into a Web Search Model in OpenRouter",
+    "url": "https://aiengineerguide.com/blog/openrouter-web-search/",
+    "encrypted_content": "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",
+    "page_age": "July 21, 2025"
+  },
+  {
+    "type": "web_search_result",
+    "title": "GitHub - mmeerrkkaa/openrouter-kit: Powerful & flexible TypeScript SDK for the OpenRouter API. Streamlines building LLM applications with easy chat, adapter-based history, secure tool calling (function calling), cost tracking, and plugin support.",
+    "url": "https://github.com/mmeerrkkaa/openrouter-kit",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Introducing Web Search via the API",
+    "url": "https://openrouter.ai/announcements/introducing-web-search-via-the-api",
+    "encrypted_content": "ErEFCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDDR6J3FJFcNDgszwiBoMONubQzYvPR0XOoCHIjB70etaKIRSQV8saIfbC5Dba4Q8gwMWYKW0R3hGE83FzADbNs3Owmfs2Z8KVvgep2gqtASBEh4YdUoGpMFKObZeoBlfIf0eHwtW9/w2pGzE1akdT+LHeloF7prvdhdP4otiR01b62dCNae0KOaWatLYqfHpvtmMj0xdLn6Sw/ZfWTxnLRXdPPBs6wQ8MQLCAg5DxUS1g41IgbZa6WPdbw8Mok46+RInWP6veTbisxYhwtbmhmuJ+v8CM0FbbCWABmuwad6JV6BkboDxmFeXgB99kiIgjJagGMq0S2JjmK3ScBCDZikATjaE6KUkD20TrSPUoX1MQ6tu7ItpoDn+86lsmMfhafd7WnFehHEHxqQuIbDhiVj3Av1wDYFP61B94jBsKLbfw4ICUuuoq+Dmx/u2M99jb075oBbduz6/arExeGg0YW2NqqZy70GzvHQNKrzcOi8yXItoS6WX9vaGeaaXqySe2ymjLvpnY8tHDwLU9HX3kK99N/zPJcwLcUhIaixJOTK48Lfdxw1wAmEyWaMbdOlJFQHRj1sTjLVInh/Gs7a66LzH8Ew3e9oIf7o9yQ8v2Y+v8k0BIgYq/nWSR3o/KBzP6t8XU0z/wt9UGfxnxZ8rZdqATh01qBGh+ser4ufdhzzpmuQHjXQUJiFTNqXcyp2/3AoQ4xUAWaYNT3Sw2GQCQ+vPIoC/RigoM7WOglkcHHBj4rQEbQKuYz6d0nnBQNrnIRiDxqglplqom++eyY7+45tkbIX6GYyJV0CfCM8/Y1QtdHP7LUS+NV/bAXD/CCrLi9TMt7YemVGJDb26vPfSgkPQs3cYAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter Integrates with Exa's Semantic Search Technology",
+    "url": "https://exa.ai/blog/openrouter-and-exa",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter FAQ | Developer Documentation | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/faq",
+    "encrypted_content": "Eo8kCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDBRITaWEqIyUZQRNrRoM+W1W9i8ElwWPZ4dCIjCr4mVyMSiXOVXy//+9MewBHtIiE/Ohc7WNOep+3Spss2rJkmcaAOW5keHSGUeZYN4qkiNepgznR2I1iER7Nt1Vvzufo8jndDxIPaFrUfHqxOZ3Cjz1XDd2PNYbKhnqLztQL69cWKVWzUJV5AiivyDqd9NTXB8NOZRXNm3JIkSzWgGXynzfK7cWUFMvHaFoMShGkxFHVn0Z/ryIz6yTsYb0eznAwHzxBrCWxFN0xkGAKWT/bKX57CvvxCOLsVbe5OgOJB+9nkhfsDJPt26UYe01xJvBsrWpTUvc3dexEELjp4C0S0iK8JJJlqCMKEY/kA48GNoKIdgp9MqwT+PN+skIUhWHBVRYEPBV5D3DttrvY9UBmn0XnSUAHtRN3NYslBKk9hSaAjreF6lubF7QROFCNUtZxen/6/wduHpyJTwaAcdgBp1bMUTZRd5D2QP6VPNSs9jId18bvKjD2WgG133xmRZTJhfhBzDXQaQGrf4y2w8uDboPxLZ1nC3GLa5gcK5CpdOIzI4iQk9TKPX9WAQHee7vRCtKywxKN8/JNXl2IbA8+0ASSsDG3bMBCv5ExCOzIOJgNRY+TLJXHpWCm0CfPRpGjAAAPvQ40KwmYdFIXRaq/wPFqAfpmnu/Imt/mPJxShNwqPsYlpVqDaENNgq5TZ8B8ttpMUBRSaAh3LHHm0vs+55NBmOaqM36PUtT3wfibZQy5PgF3qHG3itN+ZQJSNYVbJn+jCMWOrjYu0m60jIzsrwFIdjNVdkv1JrFuzmhI9WM9CuDHK4JvfbBBQUl5KmZA1NVybj4lhTMWJAl0/jDmG3ha96BmG1drmLfuiRV5BkdJXP4CaPThy4LNRKAlreu8WgHBa5mnsCbHyGenj9fcU2aeNrUWjnYN1NzAgJUBRbTGtLrYq35GQ50oAP7rPo4CFNGhiD1fnS/0X/WlDAcZtzXiDwfx9y1h4QnfhjyET2+1DyDdHQ7B+s4RRLOlBFr1cMzyx+F295ZVVymiEjkLu9chMq1MoDAzZX1GwKeuIRSoiM2397hMrcNrQFHtwGUnm0aBHHPvngOcGtnbD0Q0ADWpg1r/7k/9PyMgBHlFsP0kg+bpI20ZPjoWKntaXxULpOZKxC2hd2NOj/lLZfSONoZmRYuqtQ6qtbrFh1DDkgUtWjFqPRB7/a0gTIOir6IbIU5CUWEMS86NXubS+vr7HypUoExMpeDcBfXrEvkzs78Sb3mhCfqQabW3IloVjLqCILVo4EwlYIHWkHtI9PYDTy8af+1xYEQ8Eydw4Z/Bo0imL5ygBMykgtIsXPjrN6gpoiEfeenJOUI+FehmGJrCtQxCAFn1R6tkPsku9xiXpmPNvc7yI2P5t6ag3oemJ5T5p6D7mSxSGqSQp3wVIAyUKVwCcWPRoCVHeh1/7AusssClFy5lA+b1QnWww8f7cyB3tTPrnnLNjAmCi/Ty3ANYkCAtGtHN9bg7ru5zxJXNMFQpVQhzdHaMtxpNq6Xqk0jLzuvNm1rcanSWaCT6ekax0Nu76uplBJyA2UpC5FvvoOZV6CB4bJ1NboSafhwq4cUu+RQ90Z5wHhGgEQYnYUcFjTieNIKfMBYw+XgUj4bfWgL+ozzT6t30VICTrZWajHmFZlTMSfLP8CCXge0ZqQb8tjfTzAv/wrMDfy5AMAnof+fEpVFE1MuIOYVMzaWNRyOCM/oFlOZLeykOgI+uRnQ6Kte550IdAnSb1aQmErTVEYsDNLZImqGAHoZFU+jCRUtof5MqQZXw/byLYzPQhvwcjCXHRiTIoDJ3ohEFFovAgPmyHC0iHtZT1qfBPwOzF9e5r802EbcnIb+yu196cYOMwxJXBz39T/ORac9oVwVFbJoDp/I9k2ZLb8IizWBBa+8TJ8I587lXAfMi514hVTw2Co0qnFl5N49ySK4o1qhgk1HB4jPF738I17jRgWLKW7fr6F4USyKO4Wtkos+6DWvizE4vsTz5WJSHZfDHyr9AK4E7K0S84mSgKSeybpi9pnQkxlthloBnzJVdb4aFPH+hh3mfIsHgh5o39DANGDOocgyQo+H6vCKJB5x31CTh+qpxZQVvCNPCL7gyvYnBUz3WiWm081dKXHIf+Wh82Bf/ArLX9keRHKEOQCQDD0Rqyvn9ADNdbFENTkbWNSZSSkGTKnm1gMncELVQ7Jg/wPCcjx7rC+jxRtupF+qY7ipmAfGQIHSa7efKNE8KcFvlwlWzDyENutqHz+ViWpWMixVhHc3fOzGH95nZHw7Nhu8quQ8vhMw/LzupmTnv0kFauSiYNJfCyqRQvPz5HyMcaHJFlQUGx5pCK705xOdTrB0JQj5x0y5dmocWuCIeIsniO8vXeoB2C8EDxGW3yU7WN/eUPDyZN8SrPIaeHUZbJQNxWsMnqd2NCwJClIfKcIVEEVbCBfYPFAqCXMnNKySqZA0PQDs5gncx2IyHhJnGtyousPMMCxGzGalxsKUueYLuUaBCINn1v4U5X7R6BQDk0Zwzye7PQBskTi3qszw+FYe0FGNnTdfAZbBPF3lcZ+666uQiZsP3Gw0//ZnLtxTFOz+b867eN/SWwHi8/9Slo2DqziF2f3sMFtRTFgET6BwQXtoO6ejZ2+pT7NHd52dGsRQeh8MKB/jKUsSp479cyR3QTyWonuqbSdPYDnh8IxQX5FYNf89NAQ9fyJVbbEHLtZkkfY3obt6YFNM8BTZgHp0H/FewDnqlEyX5EYqCVLmPcDKN0aWSjycPUT5h2N2FmH4iqWuEFQDchfdN6hkRB0qCw04y7nbGT3Ib6d9Ka6Wf9u0lycFOlnOiWkBSVparFCo/463JWIsNS2+CANH1anSnmJXA3RK5CjiFRbc+BgRLGLPimfUzXSuiLDeRB0W9tGeoNmBpsrK1EHN8peHNNjXAbstXYChU4H0/eJhvLcDjxAopQhbqYSe/Lj4lSwpJpDJs8OUdV5P807x3HNdmUazY6M2PyIt0hsK3zhLi4gWabU8vZROjtfKVq8X2DYtrsZDygjomR49MRxTNhReQ9L6nHRtlqXnR77aWYXVsDdrkE1ssmKTHy8Gs4XpP2UMJOpYriNQ8M+wlImoDvNCVM2WYuIHFaVk73Mx9xMj0jB8g7oH0Xd70MQIdxPGF3desu8UUcR26KiFFaYJ0N6qGTnDqNxlYG9n8FKoy6ig8lzRYgDzSTMsUnF2hSg6SneGmX1FW8s2tBXGym4oxcy0Er5SJ4KjZc5Orcp9KiJKHqG7m4W+jERr7AIj9xmnhuP16zSd7yhUwYV7bs76Zn/qH6ygCiyAEQH8ysq/Rhm6hutBasmaeOkCjAH+DS4xpw+n0+YhtgzYFfuIEm0l4JDbPRANhEk0pZCb1NUX3R53r2QCbR+Cug8oBRWhNpKLXJPygbyUcnudmXaYi21uP/GHJ6adlyt96WPUaqEkowr6YSXlk0XhK0B6f6DMwJkBmfahdv7dCr3mHTXVsInpTca7kYW+YvhlB/Chvszg+tmNK+GANfBpowDxS6P/HoEGOy9zpCz7W83+e6wKARN41vK43+jZRcD4k6KDILtloDQ7nQVR0VqayuJTNuW5thESWs6S0o6T+pj9HIW62PFClCVOyofqZ/TyU5hGUjEpLde401cLHBRrFRlfDmUlzr1BZnwnqBQlWvj7l9VabcoKKgLtD8HRKU94EMlocUADwL4GNfyyWMNpz9ZyLXU88Xf+QkN3SXeGip60m+RLq8FO3/bdh5wSxaoaMg5Txm6X5MKd9aIhQyp1msnkWCWdlGOnijezpTd63GxOgGu9GQvy4Lgqqu45jlvmloAVKNvUvCw31ZuGb2v5mvO3m4xn2F9paZHFYCniWHUxKzC3rdPibMRwadXZki0fXteMI2GcJuEVEms1kwWH42Zk9vbVmC6Kvl0iKRMT3rXLP6WOwYMj4r3aSBr/clkj8SfiwadwdZloKXSf1WOsBEBXf6wLm1TQ/Zn2HpNQnypfK0C3fbvrWsOtaGnRXFGr6ZbHJH6hLIup7AkHW8PttFNK9Tt/7v6pWHWRvHgQii0yw/0E9Bi5awhag8tVAlMPdsC2XF3KA2aJy3SDYq+pGXRVex6r8lZyF8YTt/gsMesB083PRchOa4moxVNwCyCKQMOEkJj0JAOuy8JSOFOo9k7Xuzrll+ChFr2XkO4vQBKZTjKo4KEWmO4pzhZ8lPhyC30p0XYFESDYfHVDRQ2e5f4SUSIpHL5M9xmgrTP1/tsI3ABjObp5SWcMbYxdJFr8IHFGNIqbPxL0q4h3K9jsm0s1jRx2VA+fsmAfyywwYHbfXW2/i42Oi+qY4YXo0Nk7Agco+j4133AcwwGe4ZWpQg83kt3jONSyms4LkrzSc5U3VTAzyLQBy+ZseZOAACX+53unrt3ZUpS39/6j541wZzJZeYJJVl40U98i6Byc7vJhNejXTggGDA8/QBb51THy6ivcT/yEQl2u4t5S/7WkGqDCnyQAK6OH2naS+dFMwBUXlBwrsO4lW3c43MAGHEwuLDEZzL2CM0YQZ0ZpkCRBZ5WKW/ANRUBbdg2D2sqt6XcaMDr0bLsPy2X/PreOM/biTcxmsiK4IE8Fhna4zpHP8aZWSNmaqvlL9Hr2kaa68LM0H1e94J9ui6Vn1zXq09FsJiXg/Vupe7E7bEXXmctR6xIdeIKSMtCcmxvB5SIvzL+OdjQ8pG7BFAgzbSS8NDKqMSqSTAnj+wNMhIlpTSHNg6Wtig8ec0+w1t4AeT4Mgx3mcIUoG95Kiv0xlY3/9LIrSl8UWGBajgSGzNk6RPfJP0DG4XN3cgQFWKP/8RywupyI2VFlqBxx64MBsFNE2k4Xa7vuUQaW/xpxVwbcazwfHWnYK8zHmOMhrhMmClysaq1YMNX8Cy5KIuoi9hLjKIFW1UDRPgZXSXSICDZbhcJ/HdOQ1JIrN/Qx3OQDM+hFnty27llQedSRy/cUmLHk7qR4/E308Es8qZ0NJJLIJrC2lMBv/ehUje8okVJWTH/OHnAYOoAQWtTe16Dde/nLM684KRAWhIMuQigR1HhMNfW8jzqpLP7l7Q4krfT/TJLxAVPMPxf7NCj1cHDasnvbyXgiYaw+FOdlRquGWsQn2DZgzccVVhMkrmlZ2K+xZY1eo0o0FDBV0rYlmgqtkgAknYF6X3euZ7s4ws/ksWwRmkd9G4BX9HvR2syOhkwoYwFUDtJpl73h0E4/fEd/1kQS0xPurViriaOl8Iv2rkGaDqfNnXcN6UZx0ACakX5kH5KWtxJrN4brfMZsjI2tsDoENm6pwo14dOKjXCdGh77PuuCQ+rgMEdnnviozv1pmuI050X62LuU+fdmJJV8QT2GOb7aRzLAHkidxj//5IOc2D+5JIp0ByDLXfoCbXhjlHAMjjhYSgW8+U0X40VJ3ViS5/+NG5WQ4eddd91kjHmoEq5W2C2XWZhDUwGbT94zVUDs2YT3xrERWunpH+Vsr6QtfpAsQmux5GHv+kGtThw+1pe9ufU8ebF4EKOquUop+xGh6280G2undt8YhNr3QGrIJ5vmmMIsJ8z8WOU6xGOBFSqogX0zAXU+pduKJ9ber7o69QmCImuOFn+tKsDJLwGDFUb5IJNUtYAaRyVR1AdoDm0fjGjrQGQIPaAgvuGJN88FxrVDB/222o/w4P1AdHJA/XKXIF+3b+qUbkDKgDbnQ0NnGrKrcACd2qng4eOI9kGvmVJNAdQn2JP/QBiABWdg1GDXd6bRFz/B3IKFPHT8hRSki0uWjAfM3813iaFnuVP/IMbVKi40t45Q7+GuYGPj9VKQJtuARSxPFwbCxcXScEFsjd7XRSQ+B6b3eSLRUfwoxy04bJoa9QOI6721fy/H8jWhYjvL842oYbPWHqS6PH2RsdovkTR9oDaJAwPQ9ltd4/CtYlxyozwk5HSb1KyBKo+1rgtEsr+5Npj1BbOrFhq42YbrMCAHkpzHw4EBAP0fAq31zrKbo1QUWJ56xfTPPJZfcZQ9QGiEgXmw1OQEj1vciSYU4vl0AzlfFRAO4opAE7Y3ttz6htKfRE2Zaq2J2Csh6bNzahGOHM7uqDLYawJANp+vbGAM=",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Responses API Beta Web Search | Real-time Information Retrieval | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/api-reference/responses-api/web-search",
+    "encrypted_content": "Er0ECioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDLD5/OtZ45KuIWrmShoMjM4hUAnUzus7zmdJIjCzQcAt81TmZbVHzhNNkrSyWCH+AXuX/Bdkv4UuteSsKBPBrHXldmi5ywnkuDu1hR8qwANbokMs/ksFPibIpSv741FgSTteu6e5Tv/KKXf/TVVNEV71BhE0jIwaju0+UAbJd6ODLoom1uyKRKgjwVoL7eMIlERKj4pmRAi43Pr4RAQGJ7Y5npzB9oxv6Hka96ycmdUA9OyDjfJdyV7PYtMhdsLLeASv7G4RipmbPqUGUSJIdgaRJAlHZ9r7tEi3LA8/Ch0wU5H74DR7Z742stdo8xEseFs3JyspJD3/hyVzIx/EGdEQlyYq8xz1PcHJwVJs/0MkuuDDZybMDDucixa24NyvVyciN6SQf2vCUvabE7qpw4yP2mHCCrHMeb7cqksciAe6SNEbqwcBBqxH20VMMKY2TjhHxQ6KbVn87aXQfl73WX2BA76FNSx2k3NAbGx2WOp4WfvgshbGGHQ7jBu+E/ReGkhGD8t43UANQmJQfR1xrXXWxVvfQAJmt8xS2BgOdKGRII8f/ydtM6v3aIWdpNE/NoncR/S7JBMp2dWglQe1HfE2B1Diq227G2egHWrztpD601kojPwKxKoWgBxusViwDm3gVq28081W53p0CULCYIklCCLG3EwVOFkWD6oj8omTlbkQ7+CRqWLIUz7CldMcGAM=",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter · GitHub",
+    "url": "https://gist.github.com/rbiswasfc/f38ea50e1fa12058645e6077101d55bb",
+    "encrypted_content": "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",
+    "page_age": null
+  }
+]
+</tool.srvtoolu_011JHZbxQ3kX4yTqKoYVBVPQ>
+
+# ASSISTANT
+
+Good insight! Based on the search results, I can see that:
+
+1. 
+
+# ASSISTANT
+
+Annotations are part of the OpenAI Chat Completion Message type
+
+## https://openrouter.ai/docs/features/web-search
+
+Title: Web Search | Add Real-time Web Data to AI Model Responses | OpenRouter | Documentation
+Cited text: Web search results for all models (including native-only models like Perplexity and OpenAI Online) are available in the API and standardized by OpenRo...
+Encrypted index: EpABCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDLAXQuxBE0LVRkHLCBoMpK30k2Dp9YcRB+LKIjDG5vecAIG3b/+58jJV/vq3VPL7oYOcWtnYlANwZPjH1gMjZTNX6Bp9DqFyZVnowOcqFN7re2VDvGKApDVVzYuS7nz4ZufpGAQ=
+
+# ASSISTANT
+
+, which means they're part of the message itself.
+
+2. 
+
+# ASSISTANT
+
+When you include file annotations from a previous response in subsequent requests, OpenRouter will use this information
+
+## https://openrouter.ai/docs/features/multimodal/pdfs
+
+Title: OpenRouter PDF Inputs | Complete Documentation | OpenRouter | Documentation
+Cited text: When you include the file annotations from a previous response in your subsequent requests, OpenRouter will use this pre-parsed information instead of...
+Encrypted index: Eo8BCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDJ0o5Czjw0VbI3NdgxoMpvrrS00sHEpQciidIjApe5M97fpZ4OIlBGujUY+vuJLPdZ0gkj7y8UBWQ9VKq30Tq3Mo4yfqs9ZD4YaJRGoqE1jS7fdQ+eIyUjhAxCZCNpJ32A8YBA==
+
+# ASSISTANT
+
+ (this is about PDFs, but the principle applies).
+
+3. 
+
+# ASSISTANT
+
+The openrouter-kit SDK saves HistoryEntry objects which include the message itself and apiCallMetadata
+
+## https://github.com/mmeerrkkaa/openrouter-kit
+
+Title: GitHub - mmeerrkkaa/openrouter-kit: Powerful & flexible TypeScript SDK for the OpenRouter API. Streamlines building LLM applications with easy chat, adapter-based history, secure tool calling (function calling), cost tracking, and plugin support.
+Cited text: Storage Format (HistoryEntry): The library saves HistoryEntry objects, which include the message itself and the apiCallMetadata (if applicable) from t...
+Encrypted index: EpEBCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDLShLDH7hRFenUlfGxoMxj4oWJZDlTGNzV/WIjBEnfpo88Uo+6fvbc3VmrlH4k1ld7KN8+FBWs3OlKaZRcTORu/pKaAB4pPDnt0Qlz8qFSi5HQdKUrDd4ZiGR5rklOu1dVS9dBgE
+
+# ASSISTANT
+
+, suggesting annotations should be preserved.
+
+However, I couldn't find explicit documentation about whether annotations need to be passed back in subsequent requests like reasoning_details. Let me think about what makes sense:
+
+## Analysis
+
+**Reasoning_details** - MUST be passed back because:
+- The model uses it to track its reasoning across turns
+- Critical for tool calling continuity
+- Explicitly documented as needing preservation
+
+**Annotations** - Probably DON'T need to be passed back because:
+- They're just citation metadata for the response
+- The model doesn't need to see them again
+- They're informational for the user, not for the model
+
+## Proposed Layout in Greger Buffer
+
+Since annotations contain valuable citation information that makes the conversation reproducible and complete, I propose storing them in a human-readable format similar to Claude's citations. Here's how it should look:
+
+```markdown
+# THINKING
+
+Signature: eyJ0eXBlIjoicmVhc29uaW5nLnN1bW1hcnkiLCJzdW1tYXJ5IjoiKipDb25maXJtaW5nIDMxc3QgcHJpbWUgbnVtYmVyKioiLCJmb3JtYXQiOiJvcGVuYWktcmVzcG9uc2VzLXYxIiwiaW5kZXgiOjB9
+
+**Confirming 31st prime number**
+
+# ASSISTANT
+
+The 31st prime number is 127. This can be confirmed by consulting prime number tables [prime-numbers.info](https://prime-numbers.info/number/31st-prime).
+
+## https://prime-numbers.info/number/31st-prime
+
+Title: 31st prime is 127
+Cited text: 31st prime is 127. [127](https://prime-numbers.info/number/127) is [31st prime]...
+
+## https://prime-numbers.info/number/31
+
+Title: 31 is 11th prime  
+Cited text: 31 is prime. 31 prime factorization is [31]...
+```
+
+This reuses the existing citation format from Claude! The code already renders citations under `## URL` headers. We just need to make sure annotations get converted to the citations format that Greger already supports.
+
+**Key decision**: Don't pass annotations back to OpenRouter API - they're purely informational metadata, not part of the model's reasoning chain. Only `reasoning_details` needs round-tripping.
+
+# USER
+
+Okay, that could work, but what's the exact conversation format that this data will be sent back to openrouter with?
+
+# THINKING
+
+Signature: Et8lCkYICRgCKkBmVCT/CUtpeRuWloqh1NuUabVMo44LZ2xWmV1cjlPnxPsY3UwBZMb+fBVJnZgPCvIrVOgBqRSs12tS6uUw0Ey7Egxcm8vme5HDG/KYVeQaDG9DJzbY48UkKdT9biIw7wpkfKSXzk6Xy32Ou4vxHKFbpQmnQYIp5U7/laWWnI4g3SM4WNnf6+5hF2yY3PF9KsYkuRx0Mq2Fbpexh9f2QaSjyl8qCFTdweDp8wbNseJ7bC4RDd/IKZkagvc6GnvMkeYa6yiT9ewEpUhR6ORy8lfQFVxL8/w6A5933uE9bxs3Ho1mWNDCy4ej2PMMcs2gfIAIS9f1wgw7R3viNZFDox4gFI3cGIYSlhwT5Djei8FGLLYQbI3VC8g82MTgJQgO5SMPIU4hzib7EladVhouXFET+FxKmrbZ5FqVGBPLimppLIyZb924XSi/SnCsuZYCcJLuBdlHvMvBqusVhcxdYsfSEuKUBcYJEprMcKOXjX4PWplT7oNHaSOYcxMj0f4Xz0pNHy+dWdC2gLWJGmgKJaykf16BAV3OtM1HTsd7rlBo/G00SP+cZMlOSu1sxxhQ3VIFY1JQy96WBOSELZpU6VmkEgEkX+oRWpWv+djK5hRJr9BRLo9vz4fzz9Qz2LS3g7NBDg2icbhufM4uVx5r95x2a3IhkCRhZb+R3Ut35Ip0k1o+mYwoQhRHkVy+24AHs2Q4o4BIM5OflIGEFWj6Kql5xi9vpgwGGYLYjXoD4D677BwLYdWEAA36mo9tsik/7eEl61fOczfeyD2AeeXpHgDw4kAZ3/lylgWBT1/aNWbkS8SR1CyVqwiVy5mmfrvKW65W/ARS7xyBfFEQ7sE1qKVklelaDLLXtZwOgPeXKjOy56wZgFjatVq/yike8hzrk1XoaM67z77ohwJX/SeVcXcTck3P9OtUBKSH1IrxIFWrKecaGRGYVcw1n/yb8ylxjBn0+RMhu726bRIWxuQ5JyRs93aIPQH6/Josd0ApC/FQ88pKuMPwBTze6UL7sm0ngZj7x4JvWu9caIOnl4+xzPwAxfeQGxZAZx1ymTqtvnmd6MHLec+H97S3/jC4FMwM7f86QOuT3WPJB+QZ53zfR0WQ+HO0wvSHJFZp0Ncrkyc60hzyOzskDhMVMLkY1ka8pc1ewKtlQtL2zNhBsSniPGU21fJFwugUuPj7wbeIeCep6l3FEkXFv1r1LzO1OOJLBHQLflUHmhNQrf5UdYN8Ulxo7Ai+jRCt6FlzwSngtJ2CZQSbv5MbzHQYN+72SmRAQvVu7gxGnahhPhA0FMkWKyLBSH76gnOpSQ1eyY13mB9a/vJla7mRl+/KDN5ri1HiDRQJtd1Di9u6iCcvObVkIzEN88xyzImDdLiv8va9h1rZGdruoIF84YrJtncT1Yb3xZywHQCZFDLCsiXWddRvnVHo1gQE9nbMLa2CHxup5gk+02odwNhHCrGYbyR4HLQvVoyFlPCieXcBzL3J1gbihy6lXSQsYJ5q7Aapbp8U9djEvbppGAHOKxmes43FbRyq+t9flQgGAWrGlAdU79vM3l/d2W4Q8VZeHjqzsa/YRwfpRzsWtdqT2x9ZDbxfnsGJA0JzlOIRBT4xMUC8LCico0V0X/tTLyzqbSpxd8OGNeZX21rmv8PQ3GUe4EXbhb1mhPPzxC1ld0IaUe4j+OOcbZgeYt1rc6loW8sPHF3rkwXAYteudgD9cGxMQgTh1H495Yqub/9Ute6GOVxD2c+vkAO4/BFGR8djV+vMOjEe17EPHBAc5Vx37IsiROqAFf6jgxGkBNPQ/ZJq/dZrwyinZfYm+NJ+LoJ6DfgtKUsevoaSk/q/eXA/1RHLmVyoCR03/iL/LixI0g6gKgkY9HkvvozHL325+lUwp/ebXf182tIf8I4Ygg1Ya3H/noq1ExJ6SFB7aD5LQ5l+g3LKdXSqrJSTrHERkbuFA+DjLqMwvyAQVsxFyR39oYodH5mQ/QSP6o5CcSnht9Qky860IWCd5bti2cW5HAh1yGWqGqMgR+4ELEwB8ooUTiWMXRTDfI8H+bNJNE7E28y9I4T1VzZ6CLsvXmvrafCtoyuJAuWd8yP4BC3CEbZTZ4SBnM2FQ+IX0OpRrhyAaiTlQyO5cK6gXwqXDMfb2vnfrCqTnbd1Uh0lfxA9JkhQqCPzLX5N832H4745lfzUcG+g+auWGUjdLMRYTP60gS4NeqdoVLW2z//AHgTtMhJM0wK3lxbAGoLf3h4ti4V66kO8JFvr36sxfpaaNFwepu/+zH1kHYvhJ9qzmomm7Hkj44mgIHUnx8ZcmiEonv/W8X3gW1l+Psr6R9iVwc4T+aHPCzV43U2lQ2eccbLhr0LlbRDCKPVtGk/1nPmYfpuYY/vuequ8PGUnwUoyH+C0smtt4IV9n5bZYViHcHtJP5onzn+f/R8lh03QpG7T75FGuatpom/Hd/BCexNqSBfbiUeG8cxYjf9oMH+9HAZUI8jEbhgX5AXEugIx79nPhLfXxRWpOSRjc/0IszBFs2xECoofGDC18CiR9iD3v6y3OiIgZsh23DuRWGb17FDKXpXayL1p2hEMe5mYs37P9uezsA34kcB2oZINGdS2LcL4K0yhvlYY93zaioTmoMqBuoK7YF2W0HiqlKB5V7t0kZJIae1b15rp0DOaG9Uj5fPd5PQ4WBrUvh135hLN7e13ihnMVFFJCeSoAa6vlbyjIAvLxVwkk2kGKPbZLgg53kARuumIf5Syf8yvKKjHhoGtoSI1eii417FdZVmdyfZBMlct1hVwMTgpQqCGlBYhU4XI6ZGSQtjvoWl7Bians9z874OGtUQhT2jDYIPJh9rf62DrJzKywNZE803FcsOMd3M5LgNSrzz81U2DUIcqRZ2cH9+alJINBva6DfvD3icsmK+LTAlXcZqbKTPDacZtd86hm9rRTnwTKsRQ5EYV5nEbf7vdvMv1A/PoL8Lr7KWn5HS+dwhEa4WId8NMqRye2KBd3/0Ab9o8DMUWot1TCGXPkAAoZ/Rlr14bFC+QhO2x7+qy3HC0g7kt2YXYLZKl6QJfk5DD+6HeX7Cb2+zLHY8yhcTbDPn4wwBtMi4e9jqUucWQ6tTeYlR6Z8NhuRLJFr0lCI/mmv4ovaPNTDdPNstH8WbpD5NDrnQax61L0nHraDYK0CONPiRIHDBVjTZGkbK7L4K5tQ/JtFv5u84KTh39SAXYpwjZKjekRqgQ5rwSg2cUNKh43LIM6jAtsrf7rh5OlVLuRVZLWhGVSprwwL4RiFXJJ+bk86IzmCTCQyJN4s41pN5B8L5y2T/DeWzMyTNgaf0zD2ofqmwhusHbsiIg0YXO7ksyooYEwwt77nCM7c1KRW/BvMhhwQjKxC85hJCMU2rCr350Yt8Ql5kTq8lRdy96hFZpa4405Jz7TJjHUMsEEAi4uqCXp5bUCB+Adlt721jTwlK2BLnwKrRhXW3HWqw8LeEwvsyeaSqWTVCP+vBoeICri8KG1VLsdxKiv2rHdpTWPbZmBW8+hzRemuCXRp8UG5kK8Wpxq5kk1LLID3kqughQ9SsT9YkvXRkfGGa+PNVDCYnsF+F7nwVeHFdN/7HL050zf5uXyZuN6LZ96EyMk9mfgabcprIEjLps+lfoA7DZyy8m30rTqf/2y/uFDuG51h1y52P5ryhDR3+7dORmFGJm6N9C97CfvQ7lHhknHECgXDe1e9WqSbWSrwnaW4rnMf0wOz3FI4WBxEHgutI08oqdUue2c50/V3zAlCRnTRQ2exh4GpdBtDL2ltO23YYMill4z4bE59/1jR+n93WzfCOJz28vMIPOCgWFiz0SFuCiZXQxHPHz7NPk28VBaBXsJvmTZ+Kx2HYUAW13JaFSwQ1HXfbTobSXZ8w7VcRkiRxGg6sX14kqiKHJzj1HaawYBLMVUFTpV5+Zm3/PTTnHXQc5HJhwblyKjGKm/niYeZ3j7UqsML0/3NQRgU11YS+c6f94CinhCYIG8QupBKGa/FimrFgSlTm5yG3Gn4eKp+ze9eIp3KyNd2pvhVT6fJHlbifB9sslxIvb2FP6jVuJbmz8FXummkMPxc8mj+FTHTt/rz9fSGdPtehWG5e4wWz+GQuNGGv5sVTZjXOYSmmIbXlCbWxZXul2plsZ3URt3VneBLAdlWdn638EvpMmsjdDEMIAiRjB9LfhbSE7b49elD358CSkLTh98wKxgxFNx3onmsSetFjbntLSwpvZubbI/pV8YFwOJGwZ2Oq36FtuDGlvQE2QAkSUBxSiTqPvpskX2TmCO0kJUPh9PoVnTf6OIptBZSXt+l+e57sbhgOCYql6n4m2Ak/FHa6dFv6tUooTZ0yzNE4GSuUdcA8jb1FkKiBmyx2ZFSFu0QtMazLqhSjQye8xFgO+yrGDYYVotUzW+io/8zBkV+JWTa5jdzgXJbaKtj9g5BmQWawPV2hlpcQPMBEOgv9VqIqrV3S1xvWXYwLcXGBn2VJ3XUxiXXTJnj2nB8Nskl//D/tpeeKL1HNlzZhxvbxl4OjTvm/VOV/mxwTs5+wNptLB5YWXxdG45SVU6aJM6oyJC+X4+VwNHpSwc5wJ5cv4Nu6TcuO9iQKY4S0uGPdtvjXxRqlr391+VtjAh8qVNSceN6Y+nOjJ6AWXJgpaVMu+SPgqDR+doGhkhKAkHiiRP5vyTOaoMzBi5U4U1t6UwQaptx2NMAGQLVMe8wHU9um6lg3P1ysh+Nka1duG+kGEca/nP6ri8twg3VzqkvXO6/7z5lRWKQLrnp+VhR7Yp1PvduPwrbh3JvPVZfBZd2/WPu/M1FiaYL2mEyKdFUWyGK0J4W2Ac8lJ/fBC7SpO2YxKFGaoWaw7wSagMUiGLXHAuc9zWtNzVyyY2kEZo/lI3KEXk3b5wgcrMQkvPolNFUfVO01BCDpn93ubjBu7MeUXuNe4YErIdvJLS7r0q2ONPVpThjKBYKo00j+opssoxSPGnTfQKJb69Z9AuT8e/VIYOTYhS4+dDDjZximmOk5juxwSonue9HfuV//KssnEGOp3fUq/JxFbsRj6t74PlA0h+TnhQQZn653MGV2kvf8GOA7Xc+ztFjFpHYx2s+aN/IiBtSudOcanzd4bP7ePMGpr7ofIe3DH5eT18uNXVepdZLqInWLFBJl5hU3kWs/KI6Zz8dD96xwnnJ2AkEOaOLnATmmZA0cDWyxvYhAMC2j9ef1FllkjUjjKoG/B97LMCStTm7bU+7AZaSbD+kOxBrcvubQsc1a33PoSrwcDcEgV5wommnA3JoHsWnvBp6Nmpmk9ZKStm+8VFsHmo4f81zdekjrJ2VEaLrb6lXmYWLyTS1d6Z2yBlFDxdWbCNyaMi+08jNh1ZaPTKTclRpbAMy4IE+DJrTpG7gBYsUesywzbYL1tz8WrBIjGCtiNeUu0DOuno1Z0e/3fPMV2nf3oHOaptYzNdQNAxZaFJOA949oe7tNfWnNzG9kyz7JNT/WB80/uey/Tpf/q49MFOCwA6NtpPQfFuLrQHP/yz34sWvwBEapYXaPeGmHCjXs3ekEsBLP9f2Yjg3fZ1dwsEsK9MKeBzSfBILI1qHZTzLqWpC0Jxqb/XuOzTxVhvA02oWHTT1alkk0gyD6+6S3BFNIeygwh0srnx9GtyH9bLspr8iaHCxklMuNYI6XiVfKJheQeHr++EBaMrz2+Z3/VRRkIAcEF+hBwvHfyTVYUfqHKVx23I9oYYACalrstrr+4/zHOwQa2XC6fTf99GVcE5SB4PIjC4IDTmtFx46S3OQRiJOmF6nyGxmWJ1y5qnwrjeqZZ0rfxzBDs3GjXaQMsWitNtVPfb+oCF+jd5R5KYNZm4BBvhxDycReGImYCwVkR/nI3CQFmn7kIBVzSjxHA4ablMJSMGNUaFXRuBMz983xiKYndSeYuhCAOgrr9AYquk3Sl4Ea6lt0/8H6DQB+x8GQM/hVB25zhadmMzggipLYMe5aLTC2kvWgqR7yDVCNkkK4wviKhCQY/3mvfIY7Wr+lGTEfs1MahpPM6QxTcOsQUsBn6BlZJ29XRc7IhDm0mn1Oc1vhrvU5f33bteGwrH+5zj3jxRJG6K3GIVjfNoWs5BgsJCpyv3IyWSnSPVzbFIxBB0qCzYzPtHOkuvI4q/X5v7UpFSGHXe8lp5e6VmM9AwPK341MEfmvuj+0uGeE2suJfn3vZgexl+KN3QZoHIFeH6sR81po+lgK5DLWw9v4c3rq05y+QS9abmLIAkaXhdrHMjJF+x/VUqTM22wt23Gd1IuSpfEv8GbzPd5w8ook9mZ41tG9ku5dbSpYIFuVTeojJPV8K7CQb3SATl1WhkBI+EXMF3LjyjqW2pmU9aD1FdDUXvZAO8BKnBWDwzvDhprW0hF2+UWIlX2H7X992COD7mWiG7wHila7g6YZcvSJ6DdJYm7CXNEsgaBzJ4ioL1RgB
+
+Good question. Let me think through the exact conversation format that will be sent back to OpenRouter based on the current implementation.
+
+Looking at the code, when we parse a Greger buffer and convert it to OpenRouter format:
+
+1. **THINKING block** gets parsed by `greger-parser--extract-thinking` into:
+   ```elisp
+   '((type . "thinking")
+     (thinking . "**Confirming 31st prime number**")
+     (signature . "eyJ0eXBlIjoicmVhc29uaW5nLnN1bW1hcnkiLC4uLg=="))
+   ```
+
+2. **ASSISTANT block with citations** gets parsed into:
+   ```elisp
+   '((type . "text")
+     (text . "The 31st prime number is 127...")
+     (citations . [...]))
+   ```
+
+3. Then `greger-openrouter--convert-content-blocks` converts these to OpenRouter message format:
+   - THINKING block: extracts `reasoning_details` from signature, adds to message
+   - Text block with citations: just uses the text, citations are in a separate field
+
+So the question is: what does the message look like that gets sent back?
+
+Looking at `greger-openrouter--convert-content-blocks`:
+
+```elisp
+(when (or current-text tool-calls reasoning-details)
+  (let ((msg `((role . ,role))))
+    (when current-text
+      (push `(content . ,current-text) msg))
+    (when tool-calls
+      (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+    (when reasoning-details
+      (push `(reasoning_details . ,reasoning-details) msg))
+    (push msg result-messages)))
+```
+
+So if we have a THINKING block followed by an ASSISTANT block with citations, the current code would create a message like:
+
+
+```json
+{
+  "role": "assistant",
+  "content": "**Confirming 31st prime number**\n\nThe 31st prime number is 127...",
+  "reasoning_details": [...]
+}
+```
+
+I realize the current implementation has a critical flaw. The code overwrites `current-text` with each block, which means the THINKING block's content would replace the ASSISTANT block's text. This leads to incorrect message composition where thinking and response get merged unexpectedly.
+
+The parsing mechanism needs modification to properly separate different content blocks and prevent unintended text concatenation during message generation. Citations are parsed into a content block with details like URL, title, and cited text, but the current implementation simply extracts the text and discards the citation metadata when processing the block. This means the rich citation information is lost when sending content back to OpenRouter, leaving only the plain text. The system effectively strips out all the valuable reference context during content conversion.
+
+The documentation suggests annotations can potentially be included in subsequent requests, with a proposed JSON structure that would preserve the citation's source, URL, and additional metadata. This approach would allow maintaining the full context and provenance of referenced information across conversation turns.
+
+I'll need to clarify three key points for the user: the current handling of citations, the potential transmission format, and the strategic decision about whether to include these annotations in future requests.
+
+# ASSISTANT
+
+Good question! Let me trace through exactly what gets sent back to OpenRouter with the current implementation.
+
+Currently, when we parse a Greger buffer with citations and send it back to OpenRouter:
+
+## Current Behavior (Citations ARE Lost!)
+
+**Greger buffer**:
+```markdown
+# ASSISTANT
+
+The 31st prime number is 127 [prime-numbers.info](https://...)
+
+## https://prime-numbers.info/number/31st-prime
+
+Title: 31st prime is 127
+Cited text: 31st prime is 127...
+```
+
+**Parsed to**:
+```elisp
+'((type . "text")
+  (text . "The 31st prime number is 127 [prime-numbers.info](https://...)")
+  (citations . [((type . "web_search_result_location") ...)]))
+```
+
+**Converted to OpenRouter message** (in `greger-openrouter--convert-content-blocks`):
+```json
+{
+  "role": "assistant",
+  "content": "The 31st prime number is 127 [prime-numbers.info](https://...)"
+}
+```
+
+**Citations are completely dropped!** They're not passed back to OpenRouter.
+
+## What Should Be Sent Back
+
+Based on the OpenRouter docs I found, annotations CAN be passed back (evidenced by the PDF preservation feature). The format should be:
+
+```json
+{
+  "role": "assistant",
+  "content": "The 31st prime number is 127 [prime-numbers.info](https://...)",
+  "annotations": [
+    {
+      "type": "url_citation",
+      "url_citation": {
+        "url": "https://prime-numbers.info/number/31st-prime",
+        "title": "31st prime is 127",
+        "content": "31st prime is 127. [127]...",
+        "start_index": 0,
+        "end_index": 0
+      }
+    }
+  ]
+}
+```
+
+We need to:
+1. **Convert Greger citations back to OpenRouter annotations** when building the request
+2. **Keep the inline citation links** (like `[prime-numbers.info](https://...)`) in the text
+
+This way the conversation is fully reproducible - OpenRouter gets back the same annotation structure it sent, just like with `reasoning_details`.
+
+Should I implement this? It would involve updating `greger-openrouter--convert-content-blocks` to handle citations and convert them back to the OpenRouter annotation format.
+
+# USER
+
+Yeah let's try that
+
+# THINKING
+
+Signature: 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
+
+I need to update `greger-openrouter--convert-content-blocks` to handle citations and convert them back to OpenRouter annotations format.
+
+Looking at the current code:
+```elisp
+(defun greger-openrouter--convert-content-blocks (role content-blocks)
+  "Convert Greger content blocks to OpenRouter message format.
+Handles thinking blocks by decoding reasoning_details from signature field."
+  (let (result-messages
+        current-text
+        tool-calls
+        reasoning-details)
+    
+    (dolist (block content-blocks)
+      (let ((type (alist-get 'type block)))
+        (cond
+         ((string= type "text")
+          (setq current-text (alist-get 'text block)))
+         
+         ((string= type "thinking")
+          (let ((thinking-text (alist-get 'thinking block))
+                (signature (alist-get 'signature block)))
+            
+            (setq current-text thinking-text)
+            
+            (when (and signature (not (string-empty-p signature)))
+              (condition-case nil
+                  (let* ((decoded (base64-decode-string signature))
+                         (parsed (json-read-from-string decoded)))
+                    (when (vectorp parsed)
+                      (setq reasoning-details parsed)))
+                (error nil)))))
+         
+         ((string= type "tool_use")
+          (let ((tool-call `((id . ,(alist-get 'id block))
+                             (type . "function")
+                             (function . ((name . ,(alist-get 'name block))
+                                          (arguments . ,(json-encode (alist-get 'input block))))))))
+            (push tool-call tool-calls)))
+         
+         ((string= type "tool_result")
+          (let ((tool-msg `((role . "tool")
+                            (tool_call_id . ,(alist-get 'tool_use_id block))
+                            (content . ,(alist-get 'content block)))))
+            (push tool-msg result-messages))))))
+    
+    (when (or current-text tool-calls reasoning-details)
+      (let ((msg `((role . ,role))))
+        (when current-text
+          (push `(content . ,current-text) msg))
+        (when tool-calls
+          (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+        (when reasoning-details
+
+I'll continue the partial thought by copying over the next thinking to complete the sentence about reasoning details. The function is processing different types of content blocks and preparing to handle reasoning details in the OpenRouter message format.
+
+          (push `(reasoning_details . ,reasoning-details) msg))
+        (push msg result-messages)))
+    
+    (nreverse result-messages)))
+```
+
+I'll transform Greger citations into OpenRouter's annotation format. The conversion involves mapping citation fields carefully. I'll create a function to translate web search result citations, converting the source's metadata into a standardized annotation structure with placeholder start and end indices.
+
+The key transformations include:
+- Map `cited_text` to `content`
+- Wrap in `url_citation` type
+- Use fixed `start_index` and `end_index` of 0
+- Preserve URL and title information
+
+This approach ensures consistent citation representation across different source formats while maintaining the original citation's core information.
+
+# ASSISTANT
+
+I'll update the code to preserve citations by converting them back to OpenRouter annotations format:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01PpU3y4hWyQ51MCqtPBEKEy
+
+## path
+
+<tool.toolu_01PpU3y4hWyQ51MCqtPBEKEy>
+greger-openrouter.el
+</tool.toolu_01PpU3y4hWyQ51MCqtPBEKEy>
+
+## git-commit-message
+
+<tool.toolu_01PpU3y4hWyQ51MCqtPBEKEy>
+Convert citations back to OpenRouter annotations when building requests
+</tool.toolu_01PpU3y4hWyQ51MCqtPBEKEy>
+
+## diff
+
+<tool.toolu_01PpU3y4hWyQ51MCqtPBEKEy>
+ (defun greger-openrouter--convert-content-blocks (role content-blocks)
+   "Convert Greger content blocks to OpenRouter message format.
+-Handles thinking blocks by decoding reasoning_details from signature field."
++Handles thinking blocks by decoding reasoning_details from signature field.
++Converts citations back to OpenRouter annotations format."
+   (let (result-messages
+         current-text
+         tool-calls
+-        reasoning-details)
++        reasoning-details
++        annotations)
+     
+     (dolist (block content-blocks)
+       (let ((type (alist-get 'type block)))
+         (cond
+          ((string= type "text")
+-          (setq current-text (alist-get 'text block)))
++          (setq current-text (alist-get 'text block))
++          (let ((citations (alist-get 'citations block)))
++            (when citations
++              (setq annotations (greger-openrouter--convert-citations-to-annotations citations)))))
+          
+          ((string= type "thinking")
+           (let ((thinking-text (alist-get 'thinking block))
+                 (signature (alist-get 'signature block)))
+             
+             (setq current-text thinking-text)
+             
+             (when (and signature (not (string-empty-p signature)))
+               (condition-case nil
+                   (let* ((decoded (base64-decode-string signature))
+                          (parsed (json-read-from-string decoded)))
+                     (when (vectorp parsed)
+                       (setq reasoning-details parsed)))
+                 (error nil)))))
+          
+          ((string= type "tool_use")
+           (let ((tool-call `((id . ,(alist-get 'id block))
+                              (type . "function")
+                              (function . ((name . ,(alist-get 'name block))
+                                           (arguments . ,(json-encode (alist-get 'input block))))))))
+             (push tool-call tool-calls)))
+          
+          ((string= type "tool_result")
+           (let ((tool-msg `((role . "tool")
+                             (tool_call_id . ,(alist-get 'tool_use_id block))
+                             (content . ,(alist-get 'content block)))))
+             (push tool-msg result-messages))))))
+     
+-    (when (or current-text tool-calls reasoning-details)
++    (when (or current-text tool-calls reasoning-details annotations)
+       (let ((msg `((role . ,role))))
+         (when current-text
+           (push `(content . ,current-text) msg))
+         (when tool-calls
+           (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+         (when reasoning-details
+           (push `(reasoning_details . ,reasoning-details) msg))
++        (when annotations
++          (push `(annotations . ,annotations) msg))
+         (push msg result-messages)))
+     
+     (nreverse result-messages)))
+\ No newline at end of file
+
+</tool.toolu_01PpU3y4hWyQ51MCqtPBEKEy>
+
+# TOOL RESULT
+
+ID: toolu_01PpU3y4hWyQ51MCqtPBEKEy
+
+<tool.toolu_01PpU3y4hWyQ51MCqtPBEKEy>
+
+</tool.toolu_01PpU3y4hWyQ51MCqtPBEKEy>

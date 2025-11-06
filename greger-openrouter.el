@@ -159,17 +159,22 @@ ERROR-CALLBACK is called when errors occur."
 
 (defun greger-openrouter--convert-content-blocks (role content-blocks)
   "Convert Greger content blocks to OpenRouter message format.
-Handles thinking blocks by decoding reasoning_details from signature field."
+Handles thinking blocks by decoding reasoning_details from signature field.
+Converts citations back to OpenRouter annotations format."
   (let (result-messages
         current-text
         tool-calls
-        reasoning-details)
+        reasoning-details
+        annotations)
     
     (dolist (block content-blocks)
       (let ((type (alist-get 'type block)))
         (cond
          ((string= type "text")
-          (setq current-text (alist-get 'text block)))
+          (setq current-text (alist-get 'text block))
+          (let ((citations (alist-get 'citations block)))
+            (when citations
+              (setq annotations (greger-openrouter--convert-citations-to-annotations citations)))))
          
          ((string= type "thinking")
           (let ((thinking-text (alist-get 'thinking block))
@@ -198,7 +203,7 @@ Handles thinking blocks by decoding reasoning_details from signature field."
                             (content . ,(alist-get 'content block)))))
             (push tool-msg result-messages))))))
     
-    (when (or current-text tool-calls reasoning-details)
+    (when (or current-text tool-calls reasoning-details annotations)
       (let ((msg `((role . ,role))))
         (when current-text
           (push `(content . ,current-text) msg))
@@ -206,6 +211,8 @@ Handles thinking blocks by decoding reasoning_details from signature field."
           (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
         (when reasoning-details
           (push `(reasoning_details . ,reasoning-details) msg))
+        (when annotations
+          (push `(annotations . ,annotations) msg))
         (push msg result-messages)))
     
     (nreverse result-messages)))
