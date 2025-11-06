@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-181337353537>
+${greger-prompt-code-style<eval-result-182656656969>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-181337353537>}
+</eval-result-182656656969>}
 
-${:sh cat CLAUDE.md || true<eval-result-181337147248>cat: CLAUDE.md: No such file or directory
-</eval-result-181337147248>}
+${:sh cat CLAUDE.md || true<eval-result-182656112445>cat: CLAUDE.md: No such file or directory
+</eval-result-182656112445>}
 
 # USER
 
@@ -17087,28 +17087,20 @@ greger-openrouter.el
 Don't call complete-callback in process sentinel - already handled by events
 </tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
 
-## original-content
+## diff
 
 <tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
-      (cond
-       ((and (= exit-code 0) (not stored-error))
-        (when-let ((callback (greger-openrouter-state-complete-callback state)))
-          (funcall callback (greger-openrouter--build-content-blocks state))))
-       
-       ((= exit-code 2)
-        (message "Process interrupted"))
-</tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+       (cond
+        ((and (= exit-code 0) (not stored-error))
+-        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+-          (funcall callback (greger-openrouter--build-content-blocks state))))
++        ;; Success - streaming events already handled everything
++        nil)
+        
+        ((= exit-code 2)
+         (message "Process interrupted"))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
-      (cond
-       ((and (= exit-code 0) (not stored-error))
-        ;; Success - streaming events already handled everything
-        nil)
-       
-       ((= exit-code 2)
-        (message "Process interrupted"))
 </tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
 
 # TOOL RESULT
@@ -17116,5 +17108,148 @@ Don't call complete-callback in process sentinel - already handled by events
 ID: toolu_01TRUyCRXrovBTyfmLagqcb6
 
 <tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Don't call complete-callback in process sentinel - already handled by events
 </tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+
+# ASSISTANT
+
+NOW reload and test:
+
+```elisp
+M-x load-file RET greger-openrouter.el RET
+```
+
+The process sentinel was calling `complete-callback` which was causing the duplicate render at the very end. The streaming events already handled everything, so we don't need to do anything when the process exits successfully.
+
+# USER
+
+Now it doesn't add the `# USER` at the end and snap out of read-only-mode. You're missing a complete callback. Look at how =greger-client.el is doing it
+
+# THINKING
+
+Signature: EukBCkYICRgCKkAI69yqk23hQf6CJlg2xjsgU4gLqr6v/uPk0DNzvh+rf63UmAy/0uJPnChCtF9xlSTrQ0jOxfrzVVm1xYYEAFiNEgyj5VHYRBdTqFz/W8UaDA1hEgI5CRuMIrvXUCIwOs2gvHOUfLZAPU243D3w1G8LKxiQV9sOwBdBbzOjJFhD5lq3j4KYeAZrucIaIVo1KlFXp7J0//YjgNLV4DqeP8j8gqvi2BYyY1+5bTh2ftGhqARRWJbzhpBs9ljXH0ot95cygHlJa+4UY+tNWe0HI6kOFqsI2VhaZxxj1TZsC8FIBx4YAQ==
+
+Let me check how greger-client.el handles the complete callback.
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01S4yXFcBeRkgVZREYhk7vXQ
+
+## pattern
+
+<tool.toolu_01S4yXFcBeRkgVZREYhk7vXQ>
+complete-callback
+</tool.toolu_01S4yXFcBeRkgVZREYhk7vXQ>
+
+## path
+
+<tool.toolu_01S4yXFcBeRkgVZREYhk7vXQ>
+greger-client.el
+</tool.toolu_01S4yXFcBeRkgVZREYhk7vXQ>
+
+## context-lines
+
+<tool.toolu_01S4yXFcBeRkgVZREYhk7vXQ>
+3
+</tool.toolu_01S4yXFcBeRkgVZREYhk7vXQ>
+
+# TOOL RESULT
+
+ID: toolu_01S4yXFcBeRkgVZREYhk7vXQ
+
+<tool.toolu_01S4yXFcBeRkgVZREYhk7vXQ>
+49-  block-start-callback
+50-  text-delta-callback
+51-  block-stop-callback
+52:  complete-callback
+53-  restore-callback
+54-  error-callback
+55-  error-message)
+56-
+57-;;; Public API
+58-
+59:(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+60-  "Send API request to the Claude streaming API.
+61-Streaming responses are handled using callbacks.
+62-MODEL specifies which AI model to use.
+--
+66-BLOCK-START-CALLBACK is called when content blocks begin.
+67-TEXT-DELTA-CALLBACK for incremental text.
+68-BLOCK-STOP-CALLBACK when blocks complete.
+69:COMPLETE-CALLBACK when the entire response finishes.
+70-THINKING-BUDGET is the number of thinking tokens.
+71-MAX-TOKENS is the maximum number of tokens to generate.
+72-AUTH-KEY is the Anthropic API key to use for authentication.
+--
+89-                 :block-start-callback block-start-callback
+90-                 :text-delta-callback text-delta-callback
+91-                 :block-stop-callback block-stop-callback
+92:                 :complete-callback complete-callback
+93-                 :restore-callback restore-callback
+94-                 :output-buffer output-buffer
+95-                 :undo-handle undo-handle
+--
+459-
+460-       ;; Process succeeded - call completion callback
+461-       ((and (= exit-code 0) (not stored-error))
+462:        (when-let ((callback (greger-client-state-complete-callback state)))
+463-          (funcall callback (greger-client-state-content-blocks state))))
+464-
+465-       ;; Exit code 2 means process interrupted
+
+</tool.toolu_01S4yXFcBeRkgVZREYhk7vXQ>
+
+# ASSISTANT
+
+Ah! In greger-client.el, the process sentinel DOES call the complete-callback with the content blocks. The complete-callback is what triggers the UI to add the `# USER` prompt and exit read-only mode. Let me restore that:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_013ptFXUenM8v1RH4w9hLcuw
+
+## path
+
+<tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+greger-openrouter.el
+</tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+
+## git-commit-message
+
+<tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+Restore complete-callback in process sentinel
+</tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+
+## original-content
+
+<tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+      (cond
+       ((and (= exit-code 0) (not stored-error))
+        ;; Success - streaming events already handled everything
+        nil)
+       
+       ((= exit-code 2)
+        (message "Process interrupted"))
+</tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+
+## new-content
+
+<tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+      (cond
+       ((and (= exit-code 0) (not stored-error))
+        ;; Call complete callback to finalize (adds # USER prompt, etc)
+        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+          (funcall callback (greger-openrouter--build-content-blocks state))))
+       
+       ((= exit-code 2)
+        (message "Process interrupted"))
+</tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+
+# TOOL RESULT
+
+ID: toolu_013ptFXUenM8v1RH4w9hLcuw
+
+<tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+
+</tool.toolu_013ptFXUenM8v1RH4w9hLcuw>

@@ -474,8 +474,9 @@ contains inline markdown links to sources."
           (stored-error (greger-openrouter-state-error-message state)))
       (cond
        ((and (= exit-code 0) (not stored-error))
-        ;; Success - streaming events already handled everything
-        nil)
+        ;; Call complete callback to finalize (adds # USER prompt, etc)
+        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+          (funcall callback (greger-openrouter--build-content-blocks state))))
        
        ((= exit-code 2)
         (message "Process interrupted"))
