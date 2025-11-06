@@ -94,6 +94,7 @@ ERROR-CALLBACK is called when errors occur."
   "Build OpenRouter API request."
   (let* ((headers (greger-openrouter--build-headers auth-key))
          (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
+    (message "url: %s; request data: %s" greger-openrouter-api-url data)
     (list :url greger-openrouter-api-url
           :method "POST"
           :headers headers
@@ -284,6 +285,9 @@ OpenAI function calling doesn't support default values."
 
 (defun greger-openrouter--handle-event (data-json state)
   "Handle OpenAI-style streaming event."
+
+  (message "data-json: %s" data-json)
+
   (condition-case err
       (let* ((data (json-read-from-string data-json))
              (error-data (alist-get 'error data)))
