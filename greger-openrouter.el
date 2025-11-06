@@ -26,6 +26,9 @@
   thinking-started
   text-started
   annotations
+  reasoning-started
+  current-reasoning-text
+  current-reasoning-details
   process
   output-buffer
   undo-handle
