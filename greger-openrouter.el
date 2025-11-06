@@ -365,26 +365,9 @@ OpenAI function calling doesn't support default values."
                   (funcall text-delta-callback text)))))
            
            ;; Handle output item done (end of a content block)
+           ;; Don't call block-stop here - let complete-callback handle all blocks at once
            ((string= event-type "response.output_item.done")
-            (let* ((item (alist-get 'item data))
-                   (item-type (alist-get 'type item)))
-              (cond
-               ;; Reasoning block done
-               ((string= item-type "reasoning")
-                (when-let* ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
-                            (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
-                  (funcall block-stop-callback "thinking"
-                           `((type . "thinking")
-                             (thinking . ,reasoning-text)
-                             (signature . "")))))
-               
-               ;; Message block done
-               ((string= item-type "message")
-                (when-let* ((text (greger-openrouter-state-current-text state))
-                            (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
-                  (funcall block-stop-callback "text"
-                           `((type . "text")
-                             (text . ,text))))))))
+            nil)
            
            ;; Handle completion - streaming already handled everything
            ((string= event-type "response.completed")

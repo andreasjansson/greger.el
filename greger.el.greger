@@ -17251,5 +17251,290 @@ Restore complete-callback in process sentinel
 ID: toolu_013ptFXUenM8v1RH4w9hLcuw
 
 <tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Restore complete-callback in process sentinel
 </tool.toolu_013ptFXUenM8v1RH4w9hLcuw>
+
+# ASSISTANT
+
+But wait, the issue is that we're calling `block-stop-callback` in the event handlers which renders the content, and then calling `complete-callback` which renders it again. Let me check what greger-client does - does it call block-stop-callback for each block?
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01J56S2Ca6GkqGQEL4xLPuPn
+
+## pattern
+
+<tool.toolu_01J56S2Ca6GkqGQEL4xLPuPn>
+block-stop-callback.*funcall
+</tool.toolu_01J56S2Ca6GkqGQEL4xLPuPn>
+
+## path
+
+<tool.toolu_01J56S2Ca6GkqGQEL4xLPuPn>
+greger-client.el
+</tool.toolu_01J56S2Ca6GkqGQEL4xLPuPn>
+
+## context-lines
+
+<tool.toolu_01J56S2Ca6GkqGQEL4xLPuPn>
+2
+</tool.toolu_01J56S2Ca6GkqGQEL4xLPuPn>
+
+# TOOL RESULT
+
+ID: toolu_01J56S2Ca6GkqGQEL4xLPuPn
+
+<tool.toolu_01J56S2Ca6GkqGQEL4xLPuPn>
+No matches found
+</tool.toolu_01J56S2Ca6GkqGQEL4xLPuPn>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01Ht6gKxoWukFbi2qew69B57
+
+## pattern
+
+<tool.toolu_01Ht6gKxoWukFbi2qew69B57>
+funcall.*block-stop-callback
+</tool.toolu_01Ht6gKxoWukFbi2qew69B57>
+
+## path
+
+<tool.toolu_01Ht6gKxoWukFbi2qew69B57>
+greger-client.el
+</tool.toolu_01Ht6gKxoWukFbi2qew69B57>
+
+## context-lines
+
+<tool.toolu_01Ht6gKxoWukFbi2qew69B57>
+2
+</tool.toolu_01Ht6gKxoWukFbi2qew69B57>
+
+# TOOL RESULT
+
+ID: toolu_01Ht6gKxoWukFbi2qew69B57
+
+<tool.toolu_01Ht6gKxoWukFbi2qew69B57>
+No matches found
+</tool.toolu_01Ht6gKxoWukFbi2qew69B57>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01BPFpdpfzxf9ww47zJRZgkC
+
+## pattern
+
+<tool.toolu_01BPFpdpfzxf9ww47zJRZgkC>
+block-stop-callback state
+</tool.toolu_01BPFpdpfzxf9ww47zJRZgkC>
+
+## path
+
+<tool.toolu_01BPFpdpfzxf9ww47zJRZgkC>
+greger-client.el
+</tool.toolu_01BPFpdpfzxf9ww47zJRZgkC>
+
+## context-lines
+
+<tool.toolu_01BPFpdpfzxf9ww47zJRZgkC>
+5
+</tool.toolu_01BPFpdpfzxf9ww47zJRZgkC>
+
+# TOOL RESULT
+
+ID: toolu_01BPFpdpfzxf9ww47zJRZgkC
+
+<tool.toolu_01BPFpdpfzxf9ww47zJRZgkC>
+431-      (let ((input-str (alist-get 'input block)))
+432-        (if (string-empty-p input-str)
+433-            (setf (alist-get 'input block) '())
+434-          (setf (alist-get 'input block) (json-read-from-string input-str))))))
+435-
+436:    (when-let ((callback (greger-client-state-block-stop-callback state)))
+437-      (funcall callback type block))))
+438-
+439-(defun greger-client--ensure-block-at-index (_blocks index new-block state)
+440-  "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary.
+441-STATE is used to update the parsed content blocks."
+
+</tool.toolu_01BPFpdpfzxf9ww47zJRZgkC>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_017WHmHZe7j1hrnbTVsjzSYc
+
+## path
+
+<tool.toolu_017WHmHZe7j1hrnbTVsjzSYc>
+greger-client.el
+</tool.toolu_017WHmHZe7j1hrnbTVsjzSYc>
+
+## start-line
+
+<tool.toolu_017WHmHZe7j1hrnbTVsjzSYc>
+410
+</tool.toolu_017WHmHZe7j1hrnbTVsjzSYc>
+
+## end-line
+
+<tool.toolu_017WHmHZe7j1hrnbTVsjzSYc>
+440
+</tool.toolu_017WHmHZe7j1hrnbTVsjzSYc>
+
+# TOOL RESULT
+
+ID: toolu_017WHmHZe7j1hrnbTVsjzSYc
+
+<tool.toolu_017WHmHZe7j1hrnbTVsjzSYc>
+     ((string= delta-type "citations_delta")
+      (let ((citation (alist-get 'citation delta))
+            (current-citations (alist-get 'citations block)))
+        ;; Add the new citation to the list
+        (setf (alist-get 'citations block)
+              (append current-citations (list citation))))))))
+
+(defun greger-client--handle-content-block-stop (data state)
+  "Finalize the current block and send callbacks from STATE.
+DATA is the streaming entry for the stop content block."
+  (let* ((index (alist-get 'index data))
+         (blocks (greger-client-state-content-blocks state))
+         (block (nth index blocks))
+         (type (alist-get 'type block)))
+
+    ;; TODO: do we need to handle content block stop out-of-order,
+    ;; before content-block start has created the block in the state's content-blocks?
+
+    (cond
+     ;; Handle tool use blocks - turn accumulated JSON string back into an object
+     ((or (string= type "tool_use") (string= type "server_tool_use"))
+      (let ((input-str (alist-get 'input block)))
+        (if (string-empty-p input-str)
+            (setf (alist-get 'input block) '())
+          (setf (alist-get 'input block) (json-read-from-string input-str))))))
+
+    (when-let ((callback (greger-client-state-block-stop-callback state)))
+      (funcall callback type block))))
+
+(defun greger-client--ensure-block-at-index (_blocks index new-block state)
+  "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary.
+</tool.toolu_017WHmHZe7j1hrnbTVsjzSYc>
+
+# ASSISTANT
+
+So greger-client.el DOES call block-stop-callback when it gets the stop event! The difference is that greger-client only calls complete-callback once at the very end with ALL the blocks, not individual blocks. Let me check what we're doing wrong - we shouldn't be re-rendering in complete-callback:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01W86cdsXxCa85JaEMZNvJbr
+
+## pattern
+
+<tool.toolu_01W86cdsXxCa85JaEMZNvJbr>
+defun greger--handle-stream-completion
+</tool.toolu_01W86cdsXxCa85JaEMZNvJbr>
+
+## path
+
+<tool.toolu_01W86cdsXxCa85JaEMZNvJbr>
+greger.el
+</tool.toolu_01W86cdsXxCa85JaEMZNvJbr>
+
+## context-lines
+
+<tool.toolu_01W86cdsXxCa85JaEMZNvJbr>
+10
+</tool.toolu_01W86cdsXxCa85JaEMZNvJbr>
+
+# TOOL RESULT
+
+ID: toolu_01W86cdsXxCa85JaEMZNvJbr
+
+<tool.toolu_01W86cdsXxCa85JaEMZNvJbr>
+964-
+965-  (let ((type (alist-get 'type content-block))
+966-        (has-citations (assq 'citations content-block)))
+967-    (cond
+968-     ((and (string= type "text") (not has-citations))
+969-      (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
+970-     ((string= type "thinking")
+971-      (greger--append-text state (concat "\n\n" greger-parser-thinking-tag "\n\n")))
+972-     (t nil))))
+973-
+974:(defun greger--handle-stream-completion (state content-blocks)
+975-  "Handle completion of stream with STATE and CONTENT-BLOCKS."
+976-  (if-let ((tool-calls (greger--extract-tool-calls content-blocks)))
+977-      (progn
+978-        (setf (greger-state-current-iteration state)
+979-              (1+ (greger-state-current-iteration state)))
+980-        ;; TODO: execute tool calls in greger--append-content-block instead
+981-        (greger--execute-tools tool-calls state))
+982-    (greger--finish-response state))
+983-
+984-  (when-let ((buffer (greger--live-chat-buffer state)))
+
+</tool.toolu_01W86cdsXxCa85JaEMZNvJbr>
+
+# ASSISTANT
+
+Ah! So `greger--handle-stream-completion` doesn't re-render the blocks - it just checks if there are tool calls and either executes them or finishes the response. The rendering already happened via the block-stop-callback. So our complete-callback should NOT be calling block-stop again. The issue is we're calling block-stop-callback in our event handlers, which is correct. Let me remove that from output_item.done:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01MGircXqmLF4raMi8mHEDQL
+
+## path
+
+<tool.toolu_01MGircXqmLF4raMi8mHEDQL>
+greger-openrouter.el
+</tool.toolu_01MGircXqmLF4raMi8mHEDQL>
+
+## git-commit-message
+
+<tool.toolu_01MGircXqmLF4raMi8mHEDQL>
+Don't call block-stop-callback in output_item.done - let complete handle it
+</tool.toolu_01MGircXqmLF4raMi8mHEDQL>
+
+## diff
+
+<tool.toolu_01MGircXqmLF4raMi8mHEDQL>
+            ;; Handle output item done (end of a content block)
++           ;; Don't call block-stop here - let complete-callback handle all blocks at once
+            ((string= event-type "response.output_item.done")
+-            (let* ((item (alist-get 'item data))
+-                   (item-type (alist-get 'type item)))
+-              (cond
+-               ;; Reasoning block done
+-               ((string= item-type "reasoning")
+-                (when-let* ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+-                            (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+-                  (funcall block-stop-callback "thinking"
+-                           `((type . "thinking")
+-                             (thinking . ,reasoning-text)
+-                             (signature . "")))))
+-               
+-               ;; Message block done
+-               ((string= item-type "message")
+-                (when-let* ((text (greger-openrouter-state-current-text state))
+-                            (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+-                  (funcall block-stop-callback "text"
+-                           `((type . "text")
+-                             (text . ,text))))))))
++            nil)
+            
+\ No newline at end of file
+
+</tool.toolu_01MGircXqmLF4raMi8mHEDQL>
+
+# TOOL RESULT
+
+ID: toolu_01MGircXqmLF4raMi8mHEDQL
+
+<tool.toolu_01MGircXqmLF4raMi8mHEDQL>
+
+</tool.toolu_01MGircXqmLF4raMi8mHEDQL>
