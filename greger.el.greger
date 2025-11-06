@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-151447984547>
+${greger-prompt-code-style<eval-result-152018968882>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-151447984547>}
+</eval-result-152018968882>}
 
-${:sh cat CLAUDE.md || true<eval-result-151447442002>cat: CLAUDE.md: No such file or directory
-</eval-result-151447442002>}
+${:sh cat CLAUDE.md || true<eval-result-152019332870>cat: CLAUDE.md: No such file or directory
+</eval-result-152019332870>}
 
 # USER
 
@@ -10544,5 +10544,108 @@ Check for annotations in delta, not just message
 ID: toolu_01E5jvUeU4CJc9uqaYgD58ZF
 
 <tool.toolu_01E5jvUeU4CJc9uqaYgD58ZF>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Check for annotations in delta, not just message
 </tool.toolu_01E5jvUeU4CJc9uqaYgD58ZF>
+
+# ASSISTANT
+
+Perfect! The issue was that annotations come in the **delta** (at the beginning of the stream), not in the **message** (at the end). We were only checking for them in the message, so they were never being captured.
+
+Now re-evaluate `greger-openrouter.el` and try your query again. You should see:
+1. `DEBUG: Received annotations in delta:` message with the actual annotations
+2. `DEBUG: Built X citations` with a non-zero number
+3. The citation blocks actually appearing in your Greger buffer!
+
+# USER
+
+Actually, since the assistant markdown contains citation links (e.g. `3. His royal motto is “For Sweden – With the times,” reflecting his intention to guide the monarchy in step with modern society. [swedesinthestates.com](https://swedesinthestates.com/10-facts-about-king-carl-xvi-gustaf-of-sweden/)`), let's not include the full cited text.
+
+# THINKING
+
+Signature: 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
+
+The user is right - since OpenRouter models already include inline citation links like `[swedesinthestates.com](https://...)` in the response text, we don't need to render the full citation blocks with all the cited text below. That would be redundant.
+
+We should probably still capture the citations data (for potential future use or round-tripping), but we don't need to render them. Or maybe we should just not create citation blocks at all.
+
+Let me think about this:
+1. The inline links are already there in the text
+2. The full citation blocks with URLs and cited text would be redundant
+3. But we might still want to preserve the citations for round-tripping to OpenRouter
+
+Actually, looking back at the plan, the goal was to make the conversation reproducible. If we don't include citations in the content blocks, then when we parse the dialog and send it back to OpenRouter, we won't have the citations to pass back.
+
+But wait - do we actually need to pass back citations to OpenRouter? Let me reconsider:
+- **reasoning_details** - YES, must be passed back (for conversation continuity)
+- **annotations** - probably NOT needed to be passed back (they're just metadata about sources)
+
+The annotations are like the web search results - they're informational for the current response, but the model doesn't need to see them again in the next turn.
+
+So the simplest solution is: don't create citation blocks at all. Just let the inline links in the text be sufficient.
+
+Let me remove the citation handling from the content block builder.
+
+# ASSISTANT
+
+Good point! Since the inline citation links are already in the text, we don't need to render the full citation blocks. Let me remove that:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01VapWXuUrQAjSLJR5QE8RAz
+
+## path
+
+<tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+greger-openrouter.el
+</tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+
+## git-commit-message
+
+<tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+Remove citation block creation - inline links are sufficient
+</tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+
+## original-content
+
+<tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+    (when current-text
+      (message "DEBUG: Building text block. current-text length: %d, annotations: %S" 
+               (length current-text) annotations)
+      (let ((citations (when annotations
+                         (let ((filtered (seq-filter
+                                          (lambda (annotation)
+                                            (string= (alist-get 'type annotation) "url_citation"))
+                                          annotations)))
+                           (message "DEBUG: Filtered %d url_citation annotations" (length filtered))
+                           (mapcar #'greger-openrouter--convert-annotation-to-citation filtered)))))
+        (message "DEBUG: Built %d citations" (length citations))
+        (if citations
+            (progn
+              (message "DEBUG: Adding text block WITH citations")
+              (push `((type . "text")
+                      (text . ,current-text)
+                      (citations . ,citations))
+                    blocks))
+          (message "DEBUG: Adding text block WITHOUT citations")
+          (push `((type . "text")
+                  (text . ,current-text))
+                blocks))))
+</tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+
+## new-content
+
+<tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+    (when current-text
+      (push `((type . "text")
+              (text . ,current-text))
+            blocks))
+</tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+
+# TOOL RESULT
+
+ID: toolu_01VapWXuUrQAjSLJR5QE8RAz
+
+<tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+
+</tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
