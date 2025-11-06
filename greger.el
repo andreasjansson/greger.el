@@ -1299,11 +1299,14 @@ Raises an error if evaluation fails."
 (cl-defun greger--process-evals-in-node (node &key clear-existing)
   "Process all eval blocks in NODE.
 If CLEAR-EXISTING, clear any existing eval results."
-  (let ((eval-nodes (treesit-query-capture node '((eval) @eval))))
-    ;; Process eval nodes in reverse order to avoid position shifts
-    (dolist (capture (reverse eval-nodes))
-      (when (eq (car capture) 'eval)
-        (greger--process-single-eval (cdr capture) :clear-existing clear-existing)))))
+  ;; Find first eval node
+  (let ((eval-node (treesit-search-subtree node "eval")))
+    (while eval-node
+      (message "GREGER EVAL: Processing eval at position %s" (treesit-node-start eval-node))
+      (greger--process-single-eval eval-node :clear-existing clear-existing)
+      ;; After modification, get fresh node reference and find next eval
+      ;; We need to search from the parent again since the tree might have changed
+      (setq eval-node (treesit-search-forward eval-node "eval")))))
 
 (cl-defun greger--process-single-eval (eval-node &key clear-existing)
   "Process a single eval block represented by EVAL-NODE.
