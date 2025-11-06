@@ -7949,5 +7949,66 @@ Remove redundant reasoning-started field, use thinking-started consistently
 ID: toolu_01EEpUREgSPaGzGw2znM1oQo
 
 <tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove redundant reasoning-started field, use thinking-started consistently
 </tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01AjR6xaETPYJJwCH2ddQSad
+
+## path
+
+<tool.toolu_01AjR6xaETPYJJwCH2ddQSad>
+greger-openrouter.el
+</tool.toolu_01AjR6xaETPYJJwCH2ddQSad>
+
+## git-commit-message
+
+<tool.toolu_01AjR6xaETPYJJwCH2ddQSad>
+Use thinking-started instead of reasoning-started in delta handler
+</tool.toolu_01AjR6xaETPYJJwCH2ddQSad>
+
+## diff
+
+<tool.toolu_01AjR6xaETPYJJwCH2ddQSad>
+ (defun greger-openrouter--handle-reasoning-delta (delta state)
+   "Handle reasoning/thinking delta and convert to Greger thinking format.
+ Accumulates both readable text and full reasoning_details array."
+   (let ((reasoning-text (alist-get 'reasoning delta))
+         (reasoning-details (alist-get 'reasoning_details delta))
+         (block-start-callback (greger-openrouter-state-block-start-callback state))
+         (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+     
+-    (unless (greger-openrouter-state-reasoning-started state)
+-      (setf (greger-openrouter-state-reasoning-started state) t)
++    (unless (greger-openrouter-state-thinking-started state)
++      (setf (greger-openrouter-state-thinking-started state) t)
+       (when block-start-callback
+         (funcall block-start-callback
+                  `((type . "thinking")
+                    (thinking . "")
+                    (signature . "")))))
+     
+     (when reasoning-text
+       (setf (greger-openrouter-state-current-reasoning-text state)
+             (concat (or (greger-openrouter-state-current-reasoning-text state) "")
+                     reasoning-text))
+       (when text-delta-callback
+         (funcall text-delta-callback reasoning-text)))
+     
+     (when reasoning-details
+       (let ((current (or (greger-openrouter-state-current-reasoning-details state) [])))
+         (setf (greger-openrouter-state-current-reasoning-details state)
+               (vconcat current reasoning-details))))))
+\ No newline at end of file
+
+</tool.toolu_01AjR6xaETPYJJwCH2ddQSad>
+
+# TOOL RESULT
+
+ID: toolu_01AjR6xaETPYJJwCH2ddQSad
+
+<tool.toolu_01AjR6xaETPYJJwCH2ddQSad>
+
+</tool.toolu_01AjR6xaETPYJJwCH2ddQSad>

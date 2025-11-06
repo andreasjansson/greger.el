@@ -368,8 +368,8 @@ Accumulates both readable text and full reasoning_details array."
         (block-start-callback (greger-openrouter-state-block-start-callback state))
         (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
     
-    (unless (greger-openrouter-state-reasoning-started state)
-      (setf (greger-openrouter-state-reasoning-started state) t)
+    (unless (greger-openrouter-state-thinking-started state)
+      (setf (greger-openrouter-state-thinking-started state) t)
       (when block-start-callback
         (funcall block-start-callback
                  `((type . "thinking")
