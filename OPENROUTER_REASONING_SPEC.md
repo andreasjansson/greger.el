@@ -134,65 +134,81 @@ When making the next request, include the full `reasoning_details` on the assist
 
 ---
 
-## New REASONING Section Type
+## Reusing THINKING Section for OpenRouter Reasoning
 
 ### Markdown Format
 
-Add a new section type between USER/ASSISTANT/THINKING:
+OpenRouter reasoning reuses the existing THINKING block structure - **no parser changes needed**:
 
 ```markdown
-# REASONING
+# THINKING
 
-<reasoning_details>
-[{"type":"reasoning.summary","summary":"...","format":"openai-responses-v1","index":0},{"type":"reasoning.encrypted","data":"...","id":"rs_...","format":"openai-responses-v1","index":0}]
-</reasoning_details>
+Signature: eyJ0eXBlIjoicmVhc29uaW5nLnN1bW1hcnkiLCJzdW1tYXJ5IjoiLi4uIiwiZm9ybWF0Ijoib3BlbmFpLXJlc3BvbnNlcy12MSIsImluZGV4IjowfSx7InR5cGUiOiJyZWFzb25pbmcuZW5jcnlwdGVkIiwiZGF0YSI6ImdBQUFBQUIuLi4iLCJpZCI6InJzXy4uLiIsImZvcm1hdCI6Im9wZW5haS1yZXNwb25zZXMtdjEiLCJpbmRleCI6MH0=
 
 Formulating succinct self-description
 
 I'm crafting a three-word answer to "Who are you?" while weaving in search result citations carefully. Since the user wants exactly three words, I'm leaning toward placing a footnote-style citation after the phrase to respect the word limit yet still credit sources about describing oneself succinctly.
 ```
 
-**Format Rules:**
+**Format Specification:**
 
-1. **Section Header**: `# REASONING` (consistent with other headers)
-2. **Metadata Block**: XML-like tag `<reasoning_details>` containing JSON array
-3. **Readable Text**: Human-visible reasoning summary for user transparency
-4. **Separation**: Empty line between metadata and readable text
+1. **Section Header**: `# THINKING` (existing format)
+2. **Signature Field**: `Signature: <base64-encoded-reasoning-details-json-array>`
+   - Contains the complete `reasoning_details` array from OpenRouter
+   - Base64 encoding avoids JSON escaping issues
+   - Includes ALL objects: `reasoning.summary`, `reasoning.encrypted`, etc.
+   - Must be preserved exactly as received for conversation continuity
+3. **Readable Text**: Human-visible reasoning summary extracted from `reasoning.summary` objects
+4. **Separation**: Empty line between signature and readable text (existing format)
 
-### Tree-Sitter Grammar Updates
+**Comparison: Claude vs OpenRouter THINKING Blocks**
 
-Add to `grammar.js`:
+Claude (Anthropic):
+```markdown
+# THINKING
 
-```javascript
-reasoning_section: $ => seq(
-  field('header', $.reasoning_header),
-  optional(field('reasoning_details', $.reasoning_details)),
-  optional(field('content', $.reasoning_content))
-),
+Signature: 8f3e9d2a1b7c4f5e9a3d8c2b1f6e4a7d
 
-reasoning_header: $ => seq(
-  '# REASONING',
-  /\r?\n/
-),
-
-reasoning_details: $ => seq(
-  '<reasoning_details>',
-  /\r?\n/,
-  field('json', $.reasoning_details_json),
-  /\r?\n/,
-  '</reasoning_details>',
-  /\r?\n/
-),
-
-reasoning_details_json: $ => /[^\n]+/,
-
-reasoning_content: $ => repeat1(
-  choice(
-    /[^\n#<]+/,
-    seq(/#+/, not_followed_by(' USER'), not_followed_by(' ASSISTANT'), /* etc */)
-  )
-),
+Step-by-step reasoning about the problem...
 ```
+
+OpenRouter (GPT-5, Claude via OpenRouter):
+```markdown
+# THINKING
+
+Signature: eyJ0eXBlIjoicmVhc29uaW5nLnN1bW1hcnkiLC4uLg==
+
+Step-by-step reasoning about the problem...
+```
+
+**Key Difference**: 
+- **Claude signature** = Cryptographic hash for verification
+- **OpenRouter signature** = Base64-encoded `reasoning_details` array for API continuity
+
+Both use the same markdown structure, just different semantic meaning for the signature field.
+
+### No Parser Changes Needed
+
+The existing parser already handles:
+- `# THINKING` sections with signature extraction
+- Empty signature field (gracefully renders without signature line)
+- Signature field can contain any string (base64 is just another string)
+
+**Existing parser code** (from `greger-parser.el`):
+```elisp
+(defun greger-parser--thinking-to-markdown (block)
+  "Convert thinking BLOCK to markdown (signature and text)."
+  (let ((contents (alist-get 'thinking block))
+        (signature (alist-get 'signature block)))
+    (concat greger-parser-thinking-tag
+            (if signature
+                (concat "\n\n" "Signature: " signature)
+              "")
+            "\n\n"
+            contents)))
+```
+
+This already handles both Claude and OpenRouter cases!
 
 ---
 
