@@ -846,8 +846,7 @@ Dispatches to provider-specific implementation based on greger-provider."
 (defun greger-openrouter--run-agent-loop (state)
   "Run agent loop using OpenRouter - parallel to greger--run-agent-loop-claude."
   (let* ((tools (greger-tools-get-schemas greger-tools))
-         (enable-web-search (and greger-server-tools
-                                 (member "web_search" greger-server-tools)))
+         (server-tools greger-server-tools)
          (chat-buffer (greger-state-chat-buffer state))
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
@@ -870,7 +869,7 @@ Dispatches to provider-specific implementation based on greger-provider."
                            :model greger-openrouter-model
                            :dialog dialog
                            :tools tools
-                           :enable-web-search enable-web-search
+                           :server-tools server-tools
                            :buffer chat-buffer
                            :thinking-budget greger-current-thinking-budget
                            :auth-key auth-key
