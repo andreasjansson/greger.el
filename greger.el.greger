@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-174233400424>
+${greger-prompt-code-style<eval-result-174417350598>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-174233400424>}
+</eval-result-174417350598>}
 
-${:sh cat CLAUDE.md || true<eval-result-174233226629>cat: CLAUDE.md: No such file or directory
-</eval-result-174233226629>}
+${:sh cat CLAUDE.md || true<eval-result-174417295699>cat: CLAUDE.md: No such file or directory
+</eval-result-174417295699>}
 
 # USER
 
@@ -15566,30 +15566,22 @@ greger-openrouter.el
 Add temporary debug logging to diagnose streaming
 </tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
 
-## original-content
+## diff
 
 <tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
-(defun greger-openrouter--handle-event (data-json state)
-  "Handle Responses API streaming event."
+ (defun greger-openrouter--handle-event (data-json state)
+   "Handle Responses API streaming event."
+ 
+   (condition-case err
+       (let* ((data (json-read-from-string data-json))
+              (error-data (alist-get 'error data))
+-             (event-type (alist-get 'type data)))
+\ No newline at end of file
++             (event-type (alist-get 'type data)))
++        
++        (message "EVENT TYPE: %s" event-type)
+\ No newline at end of file
 
-  (condition-case err
-      (let* ((data (json-read-from-string data-json))
-             (error-data (alist-get 'error data))
-             (event-type (alist-get 'type data)))
-</tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
-
-## new-content
-
-<tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
-(defun greger-openrouter--handle-event (data-json state)
-  "Handle Responses API streaming event."
-
-  (condition-case err
-      (let* ((data (json-read-from-string data-json))
-             (error-data (alist-get 'error data))
-             (event-type (alist-get 'type data)))
-        
-        (message "EVENT TYPE: %s" event-type)
 </tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
 
 # TOOL RESULT
@@ -15597,5 +15589,100 @@ Add temporary debug logging to diagnose streaming
 ID: toolu_01GWNFxVMgrPnk1NBDwUaNyv
 
 <tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add temporary debug logging to diagnose streaming
 </tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+
+# ASSISTANT
+
+I reintroduced detailed debug logging so we can see exactly which streaming events are coming back. Please reload the file and capture the new log output:
+
+1. `M-x load-file RET greger-openrouter.el RET`
+2. Re-run your “Search the web…” prompt.
+3. Copy the `OPENROUTER` lines that appear in `*Messages*` so I can inspect the event sequence.
+
+The recent web results I checked—like the guides on staging commits at [graphite.dev](https://graphite.dev/guides/add-changes-to-previous-commit) and interactive rebasing tips on [magit.vc](https://magit.vc/manual/2.13.0/magit/Staging-and-Unstaging.html)—are excellent Git references, but they don’t mention OpenRouter’s streaming format, so they didn’t factor into this fix. Once you share the new logs, I’ll trace the event flow and finish restoring true incremental streaming.
+
+# USER
+
+I'm seeing this come in
+
+```
+EVENT TYPE: response.created
+EVENT TYPE: response.in_progress
+EVENT TYPE: response.output_item.added
+EVENT TYPE: response.reasoning_summary_part.added
+EVENT TYPE: response.reasoning_summary_text.delta [33 times]
+EVENT TYPE: response.output_item.added
+EVENT TYPE: response.content_part.added
+EVENT TYPE: response.output_text.delta [199 times]
+EVENT TYPE: response.output_text.done
+EVENT TYPE: response.content_part.done
+EVENT TYPE: response.output_item.done
+EVENT TYPE: response.reasoning_summary_text.done
+EVENT TYPE: response.reasoning_summary_part.done
+EVENT TYPE: response.output_item.done
+```
+
+but it's not until we get here that I finally see the output:
+
+```
+EVENT TYPE: response.completed
+```
+
+# THINKING
+
+Signature: ErkECkYICRgCKkCdyb1YnW9IqjYuOZQgnGnbXGwot5zajuNTAMxBAitgJ/e5ogw9bHBOSiPb95pZnnYmUTcg2mFY5xJfoZPfk9idEgyiYeJQkOficl5+1Z4aDEvzXqtxq9mFeECYXSIw1qA7Ndd7feKuFfYT7quOJAP6BuqEjc8OTPmQqnoGi/2PAZma3J+zdwsjB+g7Rq6OKqADJKw4nhQkl94c1fw7IGpIMLUCtuDmxMTR+yz6qHqt/MeC2rvFyduu3IMSBA2qxWhUDlFXvSMUpNQI8/kL721gwFjvm0B+cHZC3usOly4w+B2zsYpiDKJli0R8yv3WWwV5qQZFlBj8cupiXSYadNtifOGXqubtWjQnvh+01EeMVSvVTwaWiUpW5EdoX/THAT3P7Lk3WsJZQjTrhQy1wp/Gxvk3jU2fgWk0SlJ3QIX6E7M3pVx7e/ewdJYe7Cai5i0IiFEJqJUScQC2UUfSVPqhJWesg3IrsBE4RanuGv3oiT2iBMlRev4u4NX49VOBcOcJmONTov9koL2LE3Z83kQWDB0rCRjXXRLPbbgr4a6yx0zYV7nkFzYiNQoV0p9OMqH9xV+481iUNpzXSbcv1QtKrITewyxgUsJtEF9cT1oF6zyJJ42pg6FaEF0rTchylX/JDkzqfyjzDqGJyAjr2eZId68fKwa1t43IZMQ9gUCrcqreJxJn3pHK42EFV/io/wBDhisXAmD2lD8KHc0HjRkjpzaC8Jj0l8a0GyjYLlmn1JUYAQ==
+
+Aha! The events are different from what I expected. The key events are:
+
+1. `response.output_text.delta` - This is the actual text streaming (199 times!)
+2. `response.content_part.added` - This starts the content part
+
+We're handling `response.content_part.delta` but the actual event is `response.output_text.delta`!
+
+Let me fix the event handler to listen for `response.output_text.delta` instead.
+
+# ASSISTANT
+
+Perfect! Now I see the issue. The events are `response.output_text.delta` (not `response.content_part.delta`). Let me fix the event handler:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XiRwAe8nY849Da4K6XnApk
+
+## path
+
+<tool.toolu_01XiRwAe8nY849Da4K6XnApk>
+greger-openrouter.el
+</tool.toolu_01XiRwAe8nY849Da4K6XnApk>
+
+## git-commit-message
+
+<tool.toolu_01XiRwAe8nY849Da4K6XnApk>
+Fix streaming - handle response.output_text.delta events
+</tool.toolu_01XiRwAe8nY849Da4K6XnApk>
+
+## diff
+
+<tool.toolu_01XiRwAe8nY849Da4K6XnApk>
+            ;; Handle incremental text updates
+-           ((string= event-type "response.content_part.delta")
++           ((string= event-type "response.output_text.delta")
+             (when-let ((text (alist-get 'delta data)))
+               (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                 (setf (greger-openrouter-state-current-text state)
+                       (concat (greger-openrouter-state-current-text state) text))
+                 (when text-delta-callback
+                   (funcall text-delta-callback text)))))
+\ No newline at end of file
+
+</tool.toolu_01XiRwAe8nY849Da4K6XnApk>
+
+# TOOL RESULT
+
+ID: toolu_01XiRwAe8nY849Da4K6XnApk
+
+<tool.toolu_01XiRwAe8nY849Da4K6XnApk>
+
+</tool.toolu_01XiRwAe8nY849Da4K6XnApk>

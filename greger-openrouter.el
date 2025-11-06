@@ -343,7 +343,7 @@ OpenAI function calling doesn't support default values."
                              (text . "")))))))
            
            ;; Handle incremental text updates
-           ((string= event-type "response.content_part.delta")
+           ((string= event-type "response.output_text.delta")
             (when-let ((text (alist-get 'delta data)))
               (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
                 (setf (greger-openrouter-state-current-text state)
