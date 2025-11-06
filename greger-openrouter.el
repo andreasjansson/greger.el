@@ -87,10 +87,10 @@ ERROR-CALLBACK is called when errors occur."
     
     state))
 
-(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
+(defun greger-openrouter--build-request (model dialog tools server-tools thinking-budget max-tokens auth-key)
   "Build OpenRouter Responses API request."
   (let* ((headers (greger-openrouter--build-headers auth-key))
-         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
+         (data (greger-openrouter--build-data model dialog tools server-tools thinking-budget max-tokens)))
     (message "url: %s; request data: %s" greger-openrouter-api-url data)
     (list :url greger-openrouter-api-url
           :method "POST"

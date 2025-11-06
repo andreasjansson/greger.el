@@ -12365,5 +12365,48 @@ ERROR-CALLBACK is called when errors occur."
 ID: toolu_01TJ6GT5WXD5nkTyotxFvuzK
 
 <tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Accept server-tools parameter and convert web_search
 </tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01M6xLYLpSUrag47ESMQJQWw
+
+## path
+
+<tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+greger-openrouter.el
+</tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+
+## git-commit-message
+
+<tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+Update build-request signature
+</tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+
+## original-content
+
+<tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
+  "Build OpenRouter Responses API request."
+  (let* ((headers (greger-openrouter--build-headers auth-key))
+         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
+</tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+
+## new-content
+
+<tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+(defun greger-openrouter--build-request (model dialog tools server-tools thinking-budget max-tokens auth-key)
+  "Build OpenRouter Responses API request."
+  (let* ((headers (greger-openrouter--build-headers auth-key))
+         (data (greger-openrouter--build-data model dialog tools server-tools thinking-budget max-tokens)))
+</tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+
+# TOOL RESULT
+
+ID: toolu_01M6xLYLpSUrag47ESMQJQWw
+
+<tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+
+</tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
