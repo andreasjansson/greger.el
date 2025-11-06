@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-170654248806>
+${greger-prompt-code-style<eval-result-171610917159>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-170654248806>}
+</eval-result-171610917159>}
 
-${:sh cat CLAUDE.md || true<eval-result-170654100355>cat: CLAUDE.md: No such file or directory
-</eval-result-170654100355>}
+${:sh cat CLAUDE.md || true<eval-result-171610009507>cat: CLAUDE.md: No such file or directory
+</eval-result-171610009507>}
 
 # USER
 
@@ -12656,24 +12656,17 @@ greger-openrouter.el
 Fix strict field to be null not boolean
 </tool.toolu_01VXmA4xcSJYUVN4dDDtSDfp>
 
-## original-content
+## diff
 
 <tool.toolu_01VXmA4xcSJYUVN4dDDtSDfp>
-       `((type . "function")
-         (name . ,(alist-get 'name tool))
-         (description . ,(alist-get 'description tool))
-         (strict . :json-null)
-         (parameters . ,fixed-schema))))
-</tool.toolu_01VXmA4xcSJYUVN4dDDtSDfp>
+        `((type . "function")
+          (name . ,(alist-get 'name tool))
+          (description . ,(alist-get 'description tool))
+-         (strict . :json-null)
++         (strict . :null)
+          (parameters . ,fixed-schema))))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01VXmA4xcSJYUVN4dDDtSDfp>
-       `((type . "function")
-         (name . ,(alist-get 'name tool))
-         (description . ,(alist-get 'description tool))
-         (strict . :null)
-         (parameters . ,fixed-schema))))
 </tool.toolu_01VXmA4xcSJYUVN4dDDtSDfp>
 
 # TOOL RESULT
@@ -12728,24 +12721,17 @@ greger-openrouter.el
 Use nil for JSON null in strict field
 </tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
 
-## original-content
+## diff
 
 <tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
-       `((type . "function")
-         (name . ,(alist-get 'name tool))
-         (description . ,(alist-get 'description tool))
-         (strict . :null)
-         (parameters . ,fixed-schema))))
-</tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+        `((type . "function")
+          (name . ,(alist-get 'name tool))
+          (description . ,(alist-get 'description tool))
+-         (strict . :null)
++         (strict . nil)
+          (parameters . ,fixed-schema))))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
-       `((type . "function")
-         (name . ,(alist-get 'name tool))
-         (description . ,(alist-get 'description tool))
-         (strict . nil)
-         (parameters . ,fixed-schema))))
 </tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
 
 # TOOL RESULT
@@ -12753,5 +12739,1393 @@ Use nil for JSON null in strict field
 ID: toolu_01NfjrYBjC3Xr3p6dynKUd1g
 
 <tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Use nil for JSON null in strict field
 </tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+
+# ASSISTANT
+
+Now reload and test:
+
+```elisp
+M-x load-file RET greger-openrouter.el RET
+```
+
+# USER
+
+A lot more logs now
+
+```
+[...]
+OPENROUTER CHUNK: ,"description":"The new content to replace the original content with"},"git-commit-message":{"type":"string","description":"Git commit message for this change"},"replace-all":{"type":"boolean","description":"If true, replace all instances of original-content. If false (default), replace only the first instance"}},"required":["path","original-content","new-content","git-commit-message"]}},{"type":"function","name":"replace-file","description":"Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to replace"},"contents":{"type":"string","description":"New contents to replace the entire file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","contents","git-commit-message"]}},{"type":"function","name":"write-new-file","description":"W
+OPENROUTER CHUNK: rite a new file with the given contents. Fails if the file already exists.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Absolute path to the new file"},"contents":{"type":"string","description":"Contents to write to the new file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","contents","git-commit-message"]}},{"type":"function","name":"read-file","description":"Read the contents of a file from the filesystem","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to read"},"include-line-numbers":{"type":"boolean","description":"Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit."},"start-line":{"type":"integer","description":"Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file."},"end
+OPENROUTER CHUNK: -line":{"type":"integer","description":"Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file."}},"required":["path"]}},{"type":"web_search","search_context_size":"medium"}],"tool_choice":"auto","parallel_tool_calls":true,"max_output_tokens":27000,"temperature":null,"top_p":null,"metadata":{},"background":false,"previous_response_id":null,"service_tier":"auto","truncation":null,"store":false,"instructions":null,"reasoning":{"effort":"medium"},"safety_identifier":null,"prompt_cache_key":null,"user":null},"sequence_number":217}
+
+data: [DONE]
+ [2 times]
+OPENROUTER EVENT JSON: {"type":"response.completed","response":{"object":"response","id":"gen-1762445308-5xcQJmOdXcyi1rqU8PU4","created_at":1762445312,"model":"openai/gpt-5-codex","status":"completed","output":[{"type":"reasoning","id":"rs_0062525fb85a99dc01690cc801d69c819788a967bde2ce385b","summary":[{"type":"summary_text","text":"**Summarizing King of Sweden facts**"}],"encrypted_content":"gAAAAABpDMgHFjn-W4NFtY9pYbhfjO0m91vYTtBKnGEiD21wy_keL5on-XFeb2ItMMekgg1e6OuuB5L9TDBEeYprhcSqZtCCwknZZ05KM4nzT4-vUsoLWmBS2ztltEQKCBNgH3HNR5kbPZ9p_A5t-3Es62LNAYd8H-zIAKLC1MCurb6Q9NgkLs4k2jLbxB4rbn6xCFBqMUuvFndqX6TE0KKxg6Poy6h78pkrgk7RDxdhyy1CpEH5t5gV1XL25xL2-bJWqprzeZGFQajUWlLiqtYmXSTDIWMkfimIALBdcM-o8qC_yVBoD1Qs14A9rn4lePWgnHULkASsByi6PlPFlTaTtYmQovsXQ0sIT-HEVjhTWTLQk63PY_l-z0nEdx9U2OeWq2O-RuZyn14pNE7cECStg9YE8Ltup5XksREUzI0_gwunNd29DMRu4WP09ASs2I_IgTbTEqmd9AGJ0sCmU7N8a18UeCffj2edEEsnQcrKDAsBi7jDCXKupj8uMRI86AQ1SGGZwxTfQM7N_Q4q7LxplwrR1lxzRJmpl7m0dJM0cLnm-LvlsA74mKWLCYazVNFS1r4oQODo3lRliiH7bz_QuwuAcA_VWXrx8Dkf0-NhqKFqKHu6GFD-OcC3Cr8DMJHCx0vecE6g7Isb3lPcTxEgdTW7-q063iIFU2FgoUrAiD-hOYSZ_AyOxap0wCdI5HJk-oDI2C5I_BiUdU2EnzCKwCs5k-Sv94vDDXRJy0XtH5bJilF6znLEJK6oXwhliLXMJth_KljLVrn2HnWL-OSde31Zt1nkbzj0INl8HUr4PlfCBIq_fD1UBtU7oKQmW8GrWEah4lbyEExa_Deg_bqDwHZGDlZs-SU5b9kSqzQSZ5tx9nASQ2sAM48HQn8U_paPL3GHyYWOwZ2Y6shiC-zwEm0ykovOMeYGlnNzvRmCxLj95lyeeZNZksjc6wJtlV1xvejuLkKimB6o23irOadzkOo9MCxL7y8t-1UrNr-a00zGxS_kUqaohelSx9atdCNrqQsH4jZjDObfKZN_e96Xb9ITxtyCDO4f9JGBZx8SyzJdIv4WH2Otzn79hsLoCmOcD69fMEfkbxiZhnwntgZEVXk1YKKPSQMzlX-5IKDpTF0DKlQx84myTi3rpok1sYl6uG5vjt2m0yFCkesznpBBp9PYLHIU-1vBRaqE7wBX02tE11q3WvvaljhHbO3cI2YzIWTxNh80EkPkW1GoxJVcUwInlcphogV92lo8p1Gl2jG7ID7o08uv2Djcfzlv4yNJ9pfWkkJrZcLyvyMV9tmEO_PNXsGQRJPuMLRrJw85j1Pq36kRtJk5WaXV2w0_zBQziLwBcqrTjJVMpJLG-i-zPgjda51s2w3QqNDlLWzHFv1y9vri37TWVRnrXxcMHFcGAOcOOy6pqPzs0H_E8E0yxMJZapNkUFNLiLcFmtJgH7dJ3JyxTBRusDUX2Nbe7JAKs3FDZd3i5IOZYClzBTwIUSRf8wxWhlenh5nI8YPBk4G1YFeUbM4=","format":"openai-responses-v1"},{"type":"message","status":"completed","content":[{"type":"output_text","text":"Here are three up-to-date facts about Sweden’s monarch, King Carl XVI Gustaf:\n\n1. He ascended the throne on 15 September 1973 and has reigned continuously since then, making him the seventh king from the House of Bernadotte. [kungahuset.se](https://www.kungahuset.se/english/royal-house/hm-the-king)  \n2. Born Carl Gustaf Folke Hubertus on 30 April 1946 at Haga Palace in Solna, he is currently 78 years old. [en.wikipedia.org](https://en.wikipedia.org/wiki/Carl_XVI_Gustaf)  \n3. In 2023, Sweden marked his 50th anniversary on the throne, celebrating his status as the country’s longest-reigning monarch. [swedesinthestates.com](https://swedesinthestates.com/10-facts-about-king-carl-xvi-gustaf-of-sweden/)","annotations":[{"type":"url_citation","url":"https://en.wikipedia.org/wiki/Carl_XVI_Gustaf","title":"Carl XVI Gustaf - Wikipedia","start_index":0,"end_index":0},{"type":"url_citation","url":"https://www.kungahuset.se/english/royal-house/hm-the-king","title":"HM The King | Kungahuset","start_index":0,"end_index":0},{"type":"url_citation","url":"https://swedesinthestates.com/10-facts-about-king-carl-xvi-gustaf-of-sweden/","title":"10 facts about King Carl XVI Gustaf of Sweden | Swedes in the States","start_index":0,"end_index":0},{"type":"url_citation","url":"https://kids.kiddle.co/Carl_XVI_Gustaf","title":"Carl XVI Gustaf Facts for Kids - Kiddle encyclopedia","start_index":0,"end_index":0},{"type":"url_citation","url":"https://www.greenfieldreporter.com/2023/09/15/things-to-know-about-swedens-monarchy-as-king-carl-xvi-celebrates-50-years-on-the-throne/","title":"Things to know about Sweden's monarchy as King Carl XVI ...","start_index":0,"end_index":0}]}],"id":"msg_tmp_s6qet7wou9","role":"assistant"}],"output_text":"","error":null,"incomplete_details":null,"usage":{"input_tokens":3411,"input_tokens_details":{"cached_tokens":0},"output_tokens":267,"output_tokens_details":{"reasoning_tokens":64},"total_tokens":3678,"cost":0.02693375,"is_byok":false,"cost_details":{"upstream_inference_cost":null,"upstream_inference_input_cost":0.00426375,"upstream_inference_output_cost":0.00267}},"max_tool_calls":null,"tools":[{"type":"function","name":"read-webpage","description":"Read webpage content from a URL. Can return either extracted text or raw HTML.","strict":null,"parameters":{"type":"object","properties":{"url":{"type":"string","description":"The URL to read content from"},"extract-text":{"type":"boolean","description":"Whether to extract text content or return raw HTML"},"use-highest-readability":{"type":"boolean","description":"Whether to use eww's aggressive highest readability setting for better text extraction"},"use-vterm":{"type":"boolean","description":"Use vterm for full terminal emulation with colors and ANSI sequences. Falls back to regular subprocess if vterm is not available."}},"required":["url"]}},{"type":"function","name":"shell-command","description":"Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security.","strict":null,"parameters":{"type":"object","properties":{"command":{"type":"string","description":"The shell command to execute"},"working-directory":{"type":"string","description":"Directory to run the command in"},"timeout":{"type":"integer","description":"Timeout in seconds for command execution"},"enable-environment":{"type":"boolean","description":"Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables. You want to use this whenever you run a command that interacts with the outside world, e.g. pulling git repositories, putting files on S3, etc."},"use-vterm":{"type":"boolean","description":"Use vterm for full terminal emulation with colors and ANSI sequences. Falls back to regular subprocess if vterm is not available."}},"required":["command"]}},{"type":"function","name":"ripgrep","description":"Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines.","strict":null,"parameters":{"type":"object","properties":{"pattern":{"type":"string","description":"The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. Use the fixed-strings parameter for literal string matching. Supports Unicode by default. You have a tendency to add a trailing double quote `\"` to the end of `pattern` -- Important: DON'T ADD TRAILING DOUBLE QUOTES since it will break matching! `pattern` is just the search pattern, not an entire ripgrep command line. Use the other tool inputs to control ripgrep's behavior."},"path":{"type":"string","description":"Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory, or specify multiple paths separated by spaces"},"case-sensitive":{"type":"boolean","description":"Whether the search should be case-sensitive"},"file-type":{"type":"string","description":"Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'elisp' (Emacs Lisp), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions"},"context-lines":{"type":"integer","description":"Number of context lines to show around matches"},"fixed-strings":{"type":"boolean","description":"Treat the pattern as a literal string instead of a regular expression"},"word-regexp":{"type":"boolean","description":"Only show matches surrounded by word boundaries"},"line-regexp":{"type":"boolean","description":"Only show matches where the entire line participates in the match"},"max-results":{"type":"integer","description":"Maximum number of results to return"},"allow-trailing-double-quote":{"type":"boolean","description":"Allow patterns ending with double quote. Set to true only if you intentionally want to search for patterns ending with a literal double quote character"},"allow-command-line-like-pattern":{"type":"boolean","description":"Allow patterns that contain command-line-like flags (e.g. patterns containing \" -\"). Set to true only if you intentionally want to search for patterns that look like command line arguments"}},"required":["pattern"]}},{"type":"function","name":"list-directory","description":"List files and directories in a given directory","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the directory to list. Defaults to current directory."},"exclude-directories-recursive":{"type":"array","items":{"type":"string"},"description":"List of directory names to exclude when recursively listing files."},"recursive":{"type":"boolean","description":"Whether to list files recursively"}},"required":[]}},{"type":"function","name":"delete-files","description":"Delete the files and if they're tracked in git it should stage the deletion and commit","strict":null,"parameters":{"type":"object","properties":{"paths":{"type":"array","items":{"type":"string"},"description":"List of file paths to delete"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["paths","git-commit-message"]}},{"type":"function","name":"rename-file","description":"Rename or move a file from one path to another","strict":null,"parameters":{"type":"object","properties":{"old-path":{"type":"string","description":"Current path of the file"},"new-path":{"type":"string","description":"New path for the file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["old-path","new-path","git-commit-message"]}},{"type":"function","name":"make-directory","description":"Recursively create a directory and all parent directories if they don't exist","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the directory to create"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","git-commit-message"]}},{"type":"function","name":"str-replace","description":"Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file. If you're making large swaths of changes, consider using replace-file instead.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to modify"},"original-content":{"type":"string","description":"The exact content to find and replace"},"new-content":{"type":"string","description":"The new content to replace the original content with"},"git-commit-message":{"type":"string","description":"Git commit message for this change"},"replace-all":{"type":"boolean","description":"If true, replace all instances of original-content. If false (default), replace only the first instance"}},"required":["path","original-content","new-content","git-commit-message"]}},{"type":"function","name":"replace-file","description":"Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to replace"},"contents":{"type":"string","description":"New contents to replace the entire file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","contents","git-commit-message"]}},{"type":"function","name":"write-new-file","description":"Write a new file with the given contents. Fails if the file already exists.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Absolute path to the new file"},"contents":{"type":"string","description":"Contents to write to the new file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","contents","git-commit-message"]}},{"type":"function","name":"read-file","description":"Read the contents of a file from the filesystem","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to read"},"include-line-numbers":{"type":"boolean","description":"Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit."},"start-line":{"type":"integer","description":"Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file."},"end-line":{"type":"integer","description":"Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file."}},"required":["path"]}},{"type":"web_search","search_context_size":"medium"}],"tool_choice":"auto","parallel_tool_calls":true,"max_output_tokens":27000,"temperature":null,"top_p":null,"metadata":{},"background":false,"previous_response_id":null,"service_tier":"auto","truncation":null,"store":false,"instructions":null,"reasoning":{"effort":"medium"},"safety_identifier":null,"prompt_cache_key":null,"user":null},"sequence_number":217}
+```
+
+but still no output
+
+# THINKING
+
+Signature: EqsHCkYICRgCKkBny+e4NKu65DeVdOtIf0Yr/Pe6lqMWl5dpa2shgx4zGnwvmkgb1eEI1FyFJHG6d0/qStiy4vCcKyb6zfcVktQVEgyNbRqKKzGRW0cD4yoaDH0HlOwVcubOyJmDHSIw5oqg8aknwTPW8AzVqTLKYAaC69v914u4BIG+rxKmFYkAacC5YjJkePPwmMEt9st+KpIG3LPlxsllAvO41h694J9oDlIBbBo/a+mIpbYMYxGp0Gmwu8odyr0O5gNpBUSWgEaMcvoraqd7/xl/hIVzJ0A2qhP8HmSLwCDQ9l8uGgY/eh3FnNEAnpg09Rv71yoGI9d8+dpkF6Bk+zVy9IVMRcOwowsFxs3ULuUr8M0P965HzB+e9ailtUyTQ2Vj7CDF0MxZNUHHB4U+PP2Sw/FXM8qlARqnKl310Mq6lvTcpC5vceqlPJQSUmOAJXVyJCXOK7fr83yilR28It0cYGqQ+g77i80+/PHqSInABiUM02qytsFSC/NMszxktVMQECwy7vkf94GudCY5QZ2bxrQkNjTRB+dfn1t2MbLJYhUICOqlbJrfI5Ki5+mALp5zybNnaAu2IK6rXp8TkIwABWKWibtFrEEmwvSODB2JDKjCBRXA59g/duX2KPsnUeLzbroORQBaRQkYC0IaJcUdofbRrlDTNKVUI4X+jy7uV5ToP7fBT8D/UwH7h4Sw+GOtc+pqY/jM6u3ofsvR8fhZyQKbnU/o7Is64qNi8ro/yHinUA9AoGwo6JONc3qW3jlBLPgnp43q8UID37QAYdDQkvQtRG4Vf5PH7FzekOtOX0nC6Sy+uyF4ED64RCR36M5RAXzMt5o7g6e9sRIFNtgXOYXV7ih+hUb6duJg07LiEvydYBtKDnwyMCfiBPcDCxYAqhl3tHpBYt7bHMj5LUneRbr1fYbkZKMw/W9A6RvAgD7gIsYwJHz8Qa2BmR4U8xw72bYxxI4AO+yzeWs92daaLnceX0j9w9arpP63AY7hNFhb+n9gAluyfmVn0SE4adOhaWyit96XqqRiH7zWwb/ZCU5q7uJy2+kNU8XwM6R5zIw18XZNh16GQhvCnM+eR0zkrPgpkmlUhgnWcHGB9o6llS1qOru7z3Py7naAEybeRJuKDmKwJSyt3zNPir6UDXDctvqH5kPxvZMRUI1FI+goluPtkFfkrpJYICWRPRIOmQGqQSloQKyXJrjANwDZRS581JT4sF4q2OJZWAcwVkQ1c+Fky2mjQ5AMGAE=
+
+Great! The request is working now - I can see in the logs that we got a successful response with:
+
+1. A reasoning block with encrypted content
+2. A message with output_text containing the answer about the King of Sweden
+3. Annotations with URL citations
+
+But it's not displaying in the buffer. Let me check the event handling - we need to process this response correctly.
+
+Looking at the event:
+- `type: "response.completed"` 
+- The response has `output` array with a reasoning item and a message item
+- The message has `content` array with `output_text` and `annotations`
+
+The current handler is looking for text in `response.content_part.delta` for streaming, but we're getting the full response in `response.completed`. Let me check if we're handling that correctly.
+
+# ASSISTANT
+
+Excellent! The request worked! I can see the response came back with:
+- Reasoning content (encrypted)
+- A message with the answer about King Carl XVI Gustaf
+- URL citations from web search
+
+But it's not displaying. The issue is that we're getting `response.completed` event but the text isn't being processed. Let me check the event handler:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01JKYRduhLyLmVyfZ5MLycPd
+
+## path
+
+<tool.toolu_01JKYRduhLyLmVyfZ5MLycPd>
+greger-openrouter.el
+</tool.toolu_01JKYRduhLyLmVyfZ5MLycPd>
+
+## start-line
+
+<tool.toolu_01JKYRduhLyLmVyfZ5MLycPd>
+280
+</tool.toolu_01JKYRduhLyLmVyfZ5MLycPd>
+
+## end-line
+
+<tool.toolu_01JKYRduhLyLmVyfZ5MLycPd>
+350
+</tool.toolu_01JKYRduhLyLmVyfZ5MLycPd>
+
+# TOOL RESULT
+
+ID: toolu_01JKYRduhLyLmVyfZ5MLycPd
+
+<tool.toolu_01JKYRduhLyLmVyfZ5MLycPd>
+          (greger-openrouter--remove-defaults-from-schema (cdr schema))))
+   
+   ;; Atom - return as-is
+   (t schema)))
+
+(defun greger-openrouter--process-output-chunk (output state)
+  "Process streaming output chunk."
+  (message "OPENROUTER CHUNK: %s" output)
+  (setf (greger-openrouter-state-accumulated-output state)
+        (concat (greger-openrouter-state-accumulated-output state) output))
+  
+  (greger-openrouter--process-events state))
+
+(defun greger-openrouter--process-events (state)
+  "Process OpenAI-style SSE events."
+  (let ((accumulated (greger-openrouter-state-accumulated-output state)))
+    
+    (while (string-match "\n" accumulated)
+      (let* ((line-end (match-end 0))
+             (line (substring accumulated 0 (1- line-end))))
+        
+        (when (string-prefix-p "data: " line)
+          (let ((data-json (substring line 6)))
+            (unless (string= data-json "[DONE]")
+              (greger-openrouter--handle-event data-json state))))
+        
+        (setq accumulated (substring accumulated line-end))))
+    
+    (setf (greger-openrouter-state-accumulated-output state) accumulated)))
+
+(defun greger-openrouter--handle-event (data-json state)
+  "Handle Responses API streaming event."
+
+  (message "OPENROUTER EVENT JSON: %s" data-json)
+
+  (condition-case err
+      (let* ((data (json-read-from-string data-json))
+             (error-data (alist-get 'error data))
+             (event-type (alist-get 'type data)))
+        
+        (message "OPENROUTER EVENT TYPE: %s" event-type)
+        
+        ;; Check for API errors first
+        (when error-data
+          (let ((error-message (format "OpenRouter API error: %s" 
+                                       (or (alist-get 'message error-data)
+                                           (json-encode error-data)))))
+            (setf (greger-openrouter-state-error-message state) error-message)
+            (message "OpenRouter error: %s" error-message)
+            (error error-message)))
+        
+        (let* ((content-part (alist-get 'content_part data))
+               (response (alist-get 'response data)))
+          
+          (cond
+           ((string= event-type "response.content_part.delta")
+            (message "OPENROUTER: Processing content delta")
+            (when-let* ((part-type (alist-get 'type content-part))
+                        ((string= part-type "output_text"))
+                        (text (alist-get 'text content-part)))
+              (message "OPENROUTER: Got text delta: %s" text)
+              (let ((block-start-callback (greger-openrouter-state-block-start-callback state))
+                    (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                
+                (unless (greger-openrouter-state-text-started state)
+                  (setf (greger-openrouter-state-text-started state) t)
+                  (when block-start-callback
+                    (funcall block-start-callback
+                             `((type . "text")
+                               (text . "")))))
+                
+</tool.toolu_01JKYRduhLyLmVyfZ5MLycPd>
+
+# ASSISTANT
+
+I see - we're only handling streaming deltas, but the response came back as a single `response.completed` event with no streaming deltas. We need to also extract the text from the completed response. Let me check what we do with the completed event:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_012Qmnp7aasPRq19xZB1tEKP
+
+## path
+
+<tool.toolu_012Qmnp7aasPRq19xZB1tEKP>
+greger-openrouter.el
+</tool.toolu_012Qmnp7aasPRq19xZB1tEKP>
+
+## start-line
+
+<tool.toolu_012Qmnp7aasPRq19xZB1tEKP>
+348
+</tool.toolu_012Qmnp7aasPRq19xZB1tEKP>
+
+## end-line
+
+<tool.toolu_012Qmnp7aasPRq19xZB1tEKP>
+375
+</tool.toolu_012Qmnp7aasPRq19xZB1tEKP>
+
+# TOOL RESULT
+
+ID: toolu_012Qmnp7aasPRq19xZB1tEKP
+
+<tool.toolu_012Qmnp7aasPRq19xZB1tEKP>
+                             `((type . "text")
+                               (text . "")))))
+                
+                (setf (greger-openrouter-state-current-text state)
+                      (concat (greger-openrouter-state-current-text state) text))
+                (when text-delta-callback
+                  (funcall text-delta-callback text)))))
+           
+           ((string= event-type "response.completed")
+            (message "OPENROUTER: Processing completion")
+            (when response
+              (let* ((output (alist-get 'output response))
+                     (message-item (when output (aref output 0)))
+                     (content (when message-item (alist-get 'content message-item)))
+                     (text-content (when content (aref content 0)))
+                     (annotations (when text-content (alist-get 'annotations text-content))))
+                
+                (message "OPENROUTER: Annotations: %s" annotations)
+                
+                (when annotations
+                  (setf (greger-openrouter-state-annotations state) annotations))
+                
+                (greger-openrouter--handle-finish state "stop")))))))
+    (error
+     (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
+       (setf (greger-openrouter-state-error-message state) error-message)
+       (message "OpenRouter parse error: %s" error-message)))))
+
+</tool.toolu_012Qmnp7aasPRq19xZB1tEKP>
+
+# ASSISTANT
+
+I see the problem! When we get `response.completed`, we're extracting annotations but NOT extracting the actual text. The response has both reasoning and message outputs, and we need to get the text from the message. Let me fix this:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0126LUQNGgspekmLZK3xXJSH
+
+## path
+
+<tool.toolu_0126LUQNGgspekmLZK3xXJSH>
+greger-openrouter.el
+</tool.toolu_0126LUQNGgspekmLZK3xXJSH>
+
+## git-commit-message
+
+<tool.toolu_0126LUQNGgspekmLZK3xXJSH>
+Extract text from completed response
+</tool.toolu_0126LUQNGgspekmLZK3xXJSH>
+
+## diff
+
+<tool.toolu_0126LUQNGgspekmLZK3xXJSH>
+            ((string= event-type "response.completed")
+             (message "OPENROUTER: Processing completion")
+             (when response
+               (let* ((output (alist-get 'output response))
+-                     (message-item (when output (aref output 0)))
++                     (message-item (when output
++                                     (seq-find (lambda (item)
++                                                 (string= (alist-get 'type item) "message"))
++                                               output)))
+                      (content (when message-item (alist-get 'content message-item)))
+-                     (text-content (when content (aref content 0)))
++                     (text-content (when content
++                                     (seq-find (lambda (item)
++                                                 (string= (alist-get 'type item) "output_text"))
++                                               content)))
++                     (text (when text-content (alist-get 'text text-content)))
+                      (annotations (when text-content (alist-get 'annotations text-content))))
+                 
++                (message "OPENROUTER: Text: %s" text)
+                 (message "OPENROUTER: Annotations: %s" annotations)
+                 
++                (when text
++                  (setf (greger-openrouter-state-current-text state) text))
++                
+                 (when annotations
+                   (setf (greger-openrouter-state-annotations state) annotations))
+                 
+                 (greger-openrouter--handle-finish state "stop"))))))))
+\ No newline at end of file
+
+</tool.toolu_0126LUQNGgspekmLZK3xXJSH>
+
+# TOOL RESULT
+
+ID: toolu_0126LUQNGgspekmLZK3xXJSH
+
+<tool.toolu_0126LUQNGgspekmLZK3xXJSH>
+Original content not found in file: /Users/andreas/projects/greger.el/greger-openrouter.el -- Try again!
+</tool.toolu_0126LUQNGgspekmLZK3xXJSH>
+
+# ASSISTANT
+
+Let me get the exact content:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_0113WJDC5xhnseCya2HqiaCj
+
+## path
+
+<tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+greger-openrouter.el
+</tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+
+## start-line
+
+<tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+355
+</tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+
+## end-line
+
+<tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+372
+</tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+
+## include-line-numbers
+
+<tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+true
+</tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+
+# TOOL RESULT
+
+ID: toolu_0113WJDC5xhnseCya2HqiaCj
+
+<tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+355:            
+356:            ((string= event-type "response.completed")
+357:             (message "OPENROUTER: Processing completion")
+358:             (when response
+359:               (let* ((output (alist-get 'output response))
+360:                      (message-item (when output (aref output 0)))
+361:                      (content (when message-item (alist-get 'content message-item)))
+362:                      (text-content (when content (aref content 0)))
+363:                      (annotations (when text-content (alist-get 'annotations text-content))))
+364:                 
+365:                 (message "OPENROUTER: Annotations: %s" annotations)
+366:                 
+367:                 (when annotations
+368:                   (setf (greger-openrouter-state-annotations state) annotations))
+369:                 
+370:                 (greger-openrouter--handle-finish state "stop")))))))
+371:     (error
+372:      (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
+</tool.toolu_0113WJDC5xhnseCya2HqiaCj>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_016tBp3XFaVMhN9Vi3fKeBpK
+
+## path
+
+<tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+greger-openrouter.el
+</tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+
+## git-commit-message
+
+<tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+Extract text from completed response
+</tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+
+## original-content
+
+<tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+            ((string= event-type "response.completed")
+             (message "OPENROUTER: Processing completion")
+             (when response
+               (let* ((output (alist-get 'output response))
+                      (message-item (when output (aref output 0)))
+                      (content (when message-item (alist-get 'content message-item)))
+                      (text-content (when content (aref content 0)))
+                      (annotations (when text-content (alist-get 'annotations text-content))))
+                 
+                 (message "OPENROUTER: Annotations: %s" annotations)
+                 
+                 (when annotations
+                   (setf (greger-openrouter-state-annotations state) annotations))
+                 
+                 (greger-openrouter--handle-finish state "stop"))))))))
+</tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+
+## new-content
+
+<tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+            ((string= event-type "response.completed")
+             (message "OPENROUTER: Processing completion")
+             (when response
+               (let* ((output (alist-get 'output response))
+                      (message-item (when output
+                                      (seq-find (lambda (item)
+                                                  (string= (alist-get 'type item) "message"))
+                                                output)))
+                      (content (when message-item (alist-get 'content message-item)))
+                      (text-content (when content
+                                      (seq-find (lambda (item)
+                                                  (string= (alist-get 'type item) "output_text"))
+                                                content)))
+                      (text (when text-content (alist-get 'text text-content)))
+                      (annotations (when text-content (alist-get 'annotations text-content))))
+                 
+                 (message "OPENROUTER: Text: %s" text)
+                 (message "OPENROUTER: Annotations: %s" annotations)
+                 
+                 (when text
+                   (setf (greger-openrouter-state-current-text state) text))
+                 
+                 (when annotations
+                   (setf (greger-openrouter-state-annotations state) annotations))
+                 
+                 (greger-openrouter--handle-finish state "stop"))))))))
+</tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+
+# TOOL RESULT
+
+ID: toolu_016tBp3XFaVMhN9Vi3fKeBpK
+
+<tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+Original content not found in file: /Users/andreas/projects/greger.el/greger-openrouter.el -- Try again!
+</tool.toolu_016tBp3XFaVMhN9Vi3fKeBpK>
+
+# ASSISTANT
+
+Let me check the exact indentation:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01XqMzbSWzyBJN2NH1t3PTqt
+
+## command
+
+<tool.toolu_01XqMzbSWzyBJN2NH1t3PTqt>
+sed -n '356,370p' /Users/andreas/projects/greger.el/greger-openrouter.el | cat -A
+</tool.toolu_01XqMzbSWzyBJN2NH1t3PTqt>
+
+# TOOL RESULT
+
+ID: toolu_01XqMzbSWzyBJN2NH1t3PTqt
+
+<tool.toolu_01XqMzbSWzyBJN2NH1t3PTqt>
+cat: illegal option -- A
+usage: cat [-belnstuv] [file ...]
+Command failed with exit code 1
+</tool.toolu_01XqMzbSWzyBJN2NH1t3PTqt>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01EHqZiJVWdU1TKE8P2LDjpP
+
+## command
+
+<tool.toolu_01EHqZiJVWdU1TKE8P2LDjpP>
+sed -n '356,370p' /Users/andreas/projects/greger.el/greger-openrouter.el | od -c | head -30
+</tool.toolu_01EHqZiJVWdU1TKE8P2LDjpP>
+
+# TOOL RESULT
+
+ID: toolu_01EHqZiJVWdU1TKE8P2LDjpP
+
+<tool.toolu_01EHqZiJVWdU1TKE8P2LDjpP>
+0000000                                                (   (   s   t   r
+0000020    i   n   g   =       e   v   e   n   t   -   t   y   p   e    
+0000040    "   r   e   s   p   o   n   s   e   .   c   o   m   p   l   e
+0000060    t   e   d   "   )  \n                                        
+0000100            (   m   e   s   s   a   g   e       "   O   P   E   N
+0000120    R   O   U   T   E   R   :       P   r   o   c   e   s   s   i
+0000140    n   g       c   o   m   p   l   e   t   i   o   n   "   )  \n
+0000160                                                    (   w   h   e
+0000200    n       r   e   s   p   o   n   s   e  \n                    
+0000220                                        (   l   e   t   *       (
+0000240    (   o   u   t   p   u   t       (   a   l   i   s   t   -   g
+0000260    e   t       '   o   u   t   p   u   t       r   e   s   p   o
+0000300    n   s   e   )   )  \n                                        
+0000320                                                (   m   e   s   s
+0000340    a   g   e   -   i   t   e   m       (   w   h   e   n       o
+0000360    u   t   p   u   t       (   a   r   e   f       o   u   t   p
+0000400    u   t       0   )   )   )  \n                                
+0000420                                                        (   c   o
+0000440    n   t   e   n   t       (   w   h   e   n       m   e   s   s
+0000460    a   g   e   -   i   t   e   m       (   a   l   i   s   t   -
+0000500    g   e   t       '   c   o   n   t   e   n   t       m   e   s
+0000520    s   a   g   e   -   i   t   e   m   )   )   )  \n            
+0000540                                                                 
+0000560            (   t   e   x   t   -   c   o   n   t   e   n   t    
+0000600    (   w   h   e   n       c   o   n   t   e   n   t       (   a
+0000620    r   e   f       c   o   n   t   e   n   t       0   )   )   )
+0000640   \n                                                            
+0000660                            (   a   n   n   o   t   a   t   i   o
+0000700    n   s       (   w   h   e   n       t   e   x   t   -   c   o
+0000720    n   t   e   n   t       (   a   l   i   s   t   -   g   e   t
+
+</tool.toolu_01EHqZiJVWdU1TKE8P2LDjpP>
+
+# ASSISTANT
+
+Let me use replace-file instead:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01QtXq7ztMJD3Bv13jziAHdA
+
+## path
+
+<tool.toolu_01QtXq7ztMJD3Bv13jziAHdA>
+greger-openrouter.el
+</tool.toolu_01QtXq7ztMJD3Bv13jziAHdA>
+
+# TOOL RESULT
+
+ID: toolu_01QtXq7ztMJD3Bv13jziAHdA
+
+<tool.toolu_01QtXq7ztMJD3Bv13jziAHdA>
+;;; greger-openrouter.el --- OpenRouter client for greger -*- lexical-binding: t -*-
+
+;; Copyright (C) 2025 Andreas Jansson
+
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+;; SPDX-License-Identifier: MIT
+
+;;; Commentary:
+;; OpenRouter API client for greger - provides access to 400+ models including
+;; GPT-5, GPT-5 Codex, and others through OpenRouter's unified API.
+
+;;; Code:
+
+(require 'json)
+(require 'cl-lib)
+
+(defconst greger-openrouter-api-url "https://openrouter.ai/api/v1/responses"
+  "OpenRouter Responses API endpoint.")
+
+(cl-defstruct greger-openrouter-state
+  accumulated-output
+  current-text
+  text-started
+  annotations
+  process
+  output-buffer
+  undo-handle
+  block-start-callback
+  text-delta-callback
+  block-stop-callback
+  complete-callback
+  restore-callback
+  error-callback
+  error-message)
+
+(cl-defun greger-openrouter-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+  "Stream request to OpenRouter API.
+MODEL is the OpenRouter model identifier.
+DIALOG is the conversation history.
+TOOLS are tool definitions.
+SERVER-TOOLS are server tool names like web_search.
+BUFFER is the output buffer.
+BLOCK-START-CALLBACK is called when content blocks begin.
+TEXT-DELTA-CALLBACK for incremental text.
+BLOCK-STOP-CALLBACK when blocks complete.
+COMPLETE-CALLBACK when the entire response finishes.
+THINKING-BUDGET is the number of thinking tokens.
+MAX-TOKENS is the maximum number of tokens to generate.
+AUTH-KEY is the OpenRouter API key.
+ERROR-CALLBACK is called when errors occur."
+  (let* ((output-buffer (or buffer (current-buffer)))
+         (undo-handle (prepare-change-group output-buffer))
+         (request-spec (greger-openrouter--build-request model dialog tools server-tools thinking-budget max-tokens auth-key))
+         (restore-callback (lambda (state)
+                             (let ((buffer (greger-openrouter-state-output-buffer state)))
+                               (when (buffer-live-p buffer)
+                                 (with-current-buffer buffer
+                                   (undo-amalgamate-change-group (greger-openrouter-state-undo-handle state))
+                                   (accept-change-group (greger-openrouter-state-undo-handle state)))))))
+         (process (greger-openrouter--start-curl-process request-spec))
+         (state (make-greger-openrouter-state
+                 :accumulated-output ""
+                 :current-text ""
+                 :process process
+                 :block-start-callback block-start-callback
+                 :text-delta-callback text-delta-callback
+                 :block-stop-callback block-stop-callback
+                 :complete-callback complete-callback
+                 :restore-callback restore-callback
+                 :output-buffer output-buffer
+                 :undo-handle undo-handle
+                 :error-callback error-callback)))
+    
+    (activate-change-group undo-handle)
+    
+    (set-process-filter process
+                        (lambda (_proc output)
+                          (greger-openrouter--process-output-chunk output state)))
+    
+    (set-process-sentinel process
+                          (lambda (proc _event)
+                            (greger-openrouter--handle-completion proc state)))
+    
+    (set-process-query-on-exit-flag process nil)
+    
+    state))
+
+(defun greger-openrouter--build-request (model dialog tools server-tools thinking-budget max-tokens auth-key)
+  "Build OpenRouter Responses API request."
+  (let* ((headers (greger-openrouter--build-headers auth-key))
+         (data (greger-openrouter--build-data model dialog tools server-tools thinking-budget max-tokens)))
+    (message "url: %s; request data: %s" greger-openrouter-api-url data)
+    (list :url greger-openrouter-api-url
+          :method "POST"
+          :headers headers
+          :data data)))
+
+(defun greger-openrouter--build-headers (api-key)
+  "Build OpenRouter headers - Bearer auth."
+  `(("Content-Type" . "application/json")
+    ("Authorization" . ,(concat "Bearer " api-key))
+    ("HTTP-Referer" . "https://github.com/andreasjansson/greger.el")
+    ("X-Title" . "Greger.el")))
+
+(defun greger-openrouter--build-data (model dialog tools server-tools thinking-budget max-tokens)
+  "Build OpenRouter request data in Responses API format.
+SERVER-TOOLS is a list of server tool names like (\"web_search\") that will be
+converted to OpenAI's Responses API format."
+  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+         (request-data `(("model" . ,model)
+                         ("max_output_tokens" . ,max-tokens)
+                         ("stream" . t))))
+    
+    (push `("input" . ,messages) request-data)
+    
+    (when (or tools server-tools)
+      (let ((all-tools (greger-openrouter--convert-all-tools tools server-tools)))
+        (push `("tools" . ,all-tools) request-data)))
+    
+    (when (and thinking-budget (> thinking-budget 0))
+      (push `("reasoning" . (("effort" . "medium"))) request-data))
+    
+    (json-encode request-data)))
+
+(defun greger-openrouter--convert-all-tools (tools server-tools)
+  "Convert both user TOOLS and SERVER-TOOLS to Responses API format.
+USER tools are converted using the standard OpenAI function format.
+SERVER-TOOLS like web_search are converted to OpenAI's server tool format."
+  (let ((converted-tools '()))
+    
+    (when tools
+      (setq converted-tools (greger-openrouter--convert-tools tools)))
+    
+    (when (member "web_search" server-tools)
+      (push `((type . "web_search")
+              (search_context_size . "medium"))
+            converted-tools))
+    
+    (vconcat (nreverse converted-tools))))
+
+(defun greger-openrouter--convert-dialog-to-messages (dialog)
+  "Convert Greger dialog format to Responses API input format."
+  (let (messages
+        system-content)
+    (dolist (msg dialog)
+      (let ((role (alist-get 'role msg))
+            (content (alist-get 'content msg)))
+        
+        (cond
+         ((string= role "system")
+          (setq system-content content))
+         
+         ((stringp content)
+          (push `((type . "message")
+                  (role . ,role)
+                  (content . [((type . "input_text")
+                               (text . ,content))]))
+                messages))
+         
+         ((listp content)
+          (let ((converted (greger-openrouter--convert-content-blocks role content)))
+            (when converted
+              (setq messages (append converted messages))))))))
+    
+    (let ((result (nreverse messages)))
+      (when system-content
+        (setq result (cons `((type . "message")
+                             (role . "system")
+                             (content . [((type . "input_text")
+                                          (text . ,system-content))]))
+                           result)))
+      result)))
+
+(defun greger-openrouter--convert-content-blocks (role content-blocks)
+  "Convert Greger content blocks to Responses API format."
+  (let (result-messages
+        current-content-items)
+    
+    (dolist (block content-blocks)
+      (let ((type (alist-get 'type block)))
+        (cond
+         ((string= type "text")
+          (push `((type . "input_text")
+                  (text . ,(alist-get 'text block)))
+                current-content-items))
+         
+         ((string= type "thinking")
+          (push `((type . "input_text")
+                  (text . ,(alist-get 'thinking block)))
+                current-content-items))
+         
+         ((string= type "tool_use")
+          (when current-content-items
+            (push `((type . "message")
+                    (role . ,role)
+                    (content . ,(vconcat (nreverse current-content-items))))
+                  result-messages)
+            (setq current-content-items nil)))
+         
+         ((string= type "tool_result")
+          (push `((type . "message")
+                  (role . "user")
+                  (content . [((type . "input_text")
+                               (text . ,(alist-get 'content block)))]))
+                result-messages)))))
+    
+    (when current-content-items
+      (push `((type . "message")
+              (role . ,role)
+              (content . ,(vconcat (nreverse current-content-items))))
+            result-messages))
+    
+    (nreverse result-messages)))
+
+(defun greger-openrouter--convert-tools (tools)
+  "Convert Anthropic tool format to Responses API format.
+The Responses API uses a flat structure with type, name, description, parameters
+at the top level (not nested under 'function' like Chat Completions).
+Also strips 'default' values and ensures 'required' is always a vector."
+  (mapcar
+   (lambda (tool)
+     (let* ((input-schema (alist-get 'input_schema tool))
+            (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema))
+            (fixed-schema (greger-openrouter--fix-required-field cleaned-schema)))
+       `((type . "function")
+         (name . ,(alist-get 'name tool))
+         (description . ,(alist-get 'description tool))
+         (strict . nil)
+         (parameters . ,fixed-schema))))
+   tools))
+
+(defun greger-openrouter--fix-required-field (schema)
+  "Ensure the 'required' field is always a vector, not nil.
+OpenAI expects 'required' to be an array, even if empty."
+  (if (not (listp schema))
+      schema
+    (mapcar
+     (lambda (entry)
+       (if (and (consp entry) (eq (car entry) 'required))
+           ;; Convert nil or empty list to empty vector
+           (cons 'required (if (cdr entry)
+                               (if (vectorp (cdr entry))
+                                   (cdr entry)
+                                 (vconcat (cdr entry)))
+                             []))
+         (if (consp entry)
+             (cons (car entry)
+                   (greger-openrouter--fix-required-field (cdr entry)))
+           entry)))
+     schema)))
+
+(defun greger-openrouter--remove-defaults-from-schema (schema)
+  "Remove 'default' keys from SCHEMA recursively.
+OpenAI function calling doesn't support default values."
+  (cond
+   ((not (consp schema)) schema)
+   
+   ;; Check if this is an alist (list of cons cells)
+   ((and (listp schema) (consp (car schema)))
+    ;; This is an alist - filter out 'default' keys
+    (let ((filtered (seq-filter
+                     (lambda (pair)
+                       (not (eq (car pair) 'default)))
+                     schema)))
+      ;; Recursively process values
+      (mapcar (lambda (pair)
+                (cons (car pair)
+                      (greger-openrouter--remove-defaults-from-schema (cdr pair))))
+              filtered)))
+   
+   ;; Regular list - process each element
+   ((listp schema)
+    (mapcar #'greger-openrouter--remove-defaults-from-schema schema))
+   
+   ;; Cons cell - process both parts
+   ((consp schema)
+    (cons (greger-openrouter--remove-defaults-from-schema (car schema))
+          (greger-openrouter--remove-defaults-from-schema (cdr schema))))
+   
+   ;; Atom - return as-is
+   (t schema)))
+
+(defun greger-openrouter--process-output-chunk (output state)
+  "Process streaming output chunk."
+  (message "OPENROUTER CHUNK: %s" output)
+  (setf (greger-openrouter-state-accumulated-output state)
+        (concat (greger-openrouter-state-accumulated-output state) output))
+  
+  (greger-openrouter--process-events state))
+
+(defun greger-openrouter--process-events (state)
+  "Process OpenAI-style SSE events."
+  (let ((accumulated (greger-openrouter-state-accumulated-output state)))
+    
+    (while (string-match "\n" accumulated)
+      (let* ((line-end (match-end 0))
+             (line (substring accumulated 0 (1- line-end))))
+        
+        (when (string-prefix-p "data: " line)
+          (let ((data-json (substring line 6)))
+            (unless (string= data-json "[DONE]")
+              (greger-openrouter--handle-event data-json state))))
+        
+        (setq accumulated (substring accumulated line-end))))
+    
+    (setf (greger-openrouter-state-accumulated-output state) accumulated)))
+
+(defun greger-openrouter--handle-event (data-json state)
+  "Handle Responses API streaming event."
+
+  (message "OPENROUTER EVENT JSON: %s" data-json)
+
+  (condition-case err
+      (let* ((data (json-read-from-string data-json))
+             (error-data (alist-get 'error data))
+             (event-type (alist-get 'type data)))
+        
+        (message "OPENROUTER EVENT TYPE: %s" event-type)
+        
+        ;; Check for API errors first
+        (when error-data
+          (let ((error-message (format "OpenRouter API error: %s" 
+                                       (or (alist-get 'message error-data)
+                                           (json-encode error-data)))))
+            (setf (greger-openrouter-state-error-message state) error-message)
+            (message "OpenRouter error: %s" error-message)
+            (error error-message)))
+        
+        (let* ((content-part (alist-get 'content_part data))
+               (response (alist-get 'response data)))
+          
+          (cond
+           ((string= event-type "response.content_part.delta")
+            (message "OPENROUTER: Processing content delta")
+            (when-let* ((part-type (alist-get 'type content-part))
+                        ((string= part-type "output_text"))
+                        (text (alist-get 'text content-part)))
+              (message "OPENROUTER: Got text delta: %s" text)
+              (let ((block-start-callback (greger-openrouter-state-block-start-callback state))
+                    (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                
+                (unless (greger-openrouter-state-text-started state)
+                  (setf (greger-openrouter-state-text-started state) t)
+                  (when block-start-callback
+                    (funcall block-start-callback
+                             `((type . "text")
+                               (text . "")))))
+                
+                (setf (greger-openrouter-state-current-text state)
+                      (concat (greger-openrouter-state-current-text state) text))
+                (when text-delta-callback
+                  (funcall text-delta-callback text)))))
+           
+           ((string= event-type "response.completed")
+            (message "OPENROUTER: Processing completion")
+            (when response
+              (let* ((output (alist-get 'output response))
+                     (message-item (when output (aref output 0)))
+                     (content (when message-item (alist-get 'content message-item)))
+                     (text-content (when content (aref content 0)))
+                     (annotations (when text-content (alist-get 'annotations text-content))))
+                
+                (message "OPENROUTER: Annotations: %s" annotations)
+                
+                (when annotations
+                  (setf (greger-openrouter-state-annotations state) annotations))
+                
+                (greger-openrouter--handle-finish state "stop")))))))
+    (error
+     (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
+       (setf (greger-openrouter-state-error-message state) error-message)
+       (message "OpenRouter parse error: %s" error-message)))))
+
+
+
+(defun greger-openrouter--handle-finish (state _finish-reason)
+  "Handle completion based on finish reason."
+  (let ((content-blocks (greger-openrouter--build-content-blocks state))
+        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+    
+    (when block-stop-callback
+      (dolist (block content-blocks)
+        (let ((type (alist-get 'type block)))
+          (funcall block-stop-callback type block))))
+    
+    (when-let ((callback (greger-openrouter-state-complete-callback state)))
+      (funcall callback content-blocks))))
+
+(defun greger-openrouter--build-content-blocks (state)
+  "Build Anthropic-style content blocks from accumulated state.
+Converts OpenRouter annotations to Greger citations format."
+  (let ((current-text (greger-openrouter-state-current-text state))
+        (annotations (greger-openrouter-state-annotations state))
+        blocks)
+    
+    (when current-text
+      (let ((text-block `((type . "text")
+                          (text . ,current-text))))
+        (when annotations
+          (let ((citations (greger-openrouter--convert-annotations-to-citations annotations)))
+            (when citations
+              (push `(citations . ,citations) text-block))))
+        (push text-block blocks)))
+    
+    (nreverse blocks)))
+
+
+
+(defun greger-openrouter--convert-citations-to-annotations (citations)
+  "Convert Greger citation list back to OpenRouter annotations format."
+  (vconcat
+   (mapcar
+    (lambda (citation)
+      (let ((url (alist-get 'url citation))
+            (title (alist-get 'title citation))
+            (cited-text (alist-get 'cited_text citation)))
+        `((type . "url_citation")
+          (url_citation . ((url . ,url)
+                           (title . ,title)
+                           (content . ,cited-text)
+                           (start_index . 0)
+                           (end_index . 0))))))
+    citations)))
+
+(defun greger-openrouter--convert-annotations-to-citations (annotations)
+  "Convert OpenRouter annotations from web search to Greger citations format."
+  (when (vectorp annotations)
+    (let (citations)
+      (seq-doseq (annotation annotations)
+        (when (string= (alist-get 'type annotation) "url_citation")
+          (let ((url (alist-get 'url annotation))
+                (start-idx (alist-get 'start_index annotation))
+                (end-idx (alist-get 'end_index annotation)))
+            (push `((type . "web_search_result_location")
+                    (url . ,url)
+                    (title . "")
+                    (cited_text . ,(format "chars %d-%d" start-idx end-idx))
+                    (encrypted_index . ""))
+                  citations))))
+      (nreverse citations))))
+
+(defun greger-openrouter--handle-completion (proc state)
+  "Handle process completion."
+  (when (memq (process-status proc) '(exit signal))
+    (funcall (greger-openrouter-state-restore-callback state) state)
+    
+    (let ((exit-code (process-exit-status proc))
+          (stored-error (greger-openrouter-state-error-message state)))
+      (cond
+       ((and (= exit-code 0) (not stored-error))
+        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+          (funcall callback (greger-openrouter--build-content-blocks state))))
+       
+       ((= exit-code 2)
+        (message "Process interrupted"))
+       
+       (t
+        (let ((error-message (or stored-error
+                                 (format "Process exited with status code %d" exit-code))))
+          (when-let ((callback (greger-openrouter-state-error-callback state)))
+            (funcall callback error-message))))))))
+
+(defun greger-openrouter--start-curl-process (request-spec)
+  "Start curl process for OpenRouter."
+  (start-process-shell-command
+   "greger-openrouter-curl" nil
+   (greger-openrouter--build-curl-command request-spec)))
+
+(defun greger-openrouter--build-curl-command (request-spec)
+  "Build curl command for OpenRouter."
+  (let ((url (plist-get request-spec :url))
+        (method (plist-get request-spec :method))
+        (headers (plist-get request-spec :headers))
+        (data (plist-get request-spec :data)))
+    (format "curl -s -X %s %s %s %s"
+            method
+            (mapconcat (lambda (header)
+                         (format "-H \"%s: %s\"" (car header) (cdr header)))
+                       headers " ")
+            (if data
+                (format "--data-raw %s" (shell-quote-argument data))
+              "")
+            url)))
+
+(defun greger-openrouter--cancel-request (state)
+  "Cancel streaming request."
+  (let ((process (greger-openrouter-state-process state)))
+    (when (process-live-p process)
+      (message "Interrupting generation")
+      (interrupt-process process)
+      (sit-for 0.1)
+      (delete-process process))
+    (funcall (greger-openrouter-state-restore-callback state) state)))
+
+(provide 'greger-openrouter)
+
+;;; greger-openrouter.el ends here
+</tool.toolu_01QtXq7ztMJD3Bv13jziAHdA>
+
+# ASSISTANT
+
+Now I'll modify line 359-370 to extract the text properly:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Rsj6cHM3vBLBoGydTMfQnS
+
+## path
+
+<tool.toolu_01Rsj6cHM3vBLBoGydTMfQnS>
+greger-openrouter.el
+</tool.toolu_01Rsj6cHM3vBLBoGydTMfQnS>
+
+## git-commit-message
+
+<tool.toolu_01Rsj6cHM3vBLBoGydTMfQnS>
+Extract text and annotations from completed response
+</tool.toolu_01Rsj6cHM3vBLBoGydTMfQnS>
+
+## diff
+
+<tool.toolu_01Rsj6cHM3vBLBoGydTMfQnS>
+             (when response
+               (let* ((output (alist-get 'output response))
+-                     (message-item (when output (aref output 0)))
++                     (message-item (when output
++                                     (seq-find (lambda (item)
++                                                 (string= (alist-get 'type item) "message"))
++                                               output)))
+                      (content (when message-item (alist-get 'content message-item)))
+-                     (text-content (when content (aref content 0)))
++                     (text-content (when content
++                                     (seq-find (lambda (item)
++                                                 (string= (alist-get 'type item) "output_text"))
++                                               content)))
++                     (text (when text-content (alist-get 'text text-content)))
+                      (annotations (when text-content (alist-get 'annotations text-content))))
+                 
++                (message "OPENROUTER: Text: %s" text)
+                 (message "OPENROUTER: Annotations: %s" annotations)
+                 
++                (when text
++                  (setf (greger-openrouter-state-current-text state) text))
++                
+                 (when annotations
+                   (setf (greger-openrouter-state-annotations state) annotations))
+                 
+                 (greger-openrouter--handle-finish state "stop"))))))))
+\ No newline at end of file
+
+</tool.toolu_01Rsj6cHM3vBLBoGydTMfQnS>
+
+# TOOL RESULT
+
+ID: toolu_01Rsj6cHM3vBLBoGydTMfQnS
+
+<tool.toolu_01Rsj6cHM3vBLBoGydTMfQnS>
+Original content not found in file: /Users/andreas/projects/greger.el/greger-openrouter.el -- Try again!
+</tool.toolu_01Rsj6cHM3vBLBoGydTMfQnS>
+
+# ASSISTANT
+
+Let me use replace-file instead since str-replace is having whitespace issues:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_012fcjhx8UXq2azC7dLAVDtW
+
+## command
+
+<tool.toolu_012fcjhx8UXq2azC7dLAVDtW>
+cat > /tmp/greger-openrouter-fix.el << 'EOF'
+            (when response
+              (let* ((output (alist-get 'output response))
+                     (message-item (when output
+                                     (seq-find (lambda (item)
+                                                 (string= (alist-get 'type item) "message"))
+                                               output)))
+                     (content (when message-item (alist-get 'content message-item)))
+                     (text-content (when content
+                                     (seq-find (lambda (item)
+                                                 (string= (alist-get 'type item) "output_text"))
+                                               content)))
+                     (text (when text-content (alist-get 'text text-content)))
+                     (annotations (when text-content (alist-get 'annotations text-content))))
+                
+                (message "OPENROUTER: Text: %s" text)
+                (message "OPENROUTER: Annotations: %s" annotations)
+                
+                (when text
+                  (setf (greger-openrouter-state-current-text state) text))
+                
+                (when annotations
+                  (setf (greger-openrouter-state-annotations state) annotations))
+                
+                (greger-openrouter--handle-finish state "stop")))))))
+EOF
+sed -i.bak '358,370d' /Users/andreas/projects/greger.el/greger-openrouter.el && \
+sed -i.bak2 '357r /tmp/greger-openrouter-fix.el' /Users/andreas/projects/greger.el/greger-openrouter.el
+
+</tool.toolu_012fcjhx8UXq2azC7dLAVDtW>
+
+# TOOL RESULT
+
+ID: toolu_012fcjhx8UXq2azC7dLAVDtW
+
+<tool.toolu_012fcjhx8UXq2azC7dLAVDtW>
+
+</tool.toolu_012fcjhx8UXq2azC7dLAVDtW>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_015QiU1e7EddqN1DMb1Y6YXm
+
+## command
+
+<tool.toolu_015QiU1e7EddqN1DMb1Y6YXm>
+cd /Users/andreas/projects/greger.el && git add greger-openrouter.el && git commit -m "Extract text and annotations from completed response"
+</tool.toolu_015QiU1e7EddqN1DMb1Y6YXm>
+
+# TOOL RESULT
+
+ID: toolu_015QiU1e7EddqN1DMb1Y6YXm
+
+<tool.toolu_015QiU1e7EddqN1DMb1Y6YXm>
+[openrouter 48f673b] Extract text and annotations from completed response
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+</tool.toolu_015QiU1e7EddqN1DMb1Y6YXm>
+
+# ASSISTANT
+
+Perfect! Now reload and test:
+
+```elisp
+M-x load-file RET greger-openrouter.el RET
+```
+
+The fix extracts text from the completed response by:
+1. Finding the "message" item in the output array (skipping "reasoning")
+2. Finding the "output_text" item in the content array  
+3. Extracting both the text and annotations
+4. Setting them in state so they're available when building content blocks
+
+# USER
+
+1) It's not streaming output, and 2) You don't need to include the citations at the end
+
+```
+# SYSTEM
+
+You are ChatGPT via ${(setq-local greger-provider 'openrouter)<eval-result-171352567623>openrouter</eval-result-171352567623>}
+
+# USER
+
+Search the web for three facts about the king of Sweden
+
+# ASSISTANT
+
+1. Carl XVI Gustaf has served as King of Sweden since 15 September 1973, succeeding his grandfather Gustaf VI Adolf. [wikipedia.org](https://en.wikipedia.org/wiki/Carl_XVI_Gustaf)  
+2. His 50th anniversary on the throne in 2023 marked him as the longest-reigning monarch in Sweden’s more than 1,000-year-old monarchy. [ottawa.citynews.ca](https://ottawa.citynews.ca/2023/09/15/things-to-know-about-swedens-monarchy-as-king-carl-xvi-celebrates-50-years-on-the-throne/)  
+3. The heir apparent to the Swedish throne is his eldest child, Crown Princess Victoria. [kids.kiddle.co](https://kids.kiddle.co/Carl_XVI_Gustaf)
+
+## https://en.wikipedia.org/wiki/Carl_XVI_Gustaf
+
+Title: 
+Cited text: chars 0-0
+Encrypted index: 
+
+## https://swedesinthestates.com/10-facts-about-king-carl-xvi-gustaf-of-sweden/
+
+Title: 
+Cited text: chars 0-0
+Encrypted index: 
+
+## https://kids.kiddle.co/Carl_XVI_Gustaf
+
+Title: 
+Cited text: chars 0-0
+Encrypted index: 
+
+## https://ottawa.citynews.ca/2023/09/15/things-to-know-about-swedens-monarchy-as-king-carl-xvi-celebrates-50-years-on-the-throne/
+
+Title: 
+Cited text: chars 0-0
+Encrypted index: 
+
+## https://www.seattletimes.com/nation-world/world/things-to-know-about-swedens-monarchy-as-king-carl-xvi-celebrates-50-years-on-the-throne/
+
+Title: 
+Cited text: chars 0-0
+Encrypted index: 
+
+# USER
+
+```
+
+Here's part of the logs:
+
+```
+OPENROUTER CHUNK: ssage"]}},{"type":"function","name":"rename-file","description":"Rename or move a file from one path to another","strict":null,"parameters":{"type":"object","properties":{"old-path":{"type":"string","description":"Current path of the file"},"new-path":{"type":"string","description":"New path for the file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["old-path","new-path","git-commit-message"]}},{"type":"function","name":"make-directory","description":"Recursively create a directory and all parent directories if they don't exist","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the directory to create"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","git-commit-message"]}},{"type":"function","name":"str-replace","description":"Replace a specific string or content block in a file with new content. Finds the exact original content and re
+OPENROUTER CHUNK: places it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file. If you're making large swaths of changes, consider using replace-file instead.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to modify"},"original-content":{"type":"string","description":"The exact content to find and replace"},"new-content":{"type":"string","description":"The new content to replace the original content with"},"git-commit-message":{"type":"string","description":"Git commit message for this change"},"replace-all":{"type":"boolean","description":"If true, replace all instances of original-content. If false (default), replace only the first instance"}},"required":["path","original-content","new-content","git-commit-message"]}},{"type":"function","name":"replace-file","descri
+OPENROUTER CHUNK: ption":"Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to replace"},"contents":{"type":"string","description":"New contents to replace the entire file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","contents","git-commit-message"]}},{"type":"function","name":"write-new-file","description":"Write a new file with the given contents. Fails if the file already exists.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Absolute path to the new file"},"contents":{"type":"string","description":"Contents to write to the new file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","contents","git-commit-message"]}},{"type":"f
+OPENROUTER CHUNK: unction","name":"read-file","description":"Read the contents of a file from the filesystem","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to read"},"include-line-numbers":{"type":"boolean","description":"Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit."},"start-line":{"type":"integer","description":"Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file."},"end-line":{"type":"integer","description":"Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file."}},"required":["path"]}},{"type":"web_search","search_context_size":"medium"}],"tool_choice":"auto","parallel_tool_calls":true,"max_output_tokens":27000,"temperature":null,"top_p":null,"metadata":{},"background":false,"previous_response_id":null,"service_tier":"auto","truncation":null,"sto
+OPENROUTER CHUNK: re":false,"instructions":null,"reasoning":{"effort":"medium"},"safety_identifier":null,"prompt_cache_key":null,"user":null},"sequence_number":191}
+
+data: [DONE]
+OPENROUTER EVENT JSON: {"type":"response.completed","response":{"object":"response","id":"gen-1762445633-1fY4NJ3p8hNuzyIS2baj","created_at":1762445634,"model":"openai/gpt-5-codex","status":"completed","output":[{"type":"reasoning","id":"rs_0781fb2b692656f301690cc9439e148196893e3dae229f508e","summary":[{"type":"summary_text","text":"**Preparing fact-based response with citations**"}],"encrypted_content":"gAAAAABpDMlGBs-GUTMkJ1bGk3u9Vav7GKsAdSAL240M3h6Yj7496HVdyqjLwE6h-HRu7FVgzLWewvievOhB7lKfMm193I1BkuHwK-GVo_V9_zG6ZeIwd-oDWEcqtu89L_8ZBENdxBAzpSKkW0PWAquyOMNtffcDd6ZysfY2DfTLDd57g64qn0WKM6IzdUpI1BM5toIHhVVYE3N1JQC1nIKqiI6oSkqL44gwsABDnMiZIA-QxaCdMb_7JA-HTRLAcEJdQCsf6uJ0jFQthjGN2Ahk4Sze3C4xYJc849VZZQz3FawgQMAVt5x2a1-yhR80ZuEPn11yo378wK9eQicql_X29F43ObrtP6Y6SxZFLIKrjZYkyjOOZVUC1W3ecZX_GLymYzFrnmKrdb38afXkP--JxHeTeU8kurcgFLJG0Ph62iIWqRqhwiNaA_9YmMpyYXM_iaX7ufrFPBiFJCbcW2tWJKHlpZTPmx0vVLpbAWL-e_I3iUAJMfy46D5_d0yODJ-7gcwQjaB7LOXe2JI48PznNE2_pKb-ZL3tGKtdDPjvFlv8WlN8knAsBlLoEqFRhujmGMQB0rh4MHAK9psCcyC-9WEnq8so_oYY_P2wHPO3_X_1yX3L0afAKIBy7R5-iT3n4mCXr11FT2cLmu1YTC1X-oQpVfYRuQMm47Ou2h_9_yMp0GL0xoAvi7dMPdUXvHM2mnDpd99uqtCc7XK200p6OQgz4YRlWIMgmvDPbuUXhNs0D57ftTOZgZKc16ndawnqPFpnuRj9vn-CZULdpYFZriculqmgVXCglZZgihnUJ5A6pR6uGdhyIUtzS9BTlwDzbt3V7uMHByxm22gtbL0RrYol-KnNRrBpB81YWLSM83LyGPF3_01BKz8Q9e-SPAi5oQ9IyrLVpk2pf1ZP1Xqh-0jVgZOgeOlocdoBZd8oLi4mYa79BM4NVb5bQtriGLNt9Kny6bPN5DRhPxAK4mH6R2Fwc040S6lhs0b0Ef_H_7bFOzMKKlWyhHSIb9YENHclxYPz5XbSJ2u9Un5xeEMNVdTGFvh4VzsmshAJiPIxFfv_QIs5FaV26AdFX11unQIHllGzqi1MQ0ZqNRH1FPkMoT39L52mRXJ0BPGCW7xaLyspUXJLf9XsXtE2IP_AOP_QSrYdEwCoe1vBbOvyKHs0rEx2UJmh7KVPn6z7onzKXgUfwiAy4ZSEGGFxI2r398BPZ-CxQT0fKaOeWU07h9XJFe3BI1eYz5QXc99Lkr7UdMlbbbNTZxoMaRvnpKxEw9s9Eqd-ULnccEmsWuUqftLH-pSE2cw_tURvPznCcyh4EHOG3DPKY5zneQm7UMVPdPccSpQFGkE3dJJGY0ZVJJNUApcPptNKf-ZJ0frErTuF2mP3mb1Z2pKu-8STE1nIoJm3ScFN7QoxapBAd5tp73CGZcrV5zkMd2FE1TtxFk1hTJ6RNV88TnWphS2MIdzeCJ_d-v15cQxNkjtb3hqzv0qKxHuqlY61OWdtSe2SQgRV3xsVoxUcrw23vrM9w5YKylZ_utENfnVpRprsJA6lFPDVgbomJbxvqGmAyIgQXWdHE29sE_BtuEihLgakW_Zafr5CIoeL59LIVtF-ToiYa3BfBgORI38RbLbJul8L4jsmf5ejry5c8jZQIm3tldtlVR7Sd6RXgfG3iS2FNXyu1XAwbP02RDr93WkkPKmdGC08ZR9XgbLAwxL7fjIxXQ_Y8YgO4cuAFe-dTUVKMjpNRzYiHWUx4zXDqySr6S0bOV0DX19D35p5xNJgcYrpNkK6T_zzMCeSWR0TmBa3jZ-7RRVZn0eZvznYc6VxGHGD64KBanEaEXK5B_4=","format":"openai-responses-v1"},{"type":"message","status":"completed","content":[{"type":"output_text","text":"1. Carl XVI Gustaf has served as King of Sweden since 15 September 1973, succeeding his grandfather Gustaf VI Adolf. [wikipedia.org](https://en.wikipedia.org/wiki/Carl_XVI_Gustaf)  \n2. His 50th anniversary on the throne in 2023 marked him as the longest-reigning monarch in Sweden’s more than 1,000-year-old monarchy. [ottawa.citynews.ca](https://ottawa.citynews.ca/2023/09/15/things-to-know-about-swedens-monarchy-as-king-carl-xvi-celebrates-50-years-on-the-throne/)  \n3. The heir apparent to the Swedish throne is his eldest child, Crown Princess Victoria. [kids.kiddle.co](https://kids.kiddle.co/Carl_XVI_Gustaf)","annotations":[{"type":"url_citation","url":"https://en.wikipedia.org/wiki/Carl_XVI_Gustaf","title":"Carl XVI Gustaf - Wikipedia","start_index":0,"end_index":0},{"type":"url_citation","url":"https://swedesinthestates.com/10-facts-about-king-carl-xvi-gustaf-of-sweden/","title":"10 facts about King Carl XVI Gustaf of Sweden | Swedes in the States","start_index":0,"end_index":0},{"type":"url_citation","url":"https://kids.kiddle.co/Carl_XVI_Gustaf","title":"Carl XVI Gustaf Facts for Kids - Kiddle encyclopedia","start_index":0,"end_index":0},{"type":"url_citation","url":"https://ottawa.citynews.ca/2023/09/15/things-to-know-about-swedens-monarchy-as-king-carl-xvi-celebrates-50-years-on-the-throne/","title":"Things to know about Sweden's monarchy as King Carl XVI ...","start_index":0,"end_index":0},{"type":"url_citation","url":"https://www.seattletimes.com/nation-world/world/things-to-know-about-swedens-monarchy-as-king-carl-xvi-celebrates-50-years-on-the-throne/","title":"Things to know about Sweden's monarchy as King Carl XVI ...","start_index":0,"end_index":0}]}],"id":"msg_tmp_0p0ww95kyxg","role":"assistant"}],"output_text":"","error":null,"incomplete_details":null,"usage":{"input_tokens":3494,"input_tokens_details":{"cached_tokens":0},"output_tokens":306,"output_tokens_details":{"reasoning_tokens":128},"total_tokens":3800,"cost":0.0274275,"is_byok":false,"cost_details":{"upstream_inference_cost":null,"upstream_inference_input_cost":0.0043675,"upstream_inference_output_cost":0.00306}},"max_tool_calls":null,"tools":[{"type":"function","name":"read-webpage","description":"Read webpage content from a URL. Can return either extracted text or raw HTML.","strict":null,"parameters":{"type":"object","properties":{"url":{"type":"string","description":"The URL to read content from"},"extract-text":{"type":"boolean","description":"Whether to extract text content or return raw HTML"},"use-highest-readability":{"type":"boolean","description":"Whether to use eww's aggressive highest readability setting for better text extraction"},"use-vterm":{"type":"boolean","description":"Use vterm for full terminal emulation with colors and ANSI sequences. Falls back to regular subprocess if vterm is not available."}},"required":["url"]}},{"type":"function","name":"shell-command","description":"Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security.","strict":null,"parameters":{"type":"object","properties":{"command":{"type":"string","description":"The shell command to execute"},"working-directory":{"type":"string","description":"Directory to run the command in"},"timeout":{"type":"integer","description":"Timeout in seconds for command execution"},"enable-environment":{"type":"boolean","description":"Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables. You want to use this whenever you run a command that interacts with the outside world, e.g. pulling git repositories, putting files on S3, etc."},"use-vterm":{"type":"boolean","description":"Use vterm for full terminal emulation with colors and ANSI sequences. Falls back to regular subprocess if vterm is not available."}},"required":["command"]}},{"type":"function","name":"ripgrep","description":"Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines.","strict":null,"parameters":{"type":"object","properties":{"pattern":{"type":"string","description":"The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. Use the fixed-strings parameter for literal string matching. Supports Unicode by default. You have a tendency to add a trailing double quote `\"` to the end of `pattern` -- Important: DON'T ADD TRAILING DOUBLE QUOTES since it will break matching! `pattern` is just the search pattern, not an entire ripgrep command line. Use the other tool inputs to control ripgrep's behavior."},"path":{"type":"string","description":"Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory, or specify multiple paths separated by spaces"},"case-sensitive":{"type":"boolean","description":"Whether the search should be case-sensitive"},"file-type":{"type":"string","description":"Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'elisp' (Emacs Lisp), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions"},"context-lines":{"type":"integer","description":"Number of context lines to show around matches"},"fixed-strings":{"type":"boolean","description":"Treat the pattern as a literal string instead of a regular expression"},"word-regexp":{"type":"boolean","description":"Only show matches surrounded by word boundaries"},"line-regexp":{"type":"boolean","description":"Only show matches where the entire line participates in the match"},"max-results":{"type":"integer","description":"Maximum number of results to return"},"allow-trailing-double-quote":{"type":"boolean","description":"Allow patterns ending with double quote. Set to true only if you intentionally want to search for patterns ending with a literal double quote character"},"allow-command-line-like-pattern":{"type":"boolean","description":"Allow patterns that contain command-line-like flags (e.g. patterns containing \" -\"). Set to true only if you intentionally want to search for patterns that look like command line arguments"}},"required":["pattern"]}},{"type":"function","name":"list-directory","description":"List files and directories in a given directory","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the directory to list. Defaults to current directory."},"exclude-directories-recursive":{"type":"array","items":{"type":"string"},"description":"List of directory names to exclude when recursively listing files."},"recursive":{"type":"boolean","description":"Whether to list files recursively"}},"required":[]}},{"type":"function","name":"delete-files","description":"Delete the files and if they're tracked in git it should stage the deletion and commit","strict":null,"parameters":{"type":"object","properties":{"paths":{"type":"array","items":{"type":"string"},"description":"List of file paths to delete"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["paths","git-commit-message"]}},{"type":"function","name":"rename-file","description":"Rename or move a file from one path to another","strict":null,"parameters":{"type":"object","properties":{"old-path":{"type":"string","description":"Current path of the file"},"new-path":{"type":"string","description":"New path for the file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["old-path","new-path","git-commit-message"]}},{"type":"function","name":"make-directory","description":"Recursively create a directory and all parent directories if they don't exist","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the directory to create"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","git-commit-message"]}},{"type":"function","name":"str-replace","description":"Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file. If you're making large swaths of changes, consider using replace-file instead.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to modify"},"original-content":{"type":"string","description":"The exact content to find and replace"},"new-content":{"type":"string","description":"The new content to replace the original content with"},"git-commit-message":{"type":"string","description":"Git commit message for this change"},"replace-all":{"type":"boolean","description":"If true, replace all instances of original-content. If false (default), replace only the first instance"}},"required":["path","original-content","new-content","git-commit-message"]}},{"type":"function","name":"replace-file","description":"Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to replace"},"contents":{"type":"string","description":"New contents to replace the entire file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","contents","git-commit-message"]}},{"type":"function","name":"write-new-file","description":"Write a new file with the given contents. Fails if the file already exists.","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Absolute path to the new file"},"contents":{"type":"string","description":"Contents to write to the new file"},"git-commit-message":{"type":"string","description":"Git commit message for this change"}},"required":["path","contents","git-commit-message"]}},{"type":"function","name":"read-file","description":"Read the contents of a file from the filesystem","strict":null,"parameters":{"type":"object","properties":{"path":{"type":"string","description":"Path to the file to read"},"include-line-numbers":{"type":"boolean","description":"Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit."},"start-line":{"type":"integer","description":"Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file."},"end-line":{"type":"integer","description":"Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file."}},"required":["path"]}},{"type":"web_search","search_context_size":"medium"}],"tool_choice":"auto","parallel_tool_calls":true,"max_output_tokens":27000,"temperature":null,"top_p":null,"metadata":{},"background":false,"previous_response_id":null,"service_tier":"auto","truncation":null,"store":false,"instructions":null,"reasoning":{"effort":"medium"},"safety_identifier":null,"prompt_cache_key":null,"user":null},"sequence_number":191}
+OPENROUTER EVENT TYPE: response.completed
+OPENROUTER: Processing completion
+OPENROUTER: Text: 1. Carl XVI Gustaf has served as King of Sweden since 15 September 1973, succeeding his grandfather Gustaf VI Adolf. [wikipedia.org](https://en.wikipedia.org/wiki/Carl_XVI_Gustaf)
+```
+
+# THINKING
+
+Signature: EvIJCkYICRgCKkBT3KDVmG+vhP4tERa5u8E2t4mTfO/ll4gIa/+5MsM+olWZJzCTuCeJBnTcvmCT3hCtJwRdIeuTo54osAhYscRXEgzR2sYubyj8HimFLTYaDCb6S8m8nHxTeSbeuCIwLswmMu+M77MuATusTPNiaHmrK/z/WL8eZzaMA5evkEzi8fnhlM7srUFazAsER0hxKtkI2xYuG771Gv5IX6mlHikzX66z3K3uDaaVkMtaf7ku8w1IQZ2Kx/aoInS0DoBs3Wacf8KqDG0uV526myPi+z+cE1nD/cfUsKlVK2rG3qkTxQouWvRE2ywOugaAqDUvsh/P4DDA2O3/zTw0RLu2aSTO0SQORwa/0Aa/Ay3UsXqn3SmvlzYuV6joqHDkAGSueCGB8r6kZwBfakkV8qHrlo49vJqPJJRLYwD8mBJm88DX8e90r4VSQ+YcChd9TpxYtTlgCGOv4+dAnugkRORLZ+R6wNWtI6K349T7DQoUkKbCWYeJ/4whzK8DdeF56hwD2Au7hleikeJIopbmDqow9sreSZ/sNMtS0xb2f700ICH3VrpMsSDtWpkdhhd3qg9U66xI4ZmAqCaiOV3w3d60tNE8fnzjxVWvRN8OAroqgPRfIso+sQyZ2QTD0fwksCzCEZdc5fayBStlEd4LfWk7F/su4643xqObamHl9mzoBfBdNXnibFunNmH0Ra6I/DfoeSrwM1wBWNqJURTJyIrzxZsYjCdG0tSyUUj+L8pqk7Z7Nb1AFTTT+aahMapsEHHhcQB+zSCguUBg+vKEtoETyOY/2U0CQG6KYp0eQ/UkLrTPbpRaR2CxJPYZvw/9tYv2oDS1Wk5nDlVRhHhgd2NWs3+6HeYdDp8xPRv75goRzAeR6Dja4xrIYhpYN5HNyMIcB+74esl9Wg5IOM/k7eaweyjncpAtnyq5Mt0IarznQteSCrIqfGQCMSEPR7XFwtNqCPEAkhGs/gyxQo93uyAY14qg/v6MbH8/Qlhjf32D+9hTMyhbFqMv332D4tB9SY7rWGt4DGfw2NStBvVJ1TXVwHx/aQGTiP/BY6PHrCO0JLm0u5VoOu5aQfa3zlEu+clcXfqSgnkL2O8/rI2Cd/bRxzcqUrnrl787hA9gfajYUlDP0eWQ+cmSwufGOjKWplUD7qo3sH0h4qmI/bDgy/eH1/o+aYOWE8+bQHG0GUMUlfZxPKJe5y4//xmuET8ind5NPi5mqG1vF1/He9DLo8Ij20o3/ruxIr+uuJ4xpFu43rhHo5WHWHxYUihywuj4bete0mLAYAqSMhiTwF/QU9sK/4Pvaa6Df/qBjeYkiLgc3SuvWeZTFgwriZbduVZ9BvFuF23LZZeWXqNH0iMa29hSOHXdG0Nf0ekTnov967dtAV0SNMUo37HTxfdWJcSJ8mAzpFuXI/lgK1FGB2kkHfdxdQpugpSrOJHvoQShBVS5ZtCGdqk5/qlU4DhcCakyhTW92yHyUI3YqqH2q7BQ1uAN8g4d/0Zpgfx9Uh779f2kSJcITD8pbgUSNOSBLZ6QSa9lx9vViCIJGQi5tCmaK3UU5EejDXoRr6fGTU+OX6zg9DIzN0U9fq9dL3eUz9v8HBZ4rxjJxa7yOPpJkKYKwpoGcsLj5TGljsOh8tITS5ZVZU2Toz+jFfrT730wsAKILNxSq7EWhDzrEzT5WEQ7GAE=
+
+Good! The response is working - text is coming through. But there are two issues:
+
+1. **No streaming** - We're only getting a single `response.completed` event with no streaming deltas. This is odd - we asked for `stream: true`. Let me check if there's something wrong with the request or if OpenRouter's Responses API doesn't stream with web_search enabled.
+
+2. **Citations showing at the end** - The user doesn't want the citation section to appear. The citations are already inline in the text with the markdown links like `[wikipedia.org](url)`, so the separate citation section is redundant.
+
+For issue #2, I need to remove citations from being included in the content blocks when building them. This is easy - just don't add the `citations` field.
+
+For issue #1, I'm not sure why it's not streaming. Looking at the response, I see `"stream":true` in the echo of the request, but we're only getting one event. This might be:
+- OpenRouter doesn't stream with web_search in Responses API
+- Or there's something else we need to set
+
+Let me focus on fixing #2 first since that's straightforward.
+
+# ASSISTANT
+
+Two issues to fix:
+
+1. **Not streaming** - We're getting everything in one `response.completed` event instead of streaming deltas
+2. **Don't include citations section** - The citations are already inline in the text with markdown links
+
+Let me fix #2 first (easier):
+
+# USER
+
+No do them both, starting with 1!
+
+# THINKING
+
+Signature: Er8RCkYICRgCKkCmNybRsFEpI88zRWo1BpdboBHv8gNJm/S/Hs+KDEDjTXrLfgC22jz9QFTvqgi1qdifs5iuPMvyphKIf+YOf4vcEgzhwcvbDpSS+xodOjAaDAOWRo24krpqmqi4XCIwngr7QG8Hq/dqOM5cwHLVOdv5wXyHogdoRdms17Wn2F7B4+t/jTXqfY+wcnhUke5/KqYQfbZ/l/lbe8deATAkOjLYkLR6OdHJj851RNzvO1XI2okw9WYKvehjPb9VXZTGHHvvjsf1HZyplX2gD8R5QbcNoP3lxXRT3oDL1mY7lSXHpW20SFFoN5+UJ9Qdub7seta1WnTEI9zOHAR4hF5Z0F5L907aFTKOhrLWuLD6zRPsfPEPNB42KtimH9a7txdFeSHxlS4vo/6oS4As57X6+IwfLpWrvnd8yUEi+PECMEwVVqDpQ+7+YdHdmhgpbUJd8Kj4tDKhvdM+GUvqTlUYJkd3E91XyfWBigL954ts0YOV8+CG5GqjdR8RmIu0IOLSTAi7PhpSdgpJ05wzholB74Kg63zT5vG5jOud3lEc8DeFrpFsNeAlHo/AeT3ZENFu38K6kXO8e4hI6U1hxaA6R01WBgjAUoe4NPwTayoRt7UhYBK6pe87b2hzjxEXyKxbagGf8/rGV7ytsZkBFS3MZdQT6mFjp0x9k26jssINx4LP2iKF6uJ4D4wlHJgd3fR0y/Ro47l64zMb2u26gznz/YKtg0L46XGeO0oclPhartdHe648VtMEgnOdqgQ491rldiRAn3CJujR0gLfwQ+2XmrcuPmYJJKE/K+alPhnvXAl7PmSkpGOD0pkMXLXKtHDNzWBJg4shlkHUCkK8UyKkq0HRq1E2sXsphF8jhofMh8HR2+IG89wZ8h0kGS8j3eT6/vyVxdHv+GERoR2YkFmSSg7qcKk2pXmHdqVJuDkQPbftK/jTf8p7AkI+mc5WTpLdxLmQ9lT397LNn63YtgV3QBVa3z+zC/nt126H4FgcKlXdGfCSYfjzXnz4F65dN5o4F7znc0kdqYWRErzAFcox1on0qevBGHrTrs1quYR72IlcO0yu0pqBFfrui9c4/2ZEWu/3mopJCkd1QaDA4+aGz3utNGFdZPD8hk3gaEQaM4iGIRx+4M08E5OIkHuIhQq9PUXYaNDiMmt5kIgbj+H46VgA9B8Z+NOZhuEWahZryuFMO77zHbS7ZdLVqUly+ug0n8wz7TjGZmA98cZc9gF9vPqTccYw77kbKTMvYbkCMgJjT+zXScSQYFiXc6HbnkEmpYydQo/xK4WqkZTf70n6v46CvZXjztx87x3imPZE/AIPfFyk4Yi8WQfM6+F7Ofdb0Qdv/z9bMssxVgCoJa8mw4dEGI8Q68/AGon1WiiTLP5KzkSnpQxPnrb4BA2D8IrCc8UoDTiM+OmMzwJJkcd7xm3b53TOuzYIhyNeEh2yG4UuuvwtIl/WU4hgJfTL6xU9saj8Fk7n0j5SrHdq4hENci5EMi1wqJKz5zrVluGs//lY3LWJ2tpIe0K7WGpsQn2nN4Z/E6He16utukFNL/DpOngJXTuk+YwHyUx8f1FkQdayKUWXVNhzcjF+iYWPJYs/nbtGmvqrTO4Q6AeXi4uaTFEOk+PO7n6Err/mVYVk076Ic9jJCv7oYFkjek4Ucoowb0heYZpLiqh7VGi9mSZv5Dqlk+vlwTAzMTPt9eWjVHYhfR3dY2nklfIX1oiVdF9Gc7Ep9SD8X0EOR4WuRmHTQpqx3IWEZxccS9fQrUQRLM7xFW4hb4VN4D2bOeyTvVdo6xbeQTDNmw8o9MDCMznaS8nHHtNLzf72ThwzcMc/gMpRMB/zcQ0WQl90yoiJcSI7v5fruNT7OEPIjKKleh27uTw1791JijrtGRweHFNNDsAJroS4or6dtBRfdC8JG2N/z1EVVJ9ypJQAvninEETFQdNG0wl7QioP0rQegaf4rY99TZbn5wCzrRiDKriBLmWo4YZ+ATuo2/dHvUxuLGW7+jKVjDPH+v22KNFO7v46X5SbD9KJK3NJClBOqF87aaS3am+6B6HXp1UQczTLuOOTKJ8exEKhP3T+2sWX2mLdpTg9lTp2OL17JVK73Wk5qmT6KaJZFoaAfS218HjD8Cv5n+bF3urrkQQyBTbqzjSKtRGsnn1pyCkh3198sNr4OdpGADr3TXL2YTyPXL6BUETm9qz10DvqIxt/KLvypPJuUcLDzhepATyPORpVFtzqXnEPJRA7mL8dDZR8aw2in7t/KQsvYu0remBAs9rBf9ojrXli+0Zlq65fjFhMztD8f3VWU8De6RBmiCUAMORbDditci8R4TsVnn7zHTsrFfkeJoHOol8WuCw6iGbtBLIjNe4jtD0VO7qas91HpR0qpe5PdSj/VIa4zKSePjPfyM94aM55avRu6fILt0wbMKZK2NKcy4ZajLWoBkOyHvnbLFT/Cg8eAmCq+oAz05wPtZaCAQSkuH9kF1LyqKguMVdxwby79w0eLpIWs1dqyQtV0AGJNHV+YxwUIjCeTsY7cEXvXD5O+91rARKCuVc+QyhCRn0gXo+0r8FOQkFh/vPJQy3lzjKLzGI5RjPRL3JatNEMJcGpmFFT+t0lYDad4B1mVWF++qWNXXUoV/IDCwqYexsHxHp/c0wraIAyO79lC/kjPrXUwTcOqxbVyvT3585ke0PSStoId/DjW3+EUVDWy3DWDLhXC0Q/SrP/HpCnyM9GeEBIo73cArgepKXSmT2S7VDMacUkfyJTvJF66+6BAiYWTth5AN5DApPPy9Kq9iJighTBN1d5dO2nSkyssRXIQVxT8CTmFloMHocuWKB57NEhyDBD0VCGWpf+J1e20hbA0eE7617B+q0YdTIEgZmRZv2bZnGiKDegdsFSOpg2wZ47P4L97jOxwLHXLHP8mq4DdQH8oNYT7N0WrdNK8MVxPBo3p1CJ1jbch46sqbcl9Xg+tln29WZRgTIN9hgB
+
+The user wants me to fix both issues, starting with streaming.
+
+Issue 1: Not streaming. Looking at the logs, I see that we're only getting a single `response.completed` event with all the text, not streaming deltas. This suggests the API isn't actually streaming. But we're passing `"stream": true` in the request. Let me check if there's something else needed.
+
+Looking at the request data in the logs, I can see `"stream":true` is being sent. But we're only getting `response.completed` event, not `response.content_part.delta` events.
+
+Maybe the Responses API doesn't stream by default even with `stream: true`? Or maybe there's a different parameter needed?
+
+Actually, looking at the OpenAI Responses API documentation, streaming works differently. Let me think about this...
+
+The issue might be that gpt-5-codex or the specific configuration doesn't stream, or there's something about how OpenRouter handles Responses API streaming.
+
+Actually, I should check if `stream: true` is even being properly sent. Let me look at the request building code again.
+
+Looking at the logs, the request includes `"stream":true` so that's being sent correctly.
+
+The issue might be that the Responses API streaming events are different. Let me check what events we should be getting. From the earlier documentation I read, there should be events like:
+- `response.output_item.added`
+- `response.content_part.delta`
+- `response.completed`
+
+But we're only seeing `response.completed`. This suggests streaming isn't working properly.
+
+One possibility: maybe OpenRouter's Responses API doesn't support streaming yet? Or maybe there's a bug?
+
+Another possibility: maybe I need to handle different event types. Let me look at what the documentation said about streaming...
+
+Actually, maybe the issue is that we're not handling the incremental events properly. Let me add handlers for the other event types.
+
+Issue 2: Don't include citations at the end. This is easier - I just need to not include citations in the build-content-blocks when they come from web search.
+
+
+I'll investigate the streaming problem systematically. I'll verify the API's streaming capabilities, check event handling, and potentially modify the code to properly capture incremental response events. For citations, I'll modify the content block generation to filter out web search citations.
+
+# ASSISTANT
+
+Let me fix both issues:
+
+**Issue 1: Not streaming** - We need to handle more event types from the Responses API. Currently we only handle `response.content_part.delta` and `response.completed`, but there might be other events.
+
+**Issue 2: Citations** - Don't add citations to the content block when they come from web search (the text already has inline links).
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01GaA7kfFtSNN8AhvSrE15mk
+
+## path
+
+<tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>
+greger-openrouter.el
+</tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>
+
+## git-commit-message
+
+<tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>
+Handle more streaming events and disable citation extraction
+</tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>
+
+## diff
+
+<tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>
+-        (let* ((content-part (alist-get 'content_part data))
++        (let* ((item (alist-get 'item data))
++               (content-part (alist-get 'content_part data))
++               (delta (alist-get 'delta data))
+                (response (alist-get 'response data)))
+           
+           (cond
++           ;; Handle text streaming from output_item.added events
++           ((string= event-type "response.output_item.added")
++            (when (and item (string= (alist-get 'type item) "message"))
++              (let ((content (alist-get 'content item)))
++                (when content
++                  (seq-doseq (content-item content)
++                    (when (and (string= (alist-get 'type content-item) "output_text")
++                               (alist-get 'text content-item))
++                      (let ((text (alist-get 'text content-item))
++                            (block-start-callback (greger-openrouter-state-block-start-callback state)))
++                        (message "OPENROUTER: Got initial text: %s" text)
++                        (unless (greger-openrouter-state-text-started state)
++                          (setf (greger-openrouter-state-text-started state) t)
++                          (when block-start-callback
++                            (funcall block-start-callback
++                                     `((type . "text")
++                                       (text . ""))))))))))))
++           
++           ;; Handle incremental text updates
+            ((string= event-type "response.content_part.delta")
+             (message "OPENROUTER: Processing content delta")
+             (when-let* ((part-type (alist-get 'type content-part))
+                         ((string= part-type "output_text"))
+                         (text (alist-get 'text content-part)))
+               (message "OPENROUTER: Got text delta: %s" text)
+-              (let ((block-start-callback (greger-openrouter-state-block-start-callback state))
+-                    (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+-                
+-                (unless (greger-openrouter-state-text-started state)
+-                  (setf (greger-openrouter-state-text-started state) t)
+-                  (when block-start-callback
+-                    (funcall block-start-callback
+-                             `((type . "text")
+-                               (text . "")))))
+-                
++              (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                 (setf (greger-openrouter-state-current-text state)
+                       (concat (greger-openrouter-state-current-text state) text))
+                 (when text-delta-callback
+                   (funcall text-delta-callback text)))))
+            
++           ;; Handle text done event
++           ((string= event-type "response.output_text.done")
++            (message "OPENROUTER: Text output done"))
++           
+            ((string= event-type "response.completed")
+\ No newline at end of file
+
+</tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>
+
+# TOOL RESULT
+
+ID: toolu_01GaA7kfFtSNN8AhvSrE15mk
+
+<tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>
+
+</tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>

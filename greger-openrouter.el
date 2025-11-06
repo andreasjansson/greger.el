@@ -328,30 +328,46 @@ OpenAI function calling doesn't support default values."
             (message "OpenRouter error: %s" error-message)
             (error error-message)))
         
-        (let* ((content-part (alist-get 'content_part data))
+        (let* ((item (alist-get 'item data))
+               (content-part (alist-get 'content_part data))
+               (delta (alist-get 'delta data))
                (response (alist-get 'response data)))
           
           (cond
+           ;; Handle text streaming from output_item.added events
+           ((string= event-type "response.output_item.added")
+            (when (and item (string= (alist-get 'type item) "message"))
+              (let ((content (alist-get 'content item)))
+                (when content
+                  (seq-doseq (content-item content)
+                    (when (and (string= (alist-get 'type content-item) "output_text")
+                               (alist-get 'text content-item))
+                      (let ((text (alist-get 'text content-item))
+                            (block-start-callback (greger-openrouter-state-block-start-callback state)))
+                        (message "OPENROUTER: Got initial text: %s" text)
+                        (unless (greger-openrouter-state-text-started state)
+                          (setf (greger-openrouter-state-text-started state) t)
+                          (when block-start-callback
+                            (funcall block-start-callback
+                                     `((type . "text")
+                                       (text . ""))))))))))))
+           
+           ;; Handle incremental text updates
            ((string= event-type "response.content_part.delta")
             (message "OPENROUTER: Processing content delta")
             (when-let* ((part-type (alist-get 'type content-part))
                         ((string= part-type "output_text"))
                         (text (alist-get 'text content-part)))
               (message "OPENROUTER: Got text delta: %s" text)
-              (let ((block-start-callback (greger-openrouter-state-block-start-callback state))
-                    (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-                
-                (unless (greger-openrouter-state-text-started state)
-                  (setf (greger-openrouter-state-text-started state) t)
-                  (when block-start-callback
-                    (funcall block-start-callback
-                             `((type . "text")
-                               (text . "")))))
-                
+              (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
                 (setf (greger-openrouter-state-current-text state)
                       (concat (greger-openrouter-state-current-text state) text))
                 (when text-delta-callback
                   (funcall text-delta-callback text)))))
+           
+           ;; Handle text done event
+           ((string= event-type "response.output_text.done")
+            (message "OPENROUTER: Text output done"))
            
            ((string= event-type "response.completed")
             (message "OPENROUTER: Processing completion")
