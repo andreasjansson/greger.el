@@ -326,7 +326,11 @@ OpenAI function calling doesn't support default values."
           
           (when delta
             (cond
-             ((alist-get 'content delta)
+             ((alist-get 'reasoning delta)
+              (greger-openrouter--handle-reasoning-delta delta state))
+             
+             ((and (alist-get 'content delta)
+                   (not (string-empty-p (alist-get 'content delta))))
               (let ((text (alist-get 'content delta))
                     (block-start-callback (greger-openrouter-state-block-start-callback state))
                     (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
@@ -342,9 +346,6 @@ OpenAI function calling doesn't support default values."
                       (concat (greger-openrouter-state-current-text state) text))
                 (when text-delta-callback
                   (funcall text-delta-callback text))))
-             
-             ((alist-get 'reasoning delta)
-              (greger-openrouter--handle-reasoning-delta delta state))
              
              ((alist-get 'tool_calls delta)
               (greger-openrouter--accumulate-tool-calls delta state))))
