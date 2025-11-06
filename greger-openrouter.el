@@ -376,8 +376,6 @@ OpenAI function calling doesn't support default values."
                 (when text
                   (setf (greger-openrouter-state-current-text state) text))
                 
-                (when annotations
-                  (setf (greger-openrouter-state-annotations state) annotations))
                 
                 (greger-openrouter--handle-finish state "stop")))))))
     (error
