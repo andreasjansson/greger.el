@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-165441979581>
+${greger-prompt-code-style<eval-result-170312027395>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-165441979581>}
+</eval-result-170312027395>}
 
-${:sh cat CLAUDE.md || true<eval-result-165441808381>cat: CLAUDE.md: No such file or directory
-</eval-result-165441808381>}
+${:sh cat CLAUDE.md || true<eval-result-170312753785>cat: CLAUDE.md: No such file or directory
+</eval-result-170312753785>}
 
 # USER
 
@@ -12184,105 +12184,59 @@ greger.el
 Pass server-tools to OpenRouter instead of enable-web-search flag
 </tool.toolu_01VUwdZd6xYAoxY2Q76s8nBh>
 
-## original-content
+## diff
 
 <tool.toolu_01VUwdZd6xYAoxY2Q76s8nBh>
-(defun greger-openrouter--run-agent-loop (state)
-  "Run agent loop using OpenRouter - parallel to greger--run-agent-loop-claude."
-  (let* ((tools (greger-tools-get-schemas greger-tools))
-         (enable-web-search (and greger-server-tools
-                                 (member "web_search" greger-server-tools)))
-         (chat-buffer (greger-state-chat-buffer state))
-         (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
-         (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
-         (tool-use-metadata (greger-state-tool-use-metadata state))
-         (current-iteration (greger-state-current-iteration state))
-         (auth-key (or (and greger-openrouter-api-key-fn 
-                            (funcall greger-openrouter-api-key-fn))
-                       (getenv "OPENROUTER_API_KEY"))))
-    
-    (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
-    
-    (when (>= current-iteration greger-max-iterations)
-      (error "Maximum iterations (%d) reached" greger-max-iterations))
-    
-    (unless auth-key
-      (error "No OpenRouter API key found. Set OPENROUTER_API_KEY environment variable or configure greger-openrouter-api-key-fn"))
-    
-    (with-current-buffer chat-buffer
-      (let ((client-state (greger-openrouter-stream
-                           :model greger-openrouter-model
-                           :dialog dialog
-                           :tools tools
-                           :enable-web-search enable-web-search
-                           :buffer chat-buffer
-                           :thinking-budget greger-current-thinking-budget
-                           :auth-key auth-key
-                           :block-start-callback (lambda (content-block)
-                                                   (greger--append-streaming-content-header state content-block))
-                           :text-delta-callback (lambda (text)
-                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
-                           :block-stop-callback (lambda (type content-block)
-                                                  (greger--append-handle-content-block-stop state type content-block))
-                           :complete-callback (lambda (content-blocks) 
-                                                (greger--handle-stream-completion state content-blocks))
-                           :error-callback (lambda (error-message)
-                                             (greger--handle-client-error state error-message))
-                           :max-tokens greger-max-tokens)))
-        
-        (setf (greger-state-client-state state) client-state)
-        (setq greger--current-state state)
-        (greger--update-buffer-state)))))
-</tool.toolu_01VUwdZd6xYAoxY2Q76s8nBh>
+ (defun greger-openrouter--run-agent-loop (state)
+   "Run agent loop using OpenRouter - parallel to greger--run-agent-loop-claude."
+   (let* ((tools (greger-tools-get-schemas greger-tools))
+-         (enable-web-search (and greger-server-tools
+-                                 (member "web_search" greger-server-tools)))
++         (server-tools greger-server-tools)
+          (chat-buffer (greger-state-chat-buffer state))
+          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
+          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
+          (tool-use-metadata (greger-state-tool-use-metadata state))
+          (current-iteration (greger-state-current-iteration state))
+          (auth-key (or (and greger-openrouter-api-key-fn 
+                             (funcall greger-openrouter-api-key-fn))
+                        (getenv "OPENROUTER_API_KEY"))))
+     
+     (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
+     
+     (when (>= current-iteration greger-max-iterations)
+       (error "Maximum iterations (%d) reached" greger-max-iterations))
+     
+     (unless auth-key
+       (error "No OpenRouter API key found. Set OPENROUTER_API_KEY environment variable or configure greger-openrouter-api-key-fn"))
+     
+     (with-current-buffer chat-buffer
+       (let ((client-state (greger-openrouter-stream
+                            :model greger-openrouter-model
+                            :dialog dialog
+                            :tools tools
+-                           :enable-web-search enable-web-search
++                           :server-tools server-tools
+                            :buffer chat-buffer
+                            :thinking-budget greger-current-thinking-budget
+                            :auth-key auth-key
+                            :block-start-callback (lambda (content-block)
+                                                    (greger--append-streaming-content-header state content-block))
+                            :text-delta-callback (lambda (text)
+                                                   (greger--append-text state (greger--clean-excessive-newlines text)))
+                            :block-stop-callback (lambda (type content-block)
+                                                   (greger--append-handle-content-block-stop state type content-block))
+                            :complete-callback (lambda (content-blocks) 
+                                                 (greger--handle-stream-completion state content-blocks))
+                            :error-callback (lambda (error-message)
+                                              (greger--handle-client-error state error-message))
+                            :max-tokens greger-max-tokens)))
+         
+         (setf (greger-state-client-state state) client-state)
+         (setq greger--current-state state)
+         (greger--update-buffer-state)))))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01VUwdZd6xYAoxY2Q76s8nBh>
-(defun greger-openrouter--run-agent-loop (state)
-  "Run agent loop using OpenRouter - parallel to greger--run-agent-loop-claude."
-  (let* ((tools (greger-tools-get-schemas greger-tools))
-         (server-tools greger-server-tools)
-         (chat-buffer (greger-state-chat-buffer state))
-         (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
-         (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
-         (tool-use-metadata (greger-state-tool-use-metadata state))
-         (current-iteration (greger-state-current-iteration state))
-         (auth-key (or (and greger-openrouter-api-key-fn 
-                            (funcall greger-openrouter-api-key-fn))
-                       (getenv "OPENROUTER_API_KEY"))))
-    
-    (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
-    
-    (when (>= current-iteration greger-max-iterations)
-      (error "Maximum iterations (%d) reached" greger-max-iterations))
-    
-    (unless auth-key
-      (error "No OpenRouter API key found. Set OPENROUTER_API_KEY environment variable or configure greger-openrouter-api-key-fn"))
-    
-    (with-current-buffer chat-buffer
-      (let ((client-state (greger-openrouter-stream
-                           :model greger-openrouter-model
-                           :dialog dialog
-                           :tools tools
-                           :server-tools server-tools
-                           :buffer chat-buffer
-                           :thinking-budget greger-current-thinking-budget
-                           :auth-key auth-key
-                           :block-start-callback (lambda (content-block)
-                                                   (greger--append-streaming-content-header state content-block))
-                           :text-delta-callback (lambda (text)
-                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
-                           :block-stop-callback (lambda (type content-block)
-                                                  (greger--append-handle-content-block-stop state type content-block))
-                           :complete-callback (lambda (content-blocks) 
-                                                (greger--handle-stream-completion state content-blocks))
-                           :error-callback (lambda (error-message)
-                                             (greger--handle-client-error state error-message))
-                           :max-tokens greger-max-tokens)))
-        
-        (setf (greger-state-client-state state) client-state)
-        (setq greger--current-state state)
-        (greger--update-buffer-state)))))
 </tool.toolu_01VUwdZd6xYAoxY2Q76s8nBh>
 
 # TOOL RESULT
@@ -12314,50 +12268,33 @@ greger-openrouter.el
 Accept server-tools parameter and convert web_search
 </tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
 
-## original-content
+## diff
 
 <tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
-(cl-defun greger-openrouter-stream (&key model dialog tools buffer enable-web-search block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
-  "Stream request to OpenRouter API.
-MODEL is the OpenRouter model identifier.
-DIALOG is the conversation history.
-TOOLS are tool definitions.
-BUFFER is the output buffer.
-ENABLE-WEB-SEARCH determines if we append :online to the model.
-BLOCK-START-CALLBACK is called when content blocks begin.
-TEXT-DELTA-CALLBACK for incremental text.
-BLOCK-STOP-CALLBACK when blocks complete.
-COMPLETE-CALLBACK when the entire response finishes.
-THINKING-BUDGET is the number of thinking tokens.
-MAX-TOKENS is the maximum number of tokens to generate.
-AUTH-KEY is the OpenRouter API key.
-ERROR-CALLBACK is called when errors occur."
-  (let* ((output-buffer (or buffer (current-buffer)))
-         (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-openrouter--build-request model dialog tools thinking-budget max-tokens auth-key enable-web-search))
-</tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+-(cl-defun greger-openrouter-stream (&key model dialog tools buffer enable-web-search block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
++(cl-defun greger-openrouter-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+   "Stream request to OpenRouter API.
+ MODEL is the OpenRouter model identifier.
+ DIALOG is the conversation history.
+ TOOLS are tool definitions.
++SERVER-TOOLS are server tool names like web_search.
+ BUFFER is the output buffer.
+-ENABLE-WEB-SEARCH determines if we append :online to the model.
+ BLOCK-START-CALLBACK is called when content blocks begin.
+ TEXT-DELTA-CALLBACK for incremental text.
+ BLOCK-STOP-CALLBACK when blocks complete.
+ COMPLETE-CALLBACK when the entire response finishes.
+ THINKING-BUDGET is the number of thinking tokens.
+ MAX-TOKENS is the maximum number of tokens to generate.
+ AUTH-KEY is the OpenRouter API key.
+ ERROR-CALLBACK is called when errors occur."
+   (let* ((output-buffer (or buffer (current-buffer)))
+          (undo-handle (prepare-change-group output-buffer))
+-         (request-spec (greger-openrouter--build-request model dialog tools thinking-budget max-tokens auth-key enable-web-search))
+\ No newline at end of file
++         (request-spec (greger-openrouter--build-request model dialog tools server-tools thinking-budget max-tokens auth-key))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
-(cl-defun greger-openrouter-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
-  "Stream request to OpenRouter API.
-MODEL is the OpenRouter model identifier.
-DIALOG is the conversation history.
-TOOLS are tool definitions.
-SERVER-TOOLS are server tool names like web_search.
-BUFFER is the output buffer.
-BLOCK-START-CALLBACK is called when content blocks begin.
-TEXT-DELTA-CALLBACK for incremental text.
-BLOCK-STOP-CALLBACK when blocks complete.
-COMPLETE-CALLBACK when the entire response finishes.
-THINKING-BUDGET is the number of thinking tokens.
-MAX-TOKENS is the maximum number of tokens to generate.
-AUTH-KEY is the OpenRouter API key.
-ERROR-CALLBACK is called when errors occur."
-  (let* ((output-buffer (or buffer (current-buffer)))
-         (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-openrouter--build-request model dialog tools server-tools thinking-budget max-tokens auth-key))
 </tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
 
 # TOOL RESULT
@@ -12385,22 +12322,18 @@ greger-openrouter.el
 Update build-request signature
 </tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
 
-## original-content
+## diff
 
 <tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
-(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
-  "Build OpenRouter Responses API request."
-  (let* ((headers (greger-openrouter--build-headers auth-key))
-         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
-</tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
+-(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
++(defun greger-openrouter--build-request (model dialog tools server-tools thinking-budget max-tokens auth-key)
+   "Build OpenRouter Responses API request."
+   (let* ((headers (greger-openrouter--build-headers auth-key))
+-         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
+\ No newline at end of file
++         (data (greger-openrouter--build-data model dialog tools server-tools thinking-budget max-tokens)))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
-(defun greger-openrouter--build-request (model dialog tools server-tools thinking-budget max-tokens auth-key)
-  "Build OpenRouter Responses API request."
-  (let* ((headers (greger-openrouter--build-headers auth-key))
-         (data (greger-openrouter--build-data model dialog tools server-tools thinking-budget max-tokens)))
 </tool.toolu_01M6xLYLpSUrag47ESMQJQWw>
 
 # TOOL RESULT
@@ -12428,69 +12361,56 @@ greger-openrouter.el
 Convert server-tools to OpenAI web_search format
 </tool.toolu_015pw9gmEZTfR4sZcSpLuet4>
 
-## original-content
+## diff
 
 <tool.toolu_015pw9gmEZTfR4sZcSpLuet4>
-(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
-  "Build OpenRouter request data in Responses API format."
-  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
-         (request-data `(("model" . ,model)
-                         ("max_output_tokens" . ,max-tokens)
-                         ("stream" . t))))
-    
-    (when enable-web-search
-      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
-    
-    (push `("input" . ,messages) request-data)
-    
-    (when tools
-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
-        (push `("tools" . ,converted-tools) request-data)))
-    
-    (when (and thinking-budget (> thinking-budget 0))
-      (push `("reasoning" . (("effort" . "medium"))) request-data))
-    
-    (json-encode request-data)))
-</tool.toolu_015pw9gmEZTfR4sZcSpLuet4>
+-(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+-  "Build OpenRouter request data in Responses API format."
++(defun greger-openrouter--build-data (model dialog tools server-tools thinking-budget max-tokens)
++  "Build OpenRouter request data in Responses API format.
++SERVER-TOOLS is a list of server tool names like (\"web_search\") that will be
++converted to OpenAI's Responses API format."
+   (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+          (request-data `(("model" . ,model)
+                          ("max_output_tokens" . ,max-tokens)
+                          ("stream" . t))))
+     
+-    (when enable-web-search
+-      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
+-    
+     (push `("input" . ,messages) request-data)
+     
+-    (when tools
+-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+-        (push `("tools" . ,converted-tools) request-data)))
++    (when (or tools server-tools)
++      (let ((all-tools (greger-openrouter--convert-all-tools tools server-tools)))
++        (push `("tools" . ,all-tools) request-data)))
+     
+     (when (and thinking-budget (> thinking-budget 0))
+       (push `("reasoning" . (("effort" . "medium"))) request-data))
+     
+-    (json-encode request-data)))
+\ No newline at end of file
++    (json-encode request-data)))
++
++(defun greger-openrouter--convert-all-tools (tools server-tools)
++  "Convert both user TOOLS and SERVER-TOOLS to Responses API format.
++USER tools are converted using the standard OpenAI function format.
++SERVER-TOOLS like web_search are converted to OpenAI's server tool format."
++  (let ((converted-tools '()))
++    
++    (when tools
++      (setq converted-tools (greger-openrouter--convert-tools tools)))
++    
++    (when (member "web_search" server-tools)
++      (push `((type . "web_search")
++              (search_context_size . "medium"))
++            converted-tools))
++    
++    (vconcat (nreverse converted-tools))))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_015pw9gmEZTfR4sZcSpLuet4>
-(defun greger-openrouter--build-data (model dialog tools server-tools thinking-budget max-tokens)
-  "Build OpenRouter request data in Responses API format.
-SERVER-TOOLS is a list of server tool names like (\"web_search\") that will be
-converted to OpenAI's Responses API format."
-  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
-         (request-data `(("model" . ,model)
-                         ("max_output_tokens" . ,max-tokens)
-                         ("stream" . t))))
-    
-    (push `("input" . ,messages) request-data)
-    
-    (when (or tools server-tools)
-      (let ((all-tools (greger-openrouter--convert-all-tools tools server-tools)))
-        (push `("tools" . ,all-tools) request-data)))
-    
-    (when (and thinking-budget (> thinking-budget 0))
-      (push `("reasoning" . (("effort" . "medium"))) request-data))
-    
-    (json-encode request-data)))
-
-(defun greger-openrouter--convert-all-tools (tools server-tools)
-  "Convert both user TOOLS and SERVER-TOOLS to Responses API format.
-USER tools are converted using the standard OpenAI function format.
-SERVER-TOOLS like web_search are converted to OpenAI's server tool format."
-  (let ((converted-tools '()))
-    
-    (when tools
-      (setq converted-tools (greger-openrouter--convert-tools tools)))
-    
-    (when (member "web_search" server-tools)
-      (push `((type . "web_search")
-              (search_context_size . "medium"))
-            converted-tools))
-    
-    (vconcat (nreverse converted-tools))))
 </tool.toolu_015pw9gmEZTfR4sZcSpLuet4>
 
 # TOOL RESULT
@@ -12498,5 +12418,175 @@ SERVER-TOOLS like web_search are converted to OpenAI's server tool format."
 ID: toolu_015pw9gmEZTfR4sZcSpLuet4
 
 <tool.toolu_015pw9gmEZTfR4sZcSpLuet4>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Convert server-tools to OpenAI web_search format
 </tool.toolu_015pw9gmEZTfR4sZcSpLuet4>
+
+# ASSISTANT
+
+Perfect! Now reload both files and test:
+
+```elisp
+M-x load-file RET greger.el RET
+M-x load-file RET greger-openrouter.el RET
+```
+
+The implementation now:
+1. Takes `server-tools` list from greger.el
+2. Converts user-defined tools to OpenAI function format
+3. Converts "web_search" server tool to OpenAI's `{"type": "web_search", "search_context_size": "medium"}` format
+4. Combines them all into the tools array
+
+This matches OpenAI's Responses API format exactly!
+
+# USER
+
+```
+OPENROUTER CHUNK: {"success":false,"error":{"name":"ZodError","message":"[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      0,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      0,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      1,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      1,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n
+OPENROUTER CHUNK:       \"tools\",\n      2,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      2,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      3,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      3,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      4,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"ex
+OPENROUTER CHUNK: pected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      4,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      5,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      5,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      6,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      6,\n      \"parameters\"\n    ],\n    \"message
+```
+
+# THINKING
+
+Signature: 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
+
+The error is still about tools expecting `name` and `parameters` fields, but they're undefined. This means the OpenAI function format that `greger-openrouter--convert-tools` is producing is still wrong for OpenRouter's Responses API.
+
+Let me check what format OpenRouter's Responses API actually expects. Looking back at the documentation I read earlier, the tool format example showed:
+
+```typescript
+const weatherTool = {
+  type: 'function' as const,
+  name: 'get_weather',
+  description: 'Get the current weather in a location',
+  strict: null,
+  parameters: {
+    type: 'object',
+    properties: {
+      location: {
+        type: 'string',
+        description: 'The city and state, e.g. San Francisco, CA',
+      },
+      unit: {
+        type: 'string',
+        enum: ['celsius', 'fahrenheit'],
+      },
+    },
+    required: ['location'],
+  },
+};
+```
+
+So the format is:
+```json
+{
+  "type": "function",
+  "name": "get_weather", 
+  "description": "...",
+  "strict": null,
+  "parameters": {...}
+}
+```
+
+But our current `greger-openrouter--convert-tools` function wraps it in a `function` object:
+
+```elisp
+`((type . "function")
+  (function . ((name . ,(alist-get 'name tool))
+               (description . ,(alist-get 'description tool))
+               (parameters . ,fixed-schema))))
+```
+
+That produces:
+```json
+{
+  "type": "function",
+  "function": {
+    "name": "...",
+    "description": "...",
+    "parameters": {...}
+  }
+}
+```
+
+That's the Chat Completions API format! For Responses API, the fields should be at the top level, not nested under `function`. Let me fix this.
+
+# ASSISTANT
+
+The error shows that the tools format is still wrong. Looking at the OpenRouter Responses API documentation I read earlier, the tool format should be:
+
+```json
+{
+  "type": "function",
+  "name": "tool_name",
+  "description": "...",
+  "parameters": {...}
+}
+```
+
+But the current `greger-openrouter--convert-tools` is producing the Chat Completions format with nested `function` object. Let me fix this:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01FVZ4YWWnycwNktT3T27sa2
+
+## path
+
+<tool.toolu_01FVZ4YWWnycwNktT3T27sa2>
+greger-openrouter.el
+</tool.toolu_01FVZ4YWWnycwNktT3T27sa2>
+
+## git-commit-message
+
+<tool.toolu_01FVZ4YWWnycwNktT3T27sa2>
+Fix tool format for Responses API - flatten structure
+</tool.toolu_01FVZ4YWWnycwNktT3T27sa2>
+
+## original-content
+
+<tool.toolu_01FVZ4YWWnycwNktT3T27sa2>
+(defun greger-openrouter--convert-tools (tools)
+  "Convert Anthropic tool format to OpenAI function calling format.
+OpenAI doesn't support 'default' values in parameters, so we strip them.
+Also ensures 'required' is always a vector (array in JSON) not null."
+  (mapcar
+   (lambda (tool)
+     (let* ((input-schema (alist-get 'input_schema tool))
+            (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema))
+            (fixed-schema (greger-openrouter--fix-required-field cleaned-schema)))
+       `((type . "function")
+         (function . ((name . ,(alist-get 'name tool))
+                      (description . ,(alist-get 'description tool))
+                      (parameters . ,fixed-schema))))))
+   tools))
+</tool.toolu_01FVZ4YWWnycwNktT3T27sa2>
+
+## new-content
+
+<tool.toolu_01FVZ4YWWnycwNktT3T27sa2>
+(defun greger-openrouter--convert-tools (tools)
+  "Convert Anthropic tool format to Responses API format.
+The Responses API uses a flat structure with type, name, description, parameters
+at the top level (not nested under 'function' like Chat Completions).
+Also strips 'default' values and ensures 'required' is always a vector."
+  (mapcar
+   (lambda (tool)
+     (let* ((input-schema (alist-get 'input_schema tool))
+            (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema))
+            (fixed-schema (greger-openrouter--fix-required-field cleaned-schema)))
+       `((type . "function")
+         (name . ,(alist-get 'name tool))
+         (description . ,(alist-get 'description tool))
+         (strict . :json-null)
+         (parameters . ,fixed-schema))))
+   tools))
+</tool.toolu_01FVZ4YWWnycwNktT3T27sa2>
+
+# TOOL RESULT
+
+ID: toolu_01FVZ4YWWnycwNktT3T27sa2
+
+<tool.toolu_01FVZ4YWWnycwNktT3T27sa2>
+
+</tool.toolu_01FVZ4YWWnycwNktT3T27sa2>

@@ -215,18 +215,20 @@ SERVER-TOOLS like web_search are converted to OpenAI's server tool format."
     (nreverse result-messages)))
 
 (defun greger-openrouter--convert-tools (tools)
-  "Convert Anthropic tool format to OpenAI function calling format.
-OpenAI doesn't support 'default' values in parameters, so we strip them.
-Also ensures 'required' is always a vector (array in JSON) not null."
+  "Convert Anthropic tool format to Responses API format.
+The Responses API uses a flat structure with type, name, description, parameters
+at the top level (not nested under 'function' like Chat Completions).
+Also strips 'default' values and ensures 'required' is always a vector."
   (mapcar
    (lambda (tool)
      (let* ((input-schema (alist-get 'input_schema tool))
             (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema))
             (fixed-schema (greger-openrouter--fix-required-field cleaned-schema)))
        `((type . "function")
-         (function . ((name . ,(alist-get 'name tool))
-                      (description . ,(alist-get 'description tool))
-                      (parameters . ,fixed-schema))))))
+         (name . ,(alist-get 'name tool))
+         (description . ,(alist-get 'description tool))
+         (strict . :json-null)
+         (parameters . ,fixed-schema))))
    tools))
 
 (defun greger-openrouter--fix-required-field (schema)
