@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-181138061835>
+${greger-prompt-code-style<eval-result-181337353537>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-181138061835>}
+</eval-result-181337353537>}
 
-${:sh cat CLAUDE.md || true<eval-result-181138612137>cat: CLAUDE.md: No such file or directory
-</eval-result-181138612137>}
+${:sh cat CLAUDE.md || true<eval-result-181337147248>cat: CLAUDE.md: No such file or directory
+</eval-result-181337147248>}
 
 # USER
 
@@ -16901,5 +16901,220 @@ Don't do anything special in completed event - streaming handles it all
 ID: toolu_01YALYVCrcZozPNaS7aXvqfa
 
 <tool.toolu_01YALYVCrcZozPNaS7aXvqfa>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Don't do anything special in completed event - streaming handles it all
 </tool.toolu_01YALYVCrcZozPNaS7aXvqfa>
+
+# ASSISTANT
+
+Now reload and test:
+
+```elisp
+M-x load-file RET greger-openrouter.el RET
+```
+
+Perfect - we just do nothing in the `response.completed` event. The streaming events handle starting blocks, sending deltas, and stopping blocks. The completed event is just a signal that everything is done, but we don't need to take any action.
+
+# USER
+
+No it still janks around at the end! What the fuck!
+
+# THINKING
+
+Signature: EqAGCkYICRgCKkByxPerdvLvrGmQxivs7ggpi/GM75ahqU6kjx7LB2PT/iEfj1sJJfbCnqOyY9LPNjc0doWFkloIhMiamq8CxK4sEgyjyYsT+ajVrw4tRjMaDL4oSOLuLPOx7eo2qCIwvVgDT/15w3RZ8TkAHmuz+ygPva9OGZWpUcP0sk/P2YVXSMwBq8FyWLH54ggD/n0kKocFhEUnM6FXUzb330bvZ1Es6WcKLhna04BkDD6RvmGQnaosyX3K3VlgJ99zShwfdEu4bEWpPVT8zEHmMbCyUtAiANchelYQNensnMTuwYY30g6a7kUrM+LQ8LigPoXmALxMDCbeQLp51qNLMAcKx5AaYdge+2XIZAzih3t7d3+rWvOB9c+Zft27q0D4omJeVRyah7UvsgmJRuqwpbpqj8yeNVfAJlvjs+6zdzFZlaQBy/CJj2YRHy74azOJMU8uhOhuuiW73rVsFT1D73XoNqdk9Iqe7X2SV50AQMlAGo+95KVsHiQRR2nzo+UQc8yeT2fLO1++UwyjQcnSz4u+o9arypSYf9M69dgn5EEh27O76mlDbtJ0w7e/+dVXGayPd5PbrXXpnUNvD3X+i+sxcDwyt3HPNpjhseAAOMe6ClmDzvouZp4zSl/1ckSneexs3V/yRUHuuLlbxXMiWxHPR523B+qGY9C1htJPBwgSK5lKHC+9mgqlhVC15JepDlOQWQpz9Qe3QIIn9/fZgyVt/IeGWraNuGpGI6HPoYO5W/FwgQFquQK4jOnXrSFWsbjuu1Kev9fe+cgGAa0/SEepsv5dWXcGbdmp2diQiqIsbsFBH19F6tMT2iyLZ/zUzyijNHkjaEV/DhoEt7Lq4PZMKj6q0XssO3DEfIB2o569WryTKmOKgSAWpwTm7IGpb4EDSCRo4AxROC2F0G0QYvysASfwTgPp40uB1LExi1V0wmVPvBWG97jRHjeCd48gZHFh84EBUEbDBcsYzMyKjDQLWrZNg8vaN4tGWnsrM9S0T9nTe+CUWxrkC/JKdYfBI/QXYTZwRa+UbSPfqI/vnFtcB5z4u5DUDij2DoEYAQ==
+
+The user is still seeing the content rewrite at the end. Let me think about what could be causing this...
+
+Looking at the code, we're handling `response.output_item.done` and calling `block-stop-callback` there. But maybe that's causing the issue?
+
+Let me check what happens in the process sentinel. When the process completes, we have a sentinel that runs `greger-openrouter--handle-completion`, which might be calling something that re-renders.
+
+Let me look at what that does...
+
+Actually, I bet the issue is in the process sentinel! It's probably calling the complete-callback or handle-finish which then re-renders everything.
+
+# ASSISTANT
+
+Let me check what the process sentinel is doing - that might be what's causing the rewrite:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01ERPUnVp9vrFpGUAKXiMekK
+
+## path
+
+<tool.toolu_01ERPUnVp9vrFpGUAKXiMekK>
+greger-openrouter.el
+</tool.toolu_01ERPUnVp9vrFpGUAKXiMekK>
+
+## start-line
+
+<tool.toolu_01ERPUnVp9vrFpGUAKXiMekK>
+435
+</tool.toolu_01ERPUnVp9vrFpGUAKXiMekK>
+
+## end-line
+
+<tool.toolu_01ERPUnVp9vrFpGUAKXiMekK>
+455
+</tool.toolu_01ERPUnVp9vrFpGUAKXiMekK>
+
+# TOOL RESULT
+
+ID: toolu_01ERPUnVp9vrFpGUAKXiMekK
+
+<tool.toolu_01ERPUnVp9vrFpGUAKXiMekK>
+(defun greger-openrouter--convert-citations-to-annotations (citations)
+  "Convert Greger citation list back to OpenRouter annotations format."
+  (vconcat
+   (mapcar
+    (lambda (citation)
+      (let ((url (alist-get 'url citation))
+            (title (alist-get 'title citation))
+            (cited-text (alist-get 'cited_text citation)))
+        `((type . "url_citation")
+          (url_citation . ((url . ,url)
+                           (title . ,title)
+                           (content . ,cited-text)
+                           (start_index . 0)
+                           (end_index . 0))))))
+    citations)))
+
+(defun greger-openrouter--convert-annotations-to-citations (annotations)
+  "Convert OpenRouter annotations from web search to Greger citations format."
+  (when (vectorp annotations)
+    (let (citations)
+      (seq-doseq (annotation annotations)
+</tool.toolu_01ERPUnVp9vrFpGUAKXiMekK>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01EKkUEpXDQ1N8mSzsnC4Z6a
+
+## pattern
+
+<tool.toolu_01EKkUEpXDQ1N8mSzsnC4Z6a>
+defun greger-openrouter--handle-completion
+</tool.toolu_01EKkUEpXDQ1N8mSzsnC4Z6a>
+
+## path
+
+<tool.toolu_01EKkUEpXDQ1N8mSzsnC4Z6a>
+greger-openrouter.el
+</tool.toolu_01EKkUEpXDQ1N8mSzsnC4Z6a>
+
+# TOOL RESULT
+
+ID: toolu_01EKkUEpXDQ1N8mSzsnC4Z6a
+
+<tool.toolu_01EKkUEpXDQ1N8mSzsnC4Z6a>
+468:(defun greger-openrouter--handle-completion (proc state)
+
+</tool.toolu_01EKkUEpXDQ1N8mSzsnC4Z6a>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01Cw6fNt7qaCo2ceBg1cFLrr
+
+## path
+
+<tool.toolu_01Cw6fNt7qaCo2ceBg1cFLrr>
+greger-openrouter.el
+</tool.toolu_01Cw6fNt7qaCo2ceBg1cFLrr>
+
+## start-line
+
+<tool.toolu_01Cw6fNt7qaCo2ceBg1cFLrr>
+468
+</tool.toolu_01Cw6fNt7qaCo2ceBg1cFLrr>
+
+## end-line
+
+<tool.toolu_01Cw6fNt7qaCo2ceBg1cFLrr>
+490
+</tool.toolu_01Cw6fNt7qaCo2ceBg1cFLrr>
+
+# TOOL RESULT
+
+ID: toolu_01Cw6fNt7qaCo2ceBg1cFLrr
+
+<tool.toolu_01Cw6fNt7qaCo2ceBg1cFLrr>
+(defun greger-openrouter--handle-completion (proc state)
+  "Handle process completion."
+  (when (memq (process-status proc) '(exit signal))
+    (funcall (greger-openrouter-state-restore-callback state) state)
+    
+    (let ((exit-code (process-exit-status proc))
+          (stored-error (greger-openrouter-state-error-message state)))
+      (cond
+       ((and (= exit-code 0) (not stored-error))
+        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+          (funcall callback (greger-openrouter--build-content-blocks state))))
+       
+       ((= exit-code 2)
+        (message "Process interrupted"))
+       
+       (t
+        (let ((error-message (or stored-error
+                                 (format "Process exited with status code %d" exit-code))))
+          (when-let ((callback (greger-openrouter-state-error-callback state)))
+            (funcall callback error-message))))))))
+
+(defun greger-openrouter--start-curl-process (request-spec)
+  "Start curl process for OpenRouter."
+</tool.toolu_01Cw6fNt7qaCo2ceBg1cFLrr>
+
+# ASSISTANT
+
+THERE IT IS! Line 477-478 - when the process exits successfully, it's calling the complete-callback with `build-content-blocks`, which is causing the duplicate render! We already called block-stop-callback for each block, so we shouldn't call complete-callback again:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TRUyCRXrovBTyfmLagqcb6
+
+## path
+
+<tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+greger-openrouter.el
+</tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+
+## git-commit-message
+
+<tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+Don't call complete-callback in process sentinel - already handled by events
+</tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+
+## original-content
+
+<tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+      (cond
+       ((and (= exit-code 0) (not stored-error))
+        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+          (funcall callback (greger-openrouter--build-content-blocks state))))
+       
+       ((= exit-code 2)
+        (message "Process interrupted"))
+</tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+
+## new-content
+
+<tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+      (cond
+       ((and (= exit-code 0) (not stored-error))
+        ;; Success - streaming events already handled everything
+        nil)
+       
+       ((= exit-code 2)
+        (message "Process interrupted"))
+</tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+
+# TOOL RESULT
+
+ID: toolu_01TRUyCRXrovBTyfmLagqcb6
+
+<tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
+
+</tool.toolu_01TRUyCRXrovBTyfmLagqcb6>
