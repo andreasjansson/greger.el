@@ -12290,5 +12290,80 @@ Pass server-tools to OpenRouter instead of enable-web-search flag
 ID: toolu_01VUwdZd6xYAoxY2Q76s8nBh
 
 <tool.toolu_01VUwdZd6xYAoxY2Q76s8nBh>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Pass server-tools to OpenRouter instead of enable-web-search flag
 </tool.toolu_01VUwdZd6xYAoxY2Q76s8nBh>
+
+# ASSISTANT
+
+Now update greger-openrouter.el to accept server-tools and convert them:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TJ6GT5WXD5nkTyotxFvuzK
+
+## path
+
+<tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+greger-openrouter.el
+</tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+
+## git-commit-message
+
+<tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+Accept server-tools parameter and convert web_search
+</tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+
+## original-content
+
+<tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+(cl-defun greger-openrouter-stream (&key model dialog tools buffer enable-web-search block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+  "Stream request to OpenRouter API.
+MODEL is the OpenRouter model identifier.
+DIALOG is the conversation history.
+TOOLS are tool definitions.
+BUFFER is the output buffer.
+ENABLE-WEB-SEARCH determines if we append :online to the model.
+BLOCK-START-CALLBACK is called when content blocks begin.
+TEXT-DELTA-CALLBACK for incremental text.
+BLOCK-STOP-CALLBACK when blocks complete.
+COMPLETE-CALLBACK when the entire response finishes.
+THINKING-BUDGET is the number of thinking tokens.
+MAX-TOKENS is the maximum number of tokens to generate.
+AUTH-KEY is the OpenRouter API key.
+ERROR-CALLBACK is called when errors occur."
+  (let* ((output-buffer (or buffer (current-buffer)))
+         (undo-handle (prepare-change-group output-buffer))
+         (request-spec (greger-openrouter--build-request model dialog tools thinking-budget max-tokens auth-key enable-web-search))
+</tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+
+## new-content
+
+<tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+(cl-defun greger-openrouter-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+  "Stream request to OpenRouter API.
+MODEL is the OpenRouter model identifier.
+DIALOG is the conversation history.
+TOOLS are tool definitions.
+SERVER-TOOLS are server tool names like web_search.
+BUFFER is the output buffer.
+BLOCK-START-CALLBACK is called when content blocks begin.
+TEXT-DELTA-CALLBACK for incremental text.
+BLOCK-STOP-CALLBACK when blocks complete.
+COMPLETE-CALLBACK when the entire response finishes.
+THINKING-BUDGET is the number of thinking tokens.
+MAX-TOKENS is the maximum number of tokens to generate.
+AUTH-KEY is the OpenRouter API key.
+ERROR-CALLBACK is called when errors occur."
+  (let* ((output-buffer (or buffer (current-buffer)))
+         (undo-handle (prepare-change-group output-buffer))
+         (request-spec (greger-openrouter--build-request model dialog tools server-tools thinking-budget max-tokens auth-key))
+</tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+
+# TOOL RESULT
+
+ID: toolu_01TJ6GT5WXD5nkTyotxFvuzK
+
+<tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>
+
+</tool.toolu_01TJ6GT5WXD5nkTyotxFvuzK>

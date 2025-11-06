@@ -35,13 +35,13 @@
   error-callback
   error-message)
 
-(cl-defun greger-openrouter-stream (&key model dialog tools buffer enable-web-search block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+(cl-defun greger-openrouter-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
   "Stream request to OpenRouter API.
 MODEL is the OpenRouter model identifier.
 DIALOG is the conversation history.
 TOOLS are tool definitions.
+SERVER-TOOLS are server tool names like web_search.
 BUFFER is the output buffer.
-ENABLE-WEB-SEARCH determines if we append :online to the model.
 BLOCK-START-CALLBACK is called when content blocks begin.
 TEXT-DELTA-CALLBACK for incremental text.
 BLOCK-STOP-CALLBACK when blocks complete.
@@ -52,7 +52,7 @@ AUTH-KEY is the OpenRouter API key.
 ERROR-CALLBACK is called when errors occur."
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-openrouter--build-request model dialog tools thinking-budget max-tokens auth-key enable-web-search))
+         (request-spec (greger-openrouter--build-request model dialog tools server-tools thinking-budget max-tokens auth-key))
          (restore-callback (lambda (state)
                              (let ((buffer (greger-openrouter-state-output-buffer state)))
                                (when (buffer-live-p buffer)
