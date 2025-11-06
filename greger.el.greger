@@ -14127,5 +14127,63 @@ Handle more streaming events and disable citation extraction
 ID: toolu_01GaA7kfFtSNN8AhvSrE15mk
 
 <tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Handle more streaming events and disable citation extraction
 </tool.toolu_01GaA7kfFtSNN8AhvSrE15mk>
+
+# ASSISTANT
+
+Now fix issue 2 - don't include citations in content blocks:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_015rgk8a9YsSeBRj6FRNrT5P
+
+## path
+
+<tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>
+greger-openrouter.el
+</tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>
+
+## git-commit-message
+
+<tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>
+Don't include citations - text already has inline links
+</tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>
+
+## diff
+
+<tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>
+ (defun greger-openrouter--build-content-blocks (state)
+   "Build Anthropic-style content blocks from accumulated state.
+-Converts OpenRouter annotations to Greger citations format."
++Note: We don't include citations from web search because the text already
++contains inline markdown links to sources."
+   (let ((current-text (greger-openrouter-state-current-text state))
+-        (annotations (greger-openrouter-state-annotations state))
+         blocks)
+     
+     (when current-text
+-      (let ((text-block `((type . "text")
+-                          (text . ,current-text))))
+-        (when annotations
+-          (let ((citations (greger-openrouter--convert-annotations-to-citations annotations)))
+-            (when citations
+-              (push `(citations . ,citations) text-block))))
+-        (push text-block blocks)))
++      (push `((type . "text")
++              (text . ,current-text))
++            blocks))
+     
+     (nreverse blocks)))
+\ No newline at end of file
+
+</tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>
+
+# TOOL RESULT
+
+ID: toolu_015rgk8a9YsSeBRj6FRNrT5P
+
+<tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>
+
+</tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>

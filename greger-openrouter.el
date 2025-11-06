@@ -417,19 +417,15 @@ OpenAI function calling doesn't support default values."
 
 (defun greger-openrouter--build-content-blocks (state)
   "Build Anthropic-style content blocks from accumulated state.
-Converts OpenRouter annotations to Greger citations format."
+Note: We don't include citations from web search because the text already
+contains inline markdown links to sources."
   (let ((current-text (greger-openrouter-state-current-text state))
-        (annotations (greger-openrouter-state-annotations state))
         blocks)
     
     (when current-text
-      (let ((text-block `((type . "text")
-                          (text . ,current-text))))
-        (when annotations
-          (let ((citations (greger-openrouter--convert-annotations-to-citations annotations)))
-            (when citations
-              (push `(citations . ,citations) text-block))))
-        (push text-block blocks)))
+      (push `((type . "text")
+              (text . ,current-text))
+            blocks))
     
     (nreverse blocks)))
 
