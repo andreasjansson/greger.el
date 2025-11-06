@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-011648803243>
+${greger-prompt-code-style<eval-result-011801658770>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-011648803243>}
+</eval-result-011801658770>}
 
-${:sh cat CLAUDE.md || true<eval-result-011648235639>cat: CLAUDE.md: No such file or directory
-</eval-result-011648235639>}
+${:sh cat CLAUDE.md || true<eval-result-011801589171>cat: CLAUDE.md: No such file or directory
+</eval-result-011801589171>}
 
 # USER
 
@@ -9478,5 +9478,95 @@ Fix schema cleaning to properly handle nested structures
 ID: toolu_011woiMR2zESZno8Bo63XCq5
 
 <tool.toolu_011woiMR2zESZno8Bo63XCq5>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Fix schema cleaning to properly handle nested structures
 </tool.toolu_011woiMR2zESZno8Bo63XCq5>
+
+# ASSISTANT
+
+Now reload and try again:
+
+```elisp
+(load-file "~/projects/greger.el/greger-openrouter.el")
+```
+
+The schema should now properly filter out `default` keys while preserving the rest of the structure.
+
+# USER
+
+Still
+
+Loading /Users/andreas/projects/greger.el/greger-openrouter.el (source)...done
+t
+OpenRouter output chunk: {"error":{"message":"Provider returned error","code":400,"metadata":{"raw":"{\n  \"error\": {\n    \"message\": \"Invalid schema for function 'list-directory': None is not of type 'array'.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": \"tools[7].parameters\",\n    \"code\": \"invalid_function_parameters\"\n  }\n}","provider_name":"OpenAI"}},"user_id":"user_3556Pgm15MRCBbWZdxd1b1J2Z3j"}
+
+Add some more debugging to see what's going wrong
+
+# THINKING
+
+Signature: EtkCCkYICRgCKkButGp50h6omzwQw1DElKdpE6JnkZUvSToyTK1LKXV16T3RKsvWQCdiMp1zkJKI6vZlL/h/h/sv/kXbMosGVVIBEgxXqhoY7WbkATvjNHAaDIUfbHYYJSS0JUTVSiIwkzs7e6v/UHrINU4jfcZWQzBkwh7aIAM/KRXd0dP7/S2f5xyv2G18+ycrszGnhORRKsABIE5xWJKbRl5jiZmf8sEgFcMWmnSl1BlFzpB4cA4Ncv+4kxTphv8TWae856nKyp79r6O5C+VLgdvVhY7flJlt6d3ycbUEte40kS+bGhveya0TTgEqsUfPYkhvCSE0reeTSwBSazqnsn7U0Rx1GinVPckTGsgyNhS5CrFdqUaglYenzi2VsASpwPAJL+yYXVMXYb+EtVJ6EcKh+puV+Pu2aSBq4Lrh0Fm6LKSxHRFpboOBCbgtyrF7/sKtdjKtwNzyGAE=
+
+The user is still getting the error. Let me add debugging to see what the actual schema looks like after conversion. I need to log the tools that are being sent to OpenRouter.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01QLDJjMX1hACBvRcJqYSvN6
+
+## path
+
+<tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>
+greger-openrouter.el
+</tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>
+
+## git-commit-message
+
+<tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>
+Add debugging for tool schema conversion
+</tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>
+
+## diff
+
+<tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>
+ (defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+   "Build OpenRouter request data in OpenAI format."
+   (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+          (actual-model (if enable-web-search
+                            (concat model ":online")
+                          model))
+          (request-data `(("model" . ,actual-model)
+                          ("max_tokens" . ,max-tokens)
+                          ("stream" . t))))
+     
+     (push `("messages" . ,messages) request-data)
+     
+     (when tools
+-      (push `("tools" . ,(greger-openrouter--convert-tools tools)) request-data)
+-      (push `("tool_choice" . "auto") request-data))
++      (let ((converted-tools (greger-openrouter--convert-tools tools)))
++        ;; Debug: log the converted tools
++        (message "DEBUG: Converted %d tools" (length converted-tools))
++        (dotimes (i (length converted-tools))
++          (let* ((tool (nth i converted-tools))
++                 (func (alist-get 'function tool))
++                 (name (alist-get 'name func))
++                 (params (alist-get 'parameters func)))
++            (message "DEBUG: Tool %d '%s' params: %S" i name params)))
++        (push `("tools" . ,converted-tools) request-data)
++        (push `("tool_choice" . "auto") request-data)))
+     
+     (when (and thinking-budget (> thinking-budget 0))
+       (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
+       (push `("include_reasoning" . t) request-data))
+     
+     (json-encode request-data)))
+\ No newline at end of file
+
+</tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>
+
+# TOOL RESULT
+
+ID: toolu_01QLDJjMX1hACBvRcJqYSvN6
+
+<tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>
+
+</tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>

@@ -119,8 +119,17 @@ ERROR-CALLBACK is called when errors occur."
     (push `("messages" . ,messages) request-data)
     
     (when tools
-      (push `("tools" . ,(greger-openrouter--convert-tools tools)) request-data)
-      (push `("tool_choice" . "auto") request-data))
+      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+        ;; Debug: log the converted tools
+        (message "DEBUG: Converted %d tools" (length converted-tools))
+        (dotimes (i (length converted-tools))
+          (let* ((tool (nth i converted-tools))
+                 (func (alist-get 'function tool))
+                 (name (alist-get 'name func))
+                 (params (alist-get 'parameters func)))
+            (message "DEBUG: Tool %d '%s' params: %S" i name params)))
+        (push `("tools" . ,converted-tools) request-data)
+        (push `("tool_choice" . "auto") request-data)))
     
     (when (and thinking-budget (> thinking-budget 0))
       (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
