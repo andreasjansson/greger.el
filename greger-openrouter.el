@@ -104,26 +104,41 @@ ERROR-CALLBACK is called when errors occur."
     ("HTTP-Referer" . "https://github.com/andreasjansson/greger.el")
     ("X-Title" . "Greger.el")))
 
-(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
-  "Build OpenRouter request data in Responses API format."
+(defun greger-openrouter--build-data (model dialog tools server-tools thinking-budget max-tokens)
+  "Build OpenRouter request data in Responses API format.
+SERVER-TOOLS is a list of server tool names like (\"web_search\") that will be
+converted to OpenAI's Responses API format."
   (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
          (request-data `(("model" . ,model)
                          ("max_output_tokens" . ,max-tokens)
                          ("stream" . t))))
     
-    (when enable-web-search
-      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
-    
     (push `("input" . ,messages) request-data)
     
-    (when tools
-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
-        (push `("tools" . ,converted-tools) request-data)))
+    (when (or tools server-tools)
+      (let ((all-tools (greger-openrouter--convert-all-tools tools server-tools)))
+        (push `("tools" . ,all-tools) request-data)))
     
     (when (and thinking-budget (> thinking-budget 0))
       (push `("reasoning" . (("effort" . "medium"))) request-data))
     
     (json-encode request-data)))
+
+(defun greger-openrouter--convert-all-tools (tools server-tools)
+  "Convert both user TOOLS and SERVER-TOOLS to Responses API format.
+USER tools are converted using the standard OpenAI function format.
+SERVER-TOOLS like web_search are converted to OpenAI's server tool format."
+  (let ((converted-tools '()))
+    
+    (when tools
+      (setq converted-tools (greger-openrouter--convert-tools tools)))
+    
+    (when (member "web_search" server-tools)
+      (push `((type . "web_search")
+              (search_context_size . "medium"))
+            converted-tools))
+    
+    (vconcat (nreverse converted-tools))))
 
 (defun greger-openrouter--convert-dialog-to-messages (dialog)
   "Convert Greger dialog format to Responses API input format."
