@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-173930580825>
+${greger-prompt-code-style<eval-result-174233400424>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-173930580825>}
+</eval-result-174233400424>}
 
-${:sh cat CLAUDE.md || true<eval-result-173930471802>cat: CLAUDE.md: No such file or directory
-</eval-result-173930471802>}
+${:sh cat CLAUDE.md || true<eval-result-174233226629>cat: CLAUDE.md: No such file or directory
+</eval-result-174233226629>}
 
 # USER
 
@@ -15509,5 +15509,93 @@ Handle response.content_part.added to start text block
 ID: toolu_01X2n6HD3xNRCcLxopEufwM8
 
 <tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Handle response.content_part.added to start text block
 </tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
+
+# ASSISTANT
+
+Streaming should be back to normal now.  
+Key changes (all in `greger-openrouter.el`):
+
+- Adjusted the SSE parser to handle `response.output_item.added`, `response.content_part.added`, and the top-level `delta` field that OpenRouter actually emits, so text arrives incrementally instead of only at completion.  
+- Removed the extra citation block; the inline markdown links the model produces are left untouched.  
+- Cleaned out the temporary debug logging that was flooding `*Messages*`.
+
+Reload the file with `M-x load-file RET greger-openrouter.el RET`, then rerun your prompt—the assistant should stream again while leaving the transcript free of that citation footer.
+
+# USER
+
+Still not streaming
+
+# THINKING
+
+Signature: EqIGCkYICRgCKkDT+VoRDT2zg4mLI1Re3GreQ+M5rn59tpD/x8GgojEAq2qDFygpG33llbg0OnMXSfoaxiT+STEncSUjW8v3lmwAEgyjc+glgNXPRqdG/cYaDHe54lO31/aNJXdJLyIwNZMy0S2TLXY8DJLJ7XP3NF7ecHYIooLmD7V9HJr5eQzT3aC7EYnISnDea/XyRVkVKokFcBhffZh77D4i8zm27IxpKZ8CLYW86FSjJMyPEmfXMFBvZrRKE14sYvjiffzr3+tnAHWpkxev4VanjTwX/zjJj0p0mpEWo851+pNJ3BBkS0111rhP8T/XaikpQ9ojZfC9ccLWceNcFW5NW9si4WjAPGd10JDOzv+e1OI623j9ug6D/Ncazr4UlSzmd20djMaqorL8JODHIxysmaqD221sjhqEgBLAibHlD1btwzB0khagdPs8+uNNcdo1RYxKac01RqeY1B+/R12oT5lEz19QM2MaNV4kInllUvBRTYsxtBCc2qbvZfBDGG9lHxKZ7Gz1BMx2lASvqX8yjfyi+uFLtkxlieJZqhKuCJq0vwLGJmvX/r+6j7cFSh1ByQWVkufcdRlSTXbEaAAWPL+QtJ/hSkpAqmYV/XKTr6lUNV+TtFSr1HIGeKyakHKRaxsJ3RMJig396Vz8e1bxrqXDnXEbDB183mZCf1f6pFbHBt+wxO5FG+6lKWHEKp6LhSz5UWuDZCSHqllRHPSx8V4BoJIjWwymAWjSc4pALo9V5PAOEcIpc8TCi00tubLvjJ5z4YAQqP9ke7Z6iCC2Sm779+T35bOOx3eEEgYedAnVMbuYfzOB7jaMNr2QiLWeIYZwu98yrcMxxMx3RTZPpQUpI2/myApAjF0odUkQ7A3WDI6TQM5xJCPiJ7SFy/CpZTQMtNeoMPqwYBlP8bHMs6zd02V+PoQn4+VAoCxq7EGu5LLo7GaSGhA2LzO8bqB2rbMTQCpSs2Os8T7yr2/WPYLOXypbQLlIA54Xv7L+4BU1eIXg1+yFrg0Oy9Xe9tKiKjUd9np1ardDx2ccASKdQeZ5cU2BY/po2mdabgcX5hgB
+
+Let me check what events we're actually getting. The user said it's not streaming. Let me add back temporary logging to see what events are coming through, then we can fix it properly.
+
+Looking at the documentation again, the streaming format shows:
+- `response.created`
+- `response.output_item.added`
+- `response.content_part.added`
+- `response.content_part.delta` (with "delta" field containing text)
+- `response.output_item.done`
+- `response.done`
+
+But we're only getting `response.completed` in one big chunk based on the logs the user showed earlier.
+
+Let me add debug logging back temporarily to see what's actually happening.
+
+# ASSISTANT
+
+Let me add back temporary debug logging to see what events we're actually receiving:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01GWNFxVMgrPnk1NBDwUaNyv
+
+## path
+
+<tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+greger-openrouter.el
+</tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+
+## git-commit-message
+
+<tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+Add temporary debug logging to diagnose streaming
+</tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+
+## original-content
+
+<tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+(defun greger-openrouter--handle-event (data-json state)
+  "Handle Responses API streaming event."
+
+  (condition-case err
+      (let* ((data (json-read-from-string data-json))
+             (error-data (alist-get 'error data))
+             (event-type (alist-get 'type data)))
+</tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+
+## new-content
+
+<tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+(defun greger-openrouter--handle-event (data-json state)
+  "Handle Responses API streaming event."
+
+  (condition-case err
+      (let* ((data (json-read-from-string data-json))
+             (error-data (alist-get 'error data))
+             (event-type (alist-get 'type data)))
+        
+        (message "EVENT TYPE: %s" event-type)
+</tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+
+# TOOL RESULT
+
+ID: toolu_01GWNFxVMgrPnk1NBDwUaNyv
+
+<tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>
+
+</tool.toolu_01GWNFxVMgrPnk1NBDwUaNyv>

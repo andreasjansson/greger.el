@@ -314,6 +314,8 @@ OpenAI function calling doesn't support default values."
              (error-data (alist-get 'error data))
              (event-type (alist-get 'type data)))
         
+        (message "EVENT TYPE: %s" event-type)
+        
         ;; Check for API errors first
         (when error-data
           (let ((error-message (format "OpenRouter API error: %s" 
