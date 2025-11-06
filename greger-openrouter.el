@@ -357,12 +357,23 @@ OpenAI function calling doesn't support default values."
             (message "OPENROUTER: Processing completion")
             (when response
               (let* ((output (alist-get 'output response))
-                     (message-item (when output (aref output 0)))
+                     (message-item (when output
+                                     (seq-find (lambda (item)
+                                                 (string= (alist-get 'type item) "message"))
+                                               output)))
                      (content (when message-item (alist-get 'content message-item)))
-                     (text-content (when content (aref content 0)))
+                     (text-content (when content
+                                     (seq-find (lambda (item)
+                                                 (string= (alist-get 'type item) "output_text"))
+                                               content)))
+                     (text (when text-content (alist-get 'text text-content)))
                      (annotations (when text-content (alist-get 'annotations text-content))))
                 
+                (message "OPENROUTER: Text: %s" text)
                 (message "OPENROUTER: Annotations: %s" annotations)
+                
+                (when text
+                  (setf (greger-openrouter-state-current-text state) text))
                 
                 (when annotations
                   (setf (greger-openrouter-state-annotations state) annotations))
