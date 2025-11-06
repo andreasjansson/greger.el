@@ -486,6 +486,22 @@ Includes THINKING blocks with base64-encoded reasoning_details in signature fiel
     (cited_text . ,(or (alist-get 'text annotation) ""))
     (encrypted_index . "")))
 
+(defun greger-openrouter--convert-citations-to-annotations (citations)
+  "Convert Greger citation list back to OpenRouter annotations format."
+  (vconcat
+   (mapcar
+    (lambda (citation)
+      (let ((url (alist-get 'url citation))
+            (title (alist-get 'title citation))
+            (cited-text (alist-get 'cited_text citation)))
+        `((type . "url_citation")
+          (url_citation . ((url . ,url)
+                           (title . ,title)
+                           (content . ,cited-text)
+                           (start_index . 0)
+                           (end_index . 0))))))
+    citations)))
+
 (defun greger-openrouter--handle-completion (proc state)
   "Handle process completion."
   (when (memq (process-status proc) '(exit signal))
