@@ -227,7 +227,7 @@ Also strips 'default' values and ensures 'required' is always a vector."
        `((type . "function")
          (name . ,(alist-get 'name tool))
          (description . ,(alist-get 'description tool))
-         (strict . :null)
+         (strict . nil)
          (parameters . ,fixed-schema))))
    tools))
 

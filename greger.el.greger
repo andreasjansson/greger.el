@@ -12681,5 +12681,77 @@ Fix strict field to be null not boolean
 ID: toolu_01VXmA4xcSJYUVN4dDDtSDfp
 
 <tool.toolu_01VXmA4xcSJYUVN4dDDtSDfp>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Fix strict field to be null not boolean
 </tool.toolu_01VXmA4xcSJYUVN4dDDtSDfp>
+
+# ASSISTANT
+
+Actually, let me check how json.el encodes null values in Emacs:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_0167LSHYxr9rN5F9agdPzBeg
+
+## command
+
+<tool.toolu_0167LSHYxr9rN5F9agdPzBeg>
+emacs --batch --eval "(progn (require 'json) (princ (json-encode '((a . :null) (b . nil) (c . :json-null)))))"
+</tool.toolu_0167LSHYxr9rN5F9agdPzBeg>
+
+# TOOL RESULT
+
+ID: toolu_0167LSHYxr9rN5F9agdPzBeg
+
+<tool.toolu_0167LSHYxr9rN5F9agdPzBeg>
+{"a":"null","b":null,"c":"json-null"}
+</tool.toolu_0167LSHYxr9rN5F9agdPzBeg>
+
+# ASSISTANT
+
+Ah! So `nil` encodes to JSON `null`. Let me fix it:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01NfjrYBjC3Xr3p6dynKUd1g
+
+## path
+
+<tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+greger-openrouter.el
+</tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+
+## git-commit-message
+
+<tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+Use nil for JSON null in strict field
+</tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+
+## original-content
+
+<tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+       `((type . "function")
+         (name . ,(alist-get 'name tool))
+         (description . ,(alist-get 'description tool))
+         (strict . :null)
+         (parameters . ,fixed-schema))))
+</tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+
+## new-content
+
+<tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+       `((type . "function")
+         (name . ,(alist-get 'name tool))
+         (description . ,(alist-get 'description tool))
+         (strict . nil)
+         (parameters . ,fixed-schema))))
+</tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+
+# TOOL RESULT
+
+ID: toolu_01NfjrYBjC3Xr3p6dynKUd1g
+
+<tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
+
+</tool.toolu_01NfjrYBjC3Xr3p6dynKUd1g>
