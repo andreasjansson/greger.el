@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-011801658770>
+${greger-prompt-code-style<eval-result-011848916233>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-011801658770>}
+</eval-result-011848916233>}
 
-${:sh cat CLAUDE.md || true<eval-result-011801589171>cat: CLAUDE.md: No such file or directory
-</eval-result-011801589171>}
+${:sh cat CLAUDE.md || true<eval-result-011848080015>cat: CLAUDE.md: No such file or directory
+</eval-result-011848080015>}
 
 # USER
 
@@ -9568,5 +9568,125 @@ Add debugging for tool schema conversion
 ID: toolu_01QLDJjMX1hACBvRcJqYSvN6
 
 <tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add debugging for tool schema conversion
 </tool.toolu_01QLDJjMX1hACBvRcJqYSvN6>
+
+# ASSISTANT
+
+Now reload and run again - check the `*Messages*` buffer to see what the tool schemas look like:
+
+```elisp
+(load-file "~/projects/greger.el/greger-openrouter.el")
+```
+
+This will show us exactly what parameters are being sent for the list-directory tool.
+
+# USER
+
+Loading /Users/andreas/projects/greger.el/greger-openrouter.el (source)...done
+t
+Provider set to: OpenRouter (Beta)
+DEBUG: Converted 11 tools
+DEBUG: Tool 0 ’read-file’ params: ((type . "object") (properties (path (type . "string") (description . "Path to the file to read")) (include-line-numbers (type . "boolean") (description . "Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit.")) (start-line (type . "integer") (description . "Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file.")) (end-line (type . "integer") (description . "Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file."))) (required "path"))
+DEBUG: Tool 1 ’write-new-file’ params: ((type . "object") (properties (path (type . "string") (description . "Absolute path to the new file")) (contents (type . "string") (description . "Contents to write to the new file")) (git-commit-message (type . "string") (description . "Git commit message for this change"))) (required "path" "contents" "git-commit-message"))
+DEBUG: Tool 2 ’replace-file’ params: ((type . "object") (properties (path (type . "string") (description . "Path to the file to replace")) (contents (type . "string") (description . "New contents to replace the entire file")) (git-commit-message (type . "string") (description . "Git commit message for this change"))) (required "path" "contents" "git-commit-message"))
+DEBUG: Tool 3 ’str-replace’ params: ((type . "object") (properties (path (type . "string") (description . "Path to the file to modify")) (original-content (type . "string") (description . "The exact content to find and replace")) (new-content (type . "string") (description . "The new content to replace the original content with")) (git-commit-message (type . "string") (description . "Git commit message for this change")) (replace-all (type . "boolean") (description . "If true, replace all instances of original-content. If false (default), replace only the first instance"))) (required "path" "original-content" "new-content" "git-commit-message"))
+DEBUG: Tool 4 ’make-directory’ params: ((type . "object") (properties (path (type . "string") (description . "Path to the directory to create")) (git-commit-message (type . "string") (description . "Git commit message for this change"))) (required "path" "git-commit-message"))
+DEBUG: Tool 5 ’rename-file’ params: ((type . "object") (properties (old-path (type . "string") (description . "Current path of the file")) (new-path (type . "string") (description . "New path for the file")) (git-commit-message (type . "string") (description . "Git commit message for this change"))) (required "old-path" "new-path" "git-commit-message"))
+DEBUG: Tool 6 ’delete-files’ params: ((type . "object") (properties (paths (type . "array") (items (type . "string")) (description . "List of file paths to delete")) (git-commit-message (type . "string") (description . "Git commit message for this change"))) (required "paths" "git-commit-message"))
+DEBUG: Tool 7 ’list-directory’ params: ((type . "object") (properties (path (type . "string") (description . "Path to the directory to list. Defaults to current directory.")) (exclude-directories-recursive (type . "array") (items (type . "string")) (description . "List of directory names to exclude when recursively listing files.")) (recursive (type . "boolean") (description . "Whether to list files recursively"))) (required))
+DEBUG: Tool 8 ’ripgrep’ params: ((type . "object") (properties (pattern (type . "string") (description . "The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. Use the fixed-strings parameter for literal string matching. Supports Unicode by default. You have a tendency to add a trailing double quote `\"` to the end of `pattern` -- Important: DON'T ADD TRAILING DOUBLE QUOTES since it will break matching! `pattern` is just the search pattern, not an entire ripgrep command line. Use the other tool inputs to control ripgrep's behavior.")) (path (type . "string") (description . "Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory, or specify multiple paths separated by spaces")) (case-sensitive (type . "boolean") (description . "Whether the search should be case-sensitive")) (file-type (type . "string") (description . "Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'elisp' (Emacs Lisp), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions")) (context-lines (type . "integer") (description . "Number of context lines to show around matches")) (fixed-strings (type . "boolean") (description . "Treat the pattern as a literal string instead of a regular expression")) (word-regexp (type . "boolean") (description . "Only show matches surrounded by word boundaries")) (line-regexp (type . "boolean") (description . "Only show matches where the entire line participates in the match")) (max-results (type . "integer") (description . "Maximum number of results to return")) (allow-trailing-double-quote (type . "boolean") (description . "Allow patterns ending with double quote. Set to true only if you intentionally want to search for patterns ending with a literal double quote character")) (allow-command-line-like-pattern (type . "boolean") (description . "Allow patterns that contain command-line-like flags (e.g. patterns containing \" -\"). Set to true only if you intentionally want to search for patterns that look like command line arguments"))) (required "pattern"))
+DEBUG: Tool 9 ’shell-command’ params: ((type . "object") (properties (command (type . "string") (description . "The shell command to execute")) (working-directory (type . "string") (description . "Directory to run the command in")) (timeout (type . "integer") (description . "Timeout in seconds for command execution")) (enable-environment (type . "boolean") (description . "Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables. You want to use this whenever you run a command that interacts with the outside world, e.g. pulling git repositories, putting files on S3, etc.")) (use-vterm (type . "boolean") (description . "Use vterm for full terminal emulation with colors and ANSI sequences. Falls back to regular subprocess if vterm is not available."))) (required "command"))
+DEBUG: Tool 10 ’read-webpage’ params: ((type . "object") (properties (url (type . "string") (description . "The URL to read content from")) (extract-text (type . "boolean") (description . "Whether to extract text content or return raw HTML")) (use-highest-readability (type . "boolean") (description . "Whether to use eww's aggressive highest readability setting for better text extraction")) (use-vterm (type . "boolean") (description . "Use vterm for full terminal emulation with colors and ANSI sequences. Falls back to regular subprocess if vterm is not available."))) (required "url"))
+OpenRouter output chunk: {"error":{"message":"Provider returned error","code":400,"metadata":{"raw":"{\n  \"error\": {\n    \"message\": \"Invalid schema for function 'list-directory': None is not of type 'array'.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": \"tools[7].parameters\",\n    \"code\": \"invalid_function_parameters\"\n  }\n}","provider_name":"OpenAI"}},"user_id":"user_3556Pgm15MRCBbWZdxd1b1J2Z3j"}
+Quit
+
+# THINKING
+
+Signature: EvYECkYICRgCKkBJgLewHsc3HQUD83TvWwasn5lFtxMcTPdiG17b6XGpJ9FgZoGCWDmpC3NWDzeenkPelH/PgoQirxZi2QIWh8ixEgz1ecwb1xv76dAlQbsaDN0TiC1DNuVihJMZMCIw2mHYIJnwxxvg9LEOjZXSC18+gY0SKtKK45X7IahRv/uneWvM4st9c0JxuhHYeG0FKt0DClILO+mrA0TlkrPgkHAcMEuV7MbZh/x7TydaUj+Lj+SYThbmD8pg8vB5RafPRkZWBh6bGqelx1jEnmqUypVDlphtxAY08V7eYAb5wrXzqjpGAlXjzt5kHo8HelKjw9j5xk28+qWauYztJrjTjw9x92oZ/QcZpqTxNNOdIFrCtHvAcIpW3UdrSvmP6+4glNaojs/zM/AnOMJ8AGc/QTpGWQ5Hbh+G/nZQcGlz1VO0rfHDcL8GUtjkrSPMkc9yQ21wsL/kksvxa5p+LzxXLZGeoR+663aDVF0wS2PIP/sMUDuHmL0ustlg5gVsON87Lmp9pe0NB6DPZwx9qWdkVcjK5gTpHLEn19iRt1/vs5dq8IaRZYmSvRXwtEH1nhVmI2QjlHl9yNwsND5L+QYV4NJf+F4diTIeLtELLNqP0ii4KQVND5egjRqSw1jlc/Iy0tKNqp+N8IcyMLL8wKEKg3H741yoeUv3a5c/CVVYrsYzzXNq8QxKpqiHIs5pLBqwq7kCD4zDsaEnaEk7mTmnprf9RkOdABqfSR4U7NvNmbUxKL2YHh0p8AkgsQ6TW5Z8uLyPnNM8pVPA0YCs4FTjNPONFFd0/GR9YbBtcqrvI60prEyKIndNU1pnz6mh031mGAE=
+
+Looking at Tool 7 (list-directory), I see:
+```
+(required)
+```
+
+That's the issue! The `required` field is an empty list `()` which gets encoded as `null` in JSON, but OpenAI expects it to be an array `[]`. 
+
+The problem is in how we're handling the `required` field. When it's an empty list in Elisp, it becomes `nil` after processing, which JSON encodes as `null` instead of `[]`.
+
+I need to ensure that `required` is always encoded as an array, even if empty.
+
+# ASSISTANT
+
+I see it! Tool 7 (list-directory) has `(required)` which is an empty list that gets encoded as `null` instead of `[]`. OpenAI expects `required` to always be an array. Let me fix that:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Pmfq26reSBqByeBeiZEnUF
+
+## path
+
+<tool.toolu_01Pmfq26reSBqByeBeiZEnUF>
+greger-openrouter.el
+</tool.toolu_01Pmfq26reSBqByeBeiZEnUF>
+
+## git-commit-message
+
+<tool.toolu_01Pmfq26reSBqByeBeiZEnUF>
+Fix required field to always be a vector for JSON encoding
+</tool.toolu_01Pmfq26reSBqByeBeiZEnUF>
+
+## diff
+
+<tool.toolu_01Pmfq26reSBqByeBeiZEnUF>
+ (defun greger-openrouter--convert-tools (tools)
+   "Convert Anthropic tool format to OpenAI function calling format.
+-OpenAI doesn't support 'default' values in parameters, so we strip them."
++OpenAI doesn't support 'default' values in parameters, so we strip them.
++Also ensures 'required' is always a vector (array in JSON) not null."
+   (mapcar
+    (lambda (tool)
+      (let* ((input-schema (alist-get 'input_schema tool))
+-            (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema)))
++            (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema))
++            (fixed-schema (greger-openrouter--fix-required-field cleaned-schema)))
+        `((type . "function")
+          (function . ((name . ,(alist-get 'name tool))
+                       (description . ,(alist-get 'description tool))
+-                      (parameters . ,cleaned-schema))))))
+-   tools))
+\ No newline at end of file
++                      (parameters . ,fixed-schema))))))
++   tools))
++
++(defun greger-openrouter--fix-required-field (schema)
++  "Ensure the 'required' field is always a vector, not nil.
++OpenAI expects 'required' to be an array, even if empty."
++  (if (not (listp schema))
++      schema
++    (mapcar
++     (lambda (entry)
++       (if (and (consp entry) (eq (car entry) 'required))
++           ;; Convert nil or empty list to empty vector
++           (cons 'required (if (cdr entry)
++                               (if (vectorp (cdr entry))
++                                   (cdr entry)
++                                 (vconcat (cdr entry)))
++                             []))
++         (if (consp entry)
++             (cons (car entry)
++                   (greger-openrouter--fix-required-field (cdr entry)))
++           entry)))
++     schema)))
+\ No newline at end of file
+
+</tool.toolu_01Pmfq26reSBqByeBeiZEnUF>
+
+# TOOL RESULT
+
+ID: toolu_01Pmfq26reSBqByeBeiZEnUF
+
+<tool.toolu_01Pmfq26reSBqByeBeiZEnUF>
+
+</tool.toolu_01Pmfq26reSBqByeBeiZEnUF>

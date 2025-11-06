@@ -202,16 +202,38 @@ ERROR-CALLBACK is called when errors occur."
 
 (defun greger-openrouter--convert-tools (tools)
   "Convert Anthropic tool format to OpenAI function calling format.
-OpenAI doesn't support 'default' values in parameters, so we strip them."
+OpenAI doesn't support 'default' values in parameters, so we strip them.
+Also ensures 'required' is always a vector (array in JSON) not null."
   (mapcar
    (lambda (tool)
      (let* ((input-schema (alist-get 'input_schema tool))
-            (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema)))
+            (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema))
+            (fixed-schema (greger-openrouter--fix-required-field cleaned-schema)))
        `((type . "function")
          (function . ((name . ,(alist-get 'name tool))
                       (description . ,(alist-get 'description tool))
-                      (parameters . ,cleaned-schema))))))
+                      (parameters . ,fixed-schema))))))
    tools))
+
+(defun greger-openrouter--fix-required-field (schema)
+  "Ensure the 'required' field is always a vector, not nil.
+OpenAI expects 'required' to be an array, even if empty."
+  (if (not (listp schema))
+      schema
+    (mapcar
+     (lambda (entry)
+       (if (and (consp entry) (eq (car entry) 'required))
+           ;; Convert nil or empty list to empty vector
+           (cons 'required (if (cdr entry)
+                               (if (vectorp (cdr entry))
+                                   (cdr entry)
+                                 (vconcat (cdr entry)))
+                             []))
+         (if (consp entry)
+             (cons (car entry)
+                   (greger-openrouter--fix-required-field (cdr entry)))
+           entry)))
+     schema)))
 
 (defun greger-openrouter--remove-defaults-from-schema (schema)
   "Remove 'default' keys from SCHEMA recursively.
