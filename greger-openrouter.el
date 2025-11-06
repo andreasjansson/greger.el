@@ -164,17 +164,13 @@ Converts citations back to OpenRouter annotations format."
   (let (result-messages
         current-text
         tool-calls
-        reasoning-details
-        annotations)
+        reasoning-details)
     
     (dolist (block content-blocks)
       (let ((type (alist-get 'type block)))
         (cond
          ((string= type "text")
-          (setq current-text (alist-get 'text block))
-          (let ((citations (alist-get 'citations block)))
-            (when citations
-              (setq annotations (greger-openrouter--convert-citations-to-annotations citations)))))
+          (setq current-text (alist-get 'text block)))
          
          ((string= type "thinking")
           (let ((thinking-text (alist-get 'thinking block))

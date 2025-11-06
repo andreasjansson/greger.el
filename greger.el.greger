@@ -10647,5 +10647,68 @@ Remove citation block creation - inline links are sufficient
 ID: toolu_01VapWXuUrQAjSLJR5QE8RAz
 
 <tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove citation block creation - inline links are sufficient
 </tool.toolu_01VapWXuUrQAjSLJR5QE8RAz>
+
+# ASSISTANT
+
+Now let me also remove the citation conversion functions and the code that passes annotations back (since we don't need them for subsequent requests):
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011w8x5WkqSfkxvXKTup657d
+
+## path
+
+<tool.toolu_011w8x5WkqSfkxvXKTup657d>
+greger-openrouter.el
+</tool.toolu_011w8x5WkqSfkxvXKTup657d>
+
+## git-commit-message
+
+<tool.toolu_011w8x5WkqSfkxvXKTup657d>
+Remove annotation passback - not needed for API continuity
+</tool.toolu_011w8x5WkqSfkxvXKTup657d>
+
+## original-content
+
+<tool.toolu_011w8x5WkqSfkxvXKTup657d>
+  (let (result-messages
+        current-text
+        tool-calls
+        reasoning-details
+        annotations)
+    
+    (dolist (block content-blocks)
+      (let ((type (alist-get 'type block)))
+        (cond
+         ((string= type "text")
+          (setq current-text (alist-get 'text block))
+          (let ((citations (alist-get 'citations block)))
+            (when citations
+              (setq annotations (greger-openrouter--convert-citations-to-annotations citations)))))
+</tool.toolu_011w8x5WkqSfkxvXKTup657d>
+
+## new-content
+
+<tool.toolu_011w8x5WkqSfkxvXKTup657d>
+  (let (result-messages
+        current-text
+        tool-calls
+        reasoning-details)
+    
+    (dolist (block content-blocks)
+      (let ((type (alist-get 'type block)))
+        (cond
+         ((string= type "text")
+          (setq current-text (alist-get 'text block)))
+</tool.toolu_011w8x5WkqSfkxvXKTup657d>
+
+# TOOL RESULT
+
+ID: toolu_011w8x5WkqSfkxvXKTup657d
+
+<tool.toolu_011w8x5WkqSfkxvXKTup657d>
+
+</tool.toolu_011w8x5WkqSfkxvXKTup657d>
