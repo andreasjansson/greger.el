@@ -364,6 +364,28 @@ OpenAI function calling doesn't support default values."
                 (when text-delta-callback
                   (funcall text-delta-callback text)))))
            
+           ;; Handle output item done (end of a content block)
+           ((string= event-type "response.output_item.done")
+            (let* ((item (alist-get 'item data))
+                   (item-type (alist-get 'type item)))
+              (cond
+               ;; Reasoning block done
+               ((string= item-type "reasoning")
+                (when-let* ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+                            (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+                  (funcall block-stop-callback "thinking"
+                           `((type . "thinking")
+                             (thinking . ,reasoning-text)
+                             (signature . "")))))
+               
+               ;; Message block done
+               ((string= item-type "message")
+                (when-let* ((text (greger-openrouter-state-current-text state))
+                            (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+                  (funcall block-stop-callback "text"
+                           `((type . "text")
+                             (text . ,text))))))))
+           
            ;; Handle completion
            ((string= event-type "response.completed")
             (when response

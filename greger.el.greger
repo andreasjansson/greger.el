@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-180431100786>
+${greger-prompt-code-style<eval-result-180930081055>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-180431100786>}
+</eval-result-180930081055>}
 
-${:sh cat CLAUDE.md || true<eval-result-180431410027>cat: CLAUDE.md: No such file or directory
-</eval-result-180431410027>}
+${:sh cat CLAUDE.md || true<eval-result-180930331913>cat: CLAUDE.md: No such file or directory
+</eval-result-180930331913>}
 
 # USER
 
@@ -16343,81 +16343,74 @@ greger-openrouter.el
 Only use completed event text as fallback when no streaming occurred
 </tool.toolu_01HGYMtwykHc7JTkK62E77De>
 
-## original-content
+## diff
 
 <tool.toolu_01HGYMtwykHc7JTkK62E77De>
-           ;; Handle completion
-           ((string= event-type "response.completed")
-            (when response
-              (let* ((output (alist-get 'output response))
-                     (message-item (when output
-                                     (seq-find (lambda (item)
-                                                 (string= (alist-get 'type item) "message"))
-                                               output)))
-                     (content (when message-item (alist-get 'content message-item)))
-                     (text-content (when content
-                                     (seq-find (lambda (item)
-                                                 (string= (alist-get 'type item) "output_text"))
-                                               content)))
-                     (text (when text-content (alist-get 'text text-content))))
-                
-                (when text
-                  ;; If we never got streaming events, we need to handle it here
-                  ;; Start the block
-                  (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
-                    (funcall block-start-callback
-                             `((type . "text")
-                               (text . ""))))
-                  
-                  ;; Set the full text
-                  (setf (greger-openrouter-state-current-text state) text)
-                  
-                  ;; Send all the text at once
-                  (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-                    (funcall text-delta-callback text)))
-                
-                (greger-openrouter--handle-finish state "stop"))))))))
-</tool.toolu_01HGYMtwykHc7JTkK62E77De>
+            ;; Handle completion
+            ((string= event-type "response.completed")
+             (when response
+-              (let* ((output (alist-get 'output response))
+-                     (message-item (when output
+-                                     (seq-find (lambda (item)
+-                                                 (string= (alist-get 'type item) "message"))
+-                                               output)))
+-                     (content (when message-item (alist-get 'content message-item)))
+-                     (text-content (when content
+-                                     (seq-find (lambda (item)
+-                                                 (string= (alist-get 'type item) "output_text"))
+-                                               content)))
+-                     (text (when text-content (alist-get 'text text-content))))
++              ;; Only use the completed event's text as fallback if we didn't get streaming
++              (let* ((current-text (greger-openrouter-state-current-text state))
++                     (current-reasoning (greger-openrouter-state-current-reasoning-text state)))
+                 
+-                (when text
+-                  ;; If we never got streaming events, we need to handle it here
+-                  ;; Start the block
+-                  (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+-                    (funcall block-start-callback
+-                             `((type . "text")
+-                               (text . ""))))
+-                  
+-                  ;; Set the full text
+-                  (setf (greger-openrouter-state-current-text state) text)
+-                  
+-                  ;; Send all the text at once
+-                  (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+-                    (funcall text-delta-callback text)))
++                ;; If we didn't get any streaming text, extract it from the completed response
++                (when (and (not current-text) (not current-reasoning))
++                  (let* ((output (alist-get 'output response))
++                         (message-item (when output
++                                         (seq-find (lambda (item)
++                                                     (string= (alist-get 'type item) "message"))
++                                                   output)))
++                         (content (when message-item (alist-get 'content message-item)))
++                         (text-content (when content
++                                         (seq-find (lambda (item)
++                                                     (string= (alist-get 'type item) "output_text"))
++                                                   content)))
++                         (text (when text-content (alist-get 'text text-content))))
++                    
++                    (when text
++                      ;; Start the block
++                      (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
++                        (funcall block-start-callback
++                                 `((type . "text")
++                                   (text . ""))))
++                      
++                      ;; Set the full text
++                      (setf (greger-openrouter-state-current-text state) text)
++                      
++                      ;; Send all the text at once
++                      (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
++                        (funcall text-delta-callback text)))))
+                 
+-                (greger-openrouter--handle-finish state "stop"))))))))
+\ No newline at end of file
++                (greger-openrouter--handle-finish state "stop")))))))))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01HGYMtwykHc7JTkK62E77De>
-           ;; Handle completion
-           ((string= event-type "response.completed")
-            (when response
-              ;; Only use the completed event's text as fallback if we didn't get streaming
-              (let* ((current-text (greger-openrouter-state-current-text state))
-                     (current-reasoning (greger-openrouter-state-current-reasoning-text state)))
-                
-                ;; If we didn't get any streaming text, extract it from the completed response
-                (when (and (not current-text) (not current-reasoning))
-                  (let* ((output (alist-get 'output response))
-                         (message-item (when output
-                                         (seq-find (lambda (item)
-                                                     (string= (alist-get 'type item) "message"))
-                                                   output)))
-                         (content (when message-item (alist-get 'content message-item)))
-                         (text-content (when content
-                                         (seq-find (lambda (item)
-                                                     (string= (alist-get 'type item) "output_text"))
-                                                   content)))
-                         (text (when text-content (alist-get 'text text-content))))
-                    
-                    (when text
-                      ;; Start the block
-                      (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
-                        (funcall block-start-callback
-                                 `((type . "text")
-                                   (text . ""))))
-                      
-                      ;; Set the full text
-                      (setf (greger-openrouter-state-current-text state) text)
-                      
-                      ;; Send all the text at once
-                      (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-                        (funcall text-delta-callback text)))))
-                
-                (greger-openrouter--handle-finish state "stop")))))))))
 </tool.toolu_01HGYMtwykHc7JTkK62E77De>
 
 # TOOL RESULT
@@ -16445,81 +16438,72 @@ greger-openrouter.el
 Only use completed event text as fallback when no streaming occurred
 </tool.toolu_013no67XUQJHUWkV5VtJYHEB>
 
-## original-content
+## diff
 
 <tool.toolu_013no67XUQJHUWkV5VtJYHEB>
-           ;; Handle completion
-           ((string= event-type "response.completed")
-            (when response
-              (let* ((output (alist-get 'output response))
-                     (message-item (when output
-                                     (seq-find (lambda (item)
-                                                 (string= (alist-get 'type item) "message"))
-                                               output)))
-                     (content (when message-item (alist-get 'content message-item)))
-                     (text-content (when content
-                                     (seq-find (lambda (item)
-                                                 (string= (alist-get 'type item) "output_text"))
-                                               content)))
-                     (text (when text-content (alist-get 'text text-content))))
-                
-                (when text
-                  ;; If we never got streaming events, we need to handle it here
-                  ;; Start the block
-                  (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
-                    (funcall block-start-callback
-                             `((type . "text")
-                               (text . ""))))
-                  
-                  ;; Set the full text
-                  (setf (greger-openrouter-state-current-text state) text)
-                  
-                  ;; Send all the text at once
-                  (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-                    (funcall text-delta-callback text)))
-                
-                (greger-openrouter--handle-finish state "stop"))))))
-</tool.toolu_013no67XUQJHUWkV5VtJYHEB>
+            ;; Handle completion
+            ((string= event-type "response.completed")
+             (when response
+-              (let* ((output (alist-get 'output response))
+-                     (message-item (when output
+-                                     (seq-find (lambda (item)
+-                                                 (string= (alist-get 'type item) "message"))
+-                                               output)))
+-                     (content (when message-item (alist-get 'content message-item)))
+-                     (text-content (when content
+-                                     (seq-find (lambda (item)
+-                                                 (string= (alist-get 'type item) "output_text"))
+-                                               content)))
+-                     (text (when text-content (alist-get 'text text-content))))
++              ;; Only use the completed event's text as fallback if we didn't get streaming
++              (let ((current-text (greger-openrouter-state-current-text state))
++                    (current-reasoning (greger-openrouter-state-current-reasoning-text state)))
+                 
+-                (when text
+-                  ;; If we never got streaming events, we need to handle it here
+-                  ;; Start the block
+-                  (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+-                    (funcall block-start-callback
+-                             `((type . "text")
+-                               (text . ""))))
+-                  
+-                  ;; Set the full text
+-                  (setf (greger-openrouter-state-current-text state) text)
+-                  
+-                  ;; Send all the text at once
+-                  (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+-                    (funcall text-delta-callback text)))
++                ;; If we didn't get any streaming text, extract it from the completed response
++                (when (and (not current-text) (not current-reasoning))
++                  (let* ((output (alist-get 'output response))
++                         (message-item (when output
++                                         (seq-find (lambda (item)
++                                                     (string= (alist-get 'type item) "message"))
++                                                   output)))
++                         (content (when message-item (alist-get 'content message-item)))
++                         (text-content (when content
++                                         (seq-find (lambda (item)
++                                                     (string= (alist-get 'type item) "output_text"))
++                                                   content)))
++                         (text (when text-content (alist-get 'text text-content))))
++                    
++                    (when text
++                      ;; Start the block
++                      (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
++                        (funcall block-start-callback
++                                 `((type . "text")
++                                   (text . ""))))
++                      
++                      ;; Set the full text
++                      (setf (greger-openrouter-state-current-text state) text)
++                      
++                      ;; Send all the text at once
++                      (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
++                        (funcall text-delta-callback text)))))
+                 
+                 (greger-openrouter--handle-finish state "stop"))))))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_013no67XUQJHUWkV5VtJYHEB>
-           ;; Handle completion
-           ((string= event-type "response.completed")
-            (when response
-              ;; Only use the completed event's text as fallback if we didn't get streaming
-              (let ((current-text (greger-openrouter-state-current-text state))
-                    (current-reasoning (greger-openrouter-state-current-reasoning-text state)))
-                
-                ;; If we didn't get any streaming text, extract it from the completed response
-                (when (and (not current-text) (not current-reasoning))
-                  (let* ((output (alist-get 'output response))
-                         (message-item (when output
-                                         (seq-find (lambda (item)
-                                                     (string= (alist-get 'type item) "message"))
-                                                   output)))
-                         (content (when message-item (alist-get 'content message-item)))
-                         (text-content (when content
-                                         (seq-find (lambda (item)
-                                                     (string= (alist-get 'type item) "output_text"))
-                                                   content)))
-                         (text (when text-content (alist-get 'text text-content))))
-                    
-                    (when text
-                      ;; Start the block
-                      (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
-                        (funcall block-start-callback
-                                 `((type . "text")
-                                   (text . ""))))
-                      
-                      ;; Set the full text
-                      (setf (greger-openrouter-state-current-text state) text)
-                      
-                      ;; Send all the text at once
-                      (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-                        (funcall text-delta-callback text)))))
-                
-                (greger-openrouter--handle-finish state "stop"))))))
 </tool.toolu_013no67XUQJHUWkV5VtJYHEB>
 
 # TOOL RESULT
@@ -16527,5 +16511,174 @@ Only use completed event text as fallback when no streaming occurred
 ID: toolu_013no67XUQJHUWkV5VtJYHEB
 
 <tool.toolu_013no67XUQJHUWkV5VtJYHEB>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Only use completed event text as fallback when no streaming occurred
 </tool.toolu_013no67XUQJHUWkV5VtJYHEB>
+
+# ASSISTANT
+
+Perfect! Now reload and test:
+
+```elisp
+M-x load-file RET greger-openrouter.el RET
+```
+
+The fix ensures we only use the text from `response.completed` if we didn't receive any streaming deltas. This prevents the duplicate output.
+
+# USER
+
+It's still rewriting at the end.
+
+During generation:
+
+```
+# THINKING
+
+**Summarizing three facts about Swedish king with citations**
+
+# ASSISTANT
+
+Here are three verified facts about Sweden’s King Carl XVI Gustaf:
+
+1. He ascended the throne on 15 September 1973 and is the longest-reigning monarch in Swedish history, serving as the seventh king from the House of Bernadotte.[wikipedia.org](https://en.wikipedia.org/wiki/Carl_XVI_Gustaf)  
+[...]
+```
+
+and then at the end:
+
+```
+# THINKING
+
+Signature: 
+
+**Summarizing three facts about Swedish king with citations**
+
+# ASSISTANT
+
+Here are three verified facts about Sweden’s King Carl XVI Gustaf:
+
+1. He ascended the throne on 15 September 1973 and is the longest-reigning monarch in Swedish history, serving as the seventh king from the House of Bernadotte.[wikipedia.org](https://en.wikipedia.org/wiki/Carl_XVI_Gustaf)  
+2. His official motto is “For Sweden – With the times,” reflecting his aim to blend Swedish tradition with contemporary society.[kungahuset.se](https://www.kungahuset.se/english/royal-house/hm-the-king)  
+3. With 50 years on the throne marked in 2023, he has overseen rapid change in Sweden while remaining a symbol of continuity for the nation.[swedesinthestates.com](https://swedesinthestates.com/10-facts-about-king-carl-xvi-gustaf-of-sweden/)
+
+# USER
+
+```
+
+# THINKING
+
+Signature: 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
+
+The issue is that we're calling `block-start-callback` and sending the text during streaming, and then in `response.completed` we're calling `greger-openrouter--handle-finish` which builds content blocks from the accumulated state and calls callbacks again.
+
+Looking at the flow:
+1. We get streaming events, call `block-start-callback` for thinking and text, send deltas
+2. Then `response.completed` arrives
+3. We skip the text extraction (good!)
+4. But then we call `greger-openrouter--handle-finish` which calls `block-stop-callback` with the content blocks built from the accumulated state
+
+The problem is that `block-stop-callback` is probably re-rendering the content. Let me check what greger-client.el does...
+
+Actually, the issue is that we're accumulating the text in state during streaming, then in `handle-finish` we're building content blocks from that accumulated state and calling the callbacks again.
+
+The solution is: we should NOT call `handle-finish` in the completed event. We should call it after the `response.output_item.done` events. Let me look at the event sequence again:
+
+```
+EVENT TYPE: response.output_item.added (reasoning)
+EVENT TYPE: response.reasoning_summary_part.added
+EVENT TYPE: response.reasoning_summary_text.delta [33 times]
+EVENT TYPE: response.output_item.added (message)
+EVENT TYPE: response.content_part.added
+EVENT TYPE: response.output_text.delta [199 times]
+EVENT TYPE: response.output_text.done
+EVENT TYPE: response.content_part.done
+EVENT TYPE: response.output_item.done
+EVENT TYPE: response.reasoning_summary_text.done
+EVENT TYPE: response.reasoning_summary_part.done
+EVENT TYPE: response.output_item.done
+EVENT TYPE: response.completed
+```
+
+So we get `response.output_item.done` events. That's when we should call the block-stop callback! Not in response.completed.
+
+# ASSISTANT
+
+The issue is that we're calling `greger-openrouter--handle-finish` in the `response.completed` event, which then calls `block-stop-callback` with the accumulated content, causing it to be rendered again.
+
+We should handle the `response.output_item.done` events instead to stop each block individually. Let me fix this:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Xy9DMcUnUYqDu1vXNtyEPK
+
+## path
+
+<tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
+greger-openrouter.el
+</tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
+
+## git-commit-message
+
+<tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
+Handle output_item.done to stop blocks, not in completed
+</tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
+
+## original-content
+
+<tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
+           ;; Handle incremental text updates
+           ((string= event-type "response.output_text.delta")
+            (when-let ((text (alist-get 'delta data)))
+              (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                (setf (greger-openrouter-state-current-text state)
+                      (concat (greger-openrouter-state-current-text state) text))
+                (when text-delta-callback
+                  (funcall text-delta-callback text)))))
+           
+           ;; Handle completion
+</tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
+
+## new-content
+
+<tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
+           ;; Handle incremental text updates
+           ((string= event-type "response.output_text.delta")
+            (when-let ((text (alist-get 'delta data)))
+              (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                (setf (greger-openrouter-state-current-text state)
+                      (concat (greger-openrouter-state-current-text state) text))
+                (when text-delta-callback
+                  (funcall text-delta-callback text)))))
+           
+           ;; Handle output item done (end of a content block)
+           ((string= event-type "response.output_item.done")
+            (let* ((item (alist-get 'item data))
+                   (item-type (alist-get 'type item)))
+              (cond
+               ;; Reasoning block done
+               ((string= item-type "reasoning")
+                (when-let* ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+                            (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+                  (funcall block-stop-callback "thinking"
+                           `((type . "thinking")
+                             (thinking . ,reasoning-text)
+                             (signature . "")))))
+               
+               ;; Message block done
+               ((string= item-type "message")
+                (when-let* ((text (greger-openrouter-state-current-text state))
+                            (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+                  (funcall block-stop-callback "text"
+                           `((type . "text")
+                             (text . ,text))))))))
+           
+           ;; Handle completion
+</tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
+
+# TOOL RESULT
+
+ID: toolu_01Xy9DMcUnUYqDu1vXNtyEPK
+
+<tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
+
+</tool.toolu_01Xy9DMcUnUYqDu1vXNtyEPK>
