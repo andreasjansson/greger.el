@@ -16,11 +16,8 @@
 (require 'json)
 (require 'cl-lib)
 
-(defconst greger-openrouter-api-url "https://openrouter.ai/api/v1/chat/completions"
-  "OpenRouter Chat Completions API endpoint.")
-
-(defconst greger-openrouter-responses-api-url "https://openrouter.ai/api/v1/responses"
-  "OpenRouter Responses API endpoint for web search support.")
+(defconst greger-openrouter-api-url "https://openrouter.ai/api/v1/responses"
+  "OpenRouter Responses API endpoint.")
 
 (cl-defstruct greger-openrouter-state
   accumulated-output
