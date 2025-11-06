@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-150944013133>
+${greger-prompt-code-style<eval-result-151336390051>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-150944013133>}
+</eval-result-151336390051>}
 
-${:sh cat CLAUDE.md || true<eval-result-150944611261>cat: CLAUDE.md: No such file or directory
-</eval-result-150944611261>}
+${:sh cat CLAUDE.md || true<eval-result-151336452597>cat: CLAUDE.md: No such file or directory
+</eval-result-151336452597>}
 
 # USER
 
@@ -10103,43 +10103,28 @@ greger-openrouter.el
 Add debug logging for final content blocks
 </tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
 
-## original-content
+## diff
 
 <tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
-(defun greger-openrouter--handle-finish (state finish-reason)
-  "Handle completion based on finish reason."
-  (let ((content-blocks (greger-openrouter--build-content-blocks state))
-        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
-    
-    (when block-stop-callback
-      (dolist (block content-blocks)
-        (let ((type (alist-get 'type block)))
-          (funcall block-stop-callback type block))))
-    
-    (when-let ((callback (greger-openrouter-state-complete-callback state)))
-      (funcall callback content-blocks))))
-</tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+ (defun greger-openrouter--handle-finish (state finish-reason)
+   "Handle completion based on finish reason."
+   (let ((content-blocks (greger-openrouter--build-content-blocks state))
+         (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+     
++    (message "DEBUG: handle-finish built %d content blocks: %S" 
++             (length content-blocks) 
++             (mapcar (lambda (b) (alist-get 'type b)) content-blocks))
++    
+     (when block-stop-callback
+       (dolist (block content-blocks)
+         (let ((type (alist-get 'type block)))
++          (message "DEBUG: Calling block-stop-callback for type=%s" type)
+           (funcall block-stop-callback type block))))
+     
+     (when-let ((callback (greger-openrouter-state-complete-callback state)))
+       (funcall callback content-blocks))))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
-(defun greger-openrouter--handle-finish (state finish-reason)
-  "Handle completion based on finish reason."
-  (let ((content-blocks (greger-openrouter--build-content-blocks state))
-        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
-    
-    (message "DEBUG: handle-finish built %d content blocks: %S" 
-             (length content-blocks) 
-             (mapcar (lambda (b) (alist-get 'type b)) content-blocks))
-    
-    (when block-stop-callback
-      (dolist (block content-blocks)
-        (let ((type (alist-get 'type block)))
-          (message "DEBUG: Calling block-stop-callback for type=%s" type)
-          (funcall block-stop-callback type block))))
-    
-    (when-let ((callback (greger-openrouter-state-complete-callback state)))
-      (funcall callback content-blocks))))
 </tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
 
 # TOOL RESULT
@@ -10147,5 +10132,73 @@ Add debug logging for final content blocks
 ID: toolu_01E8HN39bJeSwvZ4xgU2gFZG
 
 <tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add debug logging for final content blocks
 </tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+
+# ASSISTANT
+
+Now re-evaluate `greger-openrouter.el` and run your query again. Check the `*Messages*` buffer to see the debug output. It will show us:
+1. When annotations are received
+2. How many get filtered
+3. What data is extracted from each annotation
+4. What content blocks are built
+5. Whether citations are being included
+
+This will help us pinpoint where the issue is!
+
+# USER
+
+⛔ Warning (emacs): Failed to parse event: Multibyte character in data for base64 encoding
+
+# THINKING
+
+Signature: EuIDCkYICRgCKkALl8vNQ14+W6fWZdl6cqXgfsmPgGXQL2BwbPKfYewX0oTHWujq1jTZ730fZne52x0X+Iw0Rm74DynRqzmq23abEgyJHwJrXkSD/qNHYfMaDIG3DSvYCuapjShtEyIwdIW796X0bs5X4r4D/Nhz/F15DYmdahyEEAibgNoo2cBHCyD5QPmypOvKzEnowqKLKskCZQBsAVRjxtueeBgSsIr3v4tY/LpMX72SfaL5Dmx+zSyKch17ndDMZN93bndCnwmxeXzYoeIpauT0+b7r0QdcxMY46WoCReYAtRS0iMTYl5lwO6SHNBwZd5a5LoDDaOXIUF3OCfL10E7nJcmGEa0cy/LjgfNF1bdQbAaDXWn3w25XMvVuD5To/oyU4Kjlcr27Vy7rsFl83O+2q4VNoot9mWtw1sMyuqPaIHbuN2f6kOfvPNRGDBNqEKc27KpYxB7TPdNggG2ETRjQUdAbkT39bHJt6X9Hv64aovoSzbDPx2R4cdv4caiuyw3ENA2374ZDp1jM3EypzOQcMb0qCRZZK+6xGhlSz5md3Kqqmd+jYpsvuLfvgHP+JQ+lPduHl8p0WkgHDz17yK/rCVdebXPkMgzSktf8LXpdTbaoCtocbMeh02d5FKX2qa8YAQ==
+
+Ah! The issue is that we're trying to base64-encode reasoning_details that may contain multibyte characters (like unicode). In Emacs, `base64-encode-string` expects unibyte data, but JSON strings can contain multibyte characters.
+
+We need to encode the JSON string to UTF-8 bytes first before base64 encoding it.
+
+# ASSISTANT
+
+Ah! The issue is with base64 encoding. When JSON contains unicode characters (which OpenRouter annotations definitely have), we need to encode it as UTF-8 bytes first before base64 encoding:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Hex1Gd1qU2LhtFD6wnXqGW
+
+## path
+
+<tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>
+greger-openrouter.el
+</tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>
+
+## git-commit-message
+
+<tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>
+Fix base64 encoding to handle multibyte characters in reasoning_details
+</tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>
+
+## diff
+
+<tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>
+     (when (and reasoning-text reasoning-details)
+-      (let ((signature-base64 (base64-encode-string (json-encode reasoning-details) t)))
++      (let ((signature-base64 (base64-encode-string 
++                               (encode-coding-string (json-encode reasoning-details) 'utf-8)
++                               t)))
+         (push `((type . "thinking")
+                 (thinking . ,reasoning-text)
+                 (signature . ,signature-base64))
+               blocks)))
+\ No newline at end of file
+
+</tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>
+
+# TOOL RESULT
+
+ID: toolu_01Hex1Gd1qU2LhtFD6wnXqGW
+
+<tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>
+
+</tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>

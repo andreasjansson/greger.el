@@ -450,7 +450,9 @@ Includes THINKING blocks with base64-encoded reasoning_details in signature fiel
         blocks)
     
     (when (and reasoning-text reasoning-details)
-      (let ((signature-base64 (base64-encode-string (json-encode reasoning-details) t)))
+      (let ((signature-base64 (base64-encode-string 
+                               (encode-coding-string (json-encode reasoning-details) 'utf-8)
+                               t)))
         (push `((type . "thinking")
                 (thinking . ,reasoning-text)
                 (signature . ,signature-base64))
