@@ -23,7 +23,7 @@ This document specifies how to implement OpenRouter reasoning support in Greger.
 
 **Key Requirement**: To maintain conversation integrity across turns (especially for tool calling), the entire `reasoning_details` array must be preserved and passed back to OpenRouter unmodified.
 
-**Architecture Decision**: Add a new `REASONING` section type to Greger's markdown format that stores both human-readable reasoning text AND the raw `reasoning_details` JSON needed for API continuity.
+**Architecture Decision**: Reuse existing `THINKING` section type to store OpenRouter reasoning. The `Signature` field stores the base64-encoded `reasoning_details` array, while the thinking text contains the human-readable reasoning summary.
 
 ---
 
@@ -381,6 +381,60 @@ Update `greger-parser--content-block-to-markdown`:
      ;; ... other types ...
      )))
 ```
+
+---
+
+## Parser Updates
+ 
+### REASONING Markdown Format
+
+The REASONING section follows the same structure as THINKING but with different metadata fields:
+
+```markdown
+# REASONING
+
+Reasoning Details: <base64-encoded-json-array>
+
+Formulating succinct self-description
+
+I'm crafting a three-word answer to "Who are you?" while weaving in search result citations carefully. Since the user wants exactly three words, I'm leaning toward placing a footnote-style citation after the phrase to respect the word limit yet still credit sources about describing oneself succinctly.
+```
+
+**Format Specification:**
+
+- **Header**: `# REASONING` (case-sensitive, must be at start of line)
+- **Metadata Line**: `Reasoning Details: <data>` where `<data>` is the base64-encoded JSON array of reasoning_details
+  - This allows storing arbitrary JSON without escaping issues
+  - Empty line required after metadata
+- **Content**: Human-readable reasoning text (multiple paragraphs allowed)
+- **Separation**: Double newline after content before next section
+
+**Comparison with THINKING:**
+
+```markdown
+# THINKING
+
+Signature: abc123xyz
+
+Claude's internal thinking with cryptographic verification...
+```
+
+vs
+
+```markdown
+# REASONING
+
+Reasoning Details: eyJ0eXBlIjoicmVhc29uaW5nLnN1bW1hcnkiLC...
+
+OpenRouter's reasoning with API continuity metadata...
+```
+
+**Why Base64 Encoding**: The reasoning_details JSON array can contain large encrypted blobs and complex nested structures. Base64 encoding ensures:
+- No escaping issues with quotes, newlines, etc.
+- Clean markdown without JSON clutter
+- Easy to parse (one line, decode, done)
+- Visually hidden when folded (just shows "Reasoning Details: ..." line)
+
 
 ---
 
