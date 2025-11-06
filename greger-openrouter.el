@@ -367,32 +367,37 @@ OpenAI function calling doesn't support default values."
            ;; Handle completion
            ((string= event-type "response.completed")
             (when response
-              (let* ((output (alist-get 'output response))
-                     (message-item (when output
-                                     (seq-find (lambda (item)
-                                                 (string= (alist-get 'type item) "message"))
-                                               output)))
-                     (content (when message-item (alist-get 'content message-item)))
-                     (text-content (when content
-                                     (seq-find (lambda (item)
-                                                 (string= (alist-get 'type item) "output_text"))
-                                               content)))
-                     (text (when text-content (alist-get 'text text-content))))
+              ;; Only use the completed event's text as fallback if we didn't get streaming
+              (let ((current-text (greger-openrouter-state-current-text state))
+                    (current-reasoning (greger-openrouter-state-current-reasoning-text state)))
                 
-                (when text
-                  ;; If we never got streaming events, we need to handle it here
-                  ;; Start the block
-                  (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
-                    (funcall block-start-callback
-                             `((type . "text")
-                               (text . ""))))
-                  
-                  ;; Set the full text
-                  (setf (greger-openrouter-state-current-text state) text)
-                  
-                  ;; Send all the text at once
-                  (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-                    (funcall text-delta-callback text)))
+                ;; If we didn't get any streaming text, extract it from the completed response
+                (when (and (not current-text) (not current-reasoning))
+                  (let* ((output (alist-get 'output response))
+                         (message-item (when output
+                                         (seq-find (lambda (item)
+                                                     (string= (alist-get 'type item) "message"))
+                                                   output)))
+                         (content (when message-item (alist-get 'content message-item)))
+                         (text-content (when content
+                                         (seq-find (lambda (item)
+                                                     (string= (alist-get 'type item) "output_text"))
+                                                   content)))
+                         (text (when text-content (alist-get 'text text-content))))
+                    
+                    (when text
+                      ;; Start the block
+                      (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+                        (funcall block-start-callback
+                                 `((type . "text")
+                                   (text . ""))))
+                      
+                      ;; Set the full text
+                      (setf (greger-openrouter-state-current-text state) text)
+                      
+                      ;; Send all the text at once
+                      (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                        (funcall text-delta-callback text)))))
                 
                 (greger-openrouter--handle-finish state "stop")))))))
     (error
