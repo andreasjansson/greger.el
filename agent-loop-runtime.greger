@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-212429778887>
+${greger-prompt-code-style<eval-result-135231446471>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-212429778887>}
+</eval-result-135231446471>}
 
-${:sh cat CLAUDE.md || true<eval-result-212429093256>cat: CLAUDE.md: No such file or directory
-</eval-result-212429093256>}
+${:sh cat CLAUDE.md || true<eval-result-135231451623>cat: CLAUDE.md: No such file or directory
+</eval-result-135231451623>}
 
 # USER
 
@@ -7312,6 +7312,443 @@ The runtime must provide:
 4. **State Management**: Track running agents, dialogs, buffers
 5. **Cancellation**: Support for interrupting agents and tools
 6. **Error Handling**: Propagate errors from tools and LLM calls
+
+# USER
+
+Actually for the reflect-every-5-steps agent, let's use `(length dialog)` instead of `n`, so we can start it from any point.
+
+Also, we need some way for agents to interrupt each other and communicate.
+
+# THINKING
+
+Signature: Ep8ECkYICRgCKkBHUKa8EOXjxoqc27Ti3RZMmGys3/P4nQs0xp/YWYf24dFB+7JuGi/qkUbyqoId2QgRk5P3ckTiHm+5B/fvoQfhEgyO9CYuH7R0i/6p9QEaDL4sguOaPFrizyBNQyIw7tAKCDqxpZdHrqp6qFuPUsa23X6oqQB6sfmWZYbZi4uWGRhan6YKWAUYyWV/sBbKKoYDwiNsh5qjaC3+HI1nhWZgoz+AxykLh6uRFkDZblled15qTLKcjNPnkH7G5eh7kVdzy0jn5TpoBE+NUidBnXO+sFqBFUvQcnalGb7x8U3N3OqLH0/K5PJ9JnHxcCEYtkwKkA+o8xXre5mCRhTnRYszmZLnH1qvxtxoh/46n8cPrjlmC/ZM5OcNl7nHXLIPpUnk3SpLx1GPJXcT4KeSwu94wn8KYcRE2JssFEQnug/KWADkP4nV24uB39fwcw63UZRrx7CmrZPbIkO+LVKbGBCp4iiW94XybTF1WMnkfHQ1NSOHxn1uxcEOFf9eCsEBfUwzy+ZKkYtuVb8TxEJN3F3gTFAuyALE16mP9tnZodqaLNfXQmmQ+SFqXSP3iLyauCLIN+GfqAv1KNbKBAG1NSHumQ4cQSh/FLh/351ed6egqfdxrrRZ4Beob5hCKcbpt2Nn04ONoQiovA3oAZD2+24i/U0c3eI8/cqpoHcPz2CIOBq+sIirt7WuxTAQnlaNaAO3ITgZPnpTGAE=
+
+Good point about using `(length dialog)` instead of tracking iteration count - makes the agent more stateless and restartable.
+
+For agent communication and interruption, we need primitives like:
+- Send messages to agents
+- Check for messages (non-blocking)
+- Wait for messages (blocking)
+- Interrupt/signal agents
+- Maybe shared state?
+
+Let me update the spec and examples.
+
+# ASSISTANT
+
+# Agent DSL Specification (Updated)
+
+## Agent Communication & Control
+
+### Message Passing
+```elisp
+(send agent message)
+;; Send message to agent's inbox, non-blocking
+
+(receive)
+;; Block until message arrives, returns message
+
+(try-receive)
+;; Non-blocking check, returns message or nil
+
+(has-messages?)
+;; Check if inbox has messages
+```
+
+### Interruption & Signaling
+```elisp
+(interrupt agent signal)
+;; Send interrupt signal to agent
+
+(check-interrupted?)
+;; Check if this agent has been interrupted, returns signal or nil
+
+(pause agent)
+;; Pause agent execution
+
+(resume agent)
+;; Resume paused agent
+
+(cancel agent)
+;; Terminate agent
+```
+
+### Shared State
+```elisp
+(set-shared key value)
+;; Set shared state visible to all agents
+
+(get-shared key)
+;; Read shared state
+
+(update-shared key fn)
+;; Atomically update shared state with function
+```
+
+---
+
+## Updated Examples
+
+### 2. Reflection Agent (Every N Messages - Updated)
+
+```elisp
+(def-agent reflective (dialog model tools server-tools)
+  (set primary-model 'claude-sonnet-4-5)
+  (set reflection-model 'gpt-5)
+  (set reflection-frequency 10)  ;; Every 10 messages
+  
+  (while true
+    ;; Reflect when dialog length is multiple of frequency
+    (when (= 0 (mod (length dialog) reflection-frequency))
+      (set reflection-prompt '(((role . "user")
+                                (content . "Review current status and course correct if needed."))))
+      (set reflection (generate (append dialog reflection-prompt) 
+                               reflection-model
+                               :tools nil
+                               :stream false))
+      (set dialog (append dialog reflection-prompt reflection)))
+    
+    (set response (generate dialog primary-model
+                           :tools tools
+                           :stream true))
+    
+    (if (tool-calls? response)
+        (progn
+          (set tool-results (execute-tools (tool-calls response) :stream true))
+          (set dialog (append dialog response tool-results)))
+      (progn
+        (set dialog (append dialog response))
+        (return dialog)))))
+```
+
+### 9. Monitored Agent (Supervisor Can Interrupt)
+
+```elisp
+(def-agent monitored (dialog model tools server-tools)
+  "Agent that can be interrupted and redirected by supervisor"
+  
+  (while true
+    ;; Check for interrupts before each generation
+    (set interrupt-signal (check-interrupted?))
+    (if interrupt-signal
+        (progn
+          (set new-instruction (get interrupt-signal 'instruction))
+          (set dialog (append dialog 
+                            (list (list (cons 'role "user")
+                                       (cons 'content new-instruction))))))
+      nil)
+    
+    (set response (generate dialog model
+                           :tools tools
+                           :stream true))
+    
+    (if (tool-calls? response)
+        (progn
+          (set tool-results (execute-tools (tool-calls response) :stream true))
+          (set dialog (append dialog response tool-results)))
+      (progn
+        (set dialog (append dialog response))
+        (return dialog)))))
+
+(def-agent supervisor (dialog model tools server-tools)
+  "Spawns worker and monitors progress, can interrupt"
+  
+  ;; Spawn the monitored worker
+  (set worker (new-agent monitored dialog model tools server-tools))
+  
+  (while (running? worker)
+    ;; Every 5 messages, check worker's progress
+    (when (= 0 (mod (length (get-shared "worker-dialog")) 5))
+      (set worker-dialog (get-shared "worker-dialog"))
+      (set review-prompt
+           (list (list (cons 'role "user")
+                      (cons 'content 
+                            (format "Review worker progress:\n%s\nShould we redirect?" 
+                                   worker-dialog)))))
+      (set review (generate review-prompt 'gpt-5
+                           :tools nil
+                           :stream false))
+      
+      (if (get review 'should-redirect)
+          (interrupt worker 
+                    (list (cons 'instruction (get review 'new-direction))))
+        nil))
+    
+    ;; Sleep briefly
+    (sleep 1.0))
+  
+  (set final-dialog (wait worker))
+  (return final-dialog))
+```
+
+### 10. Collaborative Agents (Message Passing)
+
+```elisp
+(def-agent researcher (query partner-agent)
+  "Research agent that can ask partner for help"
+  
+  (set task-dialog (list (list (cons 'role "user")
+                              (cons 'content query))))
+  
+  (while true
+    (set response (generate task-dialog 'claude-sonnet-4-5
+                           :tools '(read-webpage ripgrep)
+                           :stream false))
+    
+    ;; Check if we need help
+    (if (has-key? response 'needs-help)
+        (progn
+          ;; Ask partner for help
+          (send partner-agent (list (cons 'type "help-request")
+                                   (cons 'question (get response 'help-question))))
+          
+          ;; Wait for partner's response
+          (set help-response (receive))
+          (set task-dialog (append task-dialog response
+                                 (list (list (cons 'role "user")
+                                            (cons 'content 
+                                                  (get help-response 'answer)))))))
+      
+      ;; Check if partner needs our help
+      (set incoming (try-receive))
+      (if (and incoming (= (get incoming 'type) "help-request"))
+          (progn
+            ;; Answer partner's question
+            (set help-dialog (list (list (cons 'role "user")
+                                        (cons 'content (get incoming 'question)))))
+            (set help-answer (generate help-dialog 'claude-opus-4
+                                     :tools nil
+                                     :stream false))
+            (send partner-agent (list (cons 'type "help-response")
+                                     (cons 'answer help-answer)))
+            ;; Continue our work
+            (if (tool-calls? response)
+                (progn
+                  (set tool-results (execute-tools (tool-calls response) :stream false))
+                  (set task-dialog (append task-dialog response tool-results)))
+              (return task-dialog)))
+        
+        ;; No help needed either way
+        (if (tool-calls? response)
+            (progn
+              (set tool-results (execute-tools (tool-calls response) :stream false))
+              (set task-dialog (append task-dialog response tool-results)))
+          (return task-dialog))))))
+
+(def-agent collaborative-research (dialog model tools server-tools)
+  "Spawn two researchers that can help each other"
+  
+  (set response (generate dialog model :stream true))
+  (set queries (get response 'research-queries))
+  
+  ;; Spawn two researchers
+  (set researcher-a (new-agent researcher (nth 0 queries) nil))
+  (set researcher-b (new-agent researcher (nth 1 queries) nil))
+  
+  ;; Connect them to each other (pass handles after creation)
+  (send researcher-a (list (cons 'partner researcher-b)))
+  (send researcher-b (list (cons 'partner researcher-a)))
+  
+  ;; Wait for both to complete
+  (set results (wait-all (list researcher-a researcher-b)))
+  
+  ;; Synthesize results
+  (set synthesis-prompt
+       (list (list (cons 'role "user")
+                  (cons 'content 
+                        (format "Synthesize these research results:\n%s" results)))))
+  (set synthesis (generate synthesis-prompt model :stream true))
+  
+  (return (append dialog synthesis-prompt synthesis)))
+```
+
+### 11. Interrupt-Driven Agent (React to External Events)
+
+```elisp
+(def-agent interrupt-driven (dialog model tools server-tools)
+  "Agent that processes interrupts as high-priority tasks"
+  
+  (set main-task-active true)
+  
+  (while main-task-active
+    ;; Check for interrupts first
+    (set interrupt-signal (check-interrupted?))
+    (if interrupt-signal
+        (progn
+          ;; Handle interrupt immediately
+          (set interrupt-prompt
+               (list (list (cons 'role "user")
+                          (cons 'content 
+                                (format "URGENT: %s" (get interrupt-signal 'message))))))
+          (set interrupt-response (generate (append dialog interrupt-prompt)
+                                          model
+                                          :tools tools
+                                          :stream true))
+          (set dialog (append dialog interrupt-prompt interrupt-response))
+          
+          ;; Resume main task
+          (set resume-prompt
+               (list (list (cons 'role "user")
+                          (cons 'content "Resume the original task."))))
+          (set dialog (append dialog resume-prompt)))
+      nil)
+    
+    ;; Continue main task
+    (set response (generate dialog model
+                           :tools tools
+                           :stream true))
+    
+    (if (tool-calls? response)
+        (progn
+          (set tool-results (execute-tools (tool-calls response) :stream true))
+          (set dialog (append dialog response tool-results)))
+      (progn
+        (set dialog (append dialog response))
+        (set main-task-active false))))
+  
+  (return dialog))
+```
+
+### 12. Tournament Agent (Multiple Attempts, Best Wins)
+
+```elisp
+(def-agent tournament (dialog model tools server-tools)
+  "Spawn multiple agents with different strategies, judge winner"
+  
+  (def-agent contestant (strategy-dialog contestant-model)
+    (set iteration 0)
+    (while (< iteration 10)
+      ;; Check if tournament is over
+      (if (get-shared "tournament-complete")
+          (return strategy-dialog)
+        nil)
+      
+      (set response (generate strategy-dialog contestant-model
+                             :tools tools
+                             :stream false))
+      (if (tool-calls? response)
+          (progn
+            (set results (execute-tools (tool-calls response) :stream false))
+            (set strategy-dialog (append strategy-dialog response results))
+            (set iteration (+ iteration 1)))
+        (return strategy-dialog))))
+  
+  ;; Spawn contestants with different models
+  (set models '(claude-opus-4 gpt-5 gemini-2-5-pro))
+  (set contestants
+       (map (lambda (m) (new-agent contestant dialog m))
+            models))
+  
+  ;; Set up shared state
+  (set-shared "tournament-complete" false)
+  
+  ;; Wait for all to complete or timeout after 60 seconds
+  (set results (wait-all contestants))
+  (set-shared "tournament-complete" true)
+  
+  ;; Judge which result is best
+  (set judge-prompt
+       (list (list (cons 'role "user")
+                  (cons 'content 
+                        (format "Judge these 3 solutions and pick the best:\n%s" results)))))
+  (set judgment (generate judge-prompt 'gpt-5
+                         :tools nil
+                         :stream false))
+  (set winner-idx (get judgment 'best-index))
+  (set winner-dialog (nth winner-idx results))
+  
+  ;; Stream winner's dialog to UI
+  (return winner-dialog))
+```
+
+### 13. Delegating Agent with Status Updates
+
+```elisp
+(def-agent delegating (dialog model tools server-tools)
+  "Delegate subtasks and receive status updates"
+  
+  (def-agent worker (task-description manager-agent)
+    (set task-dialog (list (list (cons 'role "user")
+                                (cons 'content task-description))))
+    (set steps 0)
+    
+    (while (< steps 20)
+      (set response (generate task-dialog 'claude-sonnet-4-5
+                             :tools tools
+                             :stream false))
+      
+      ;; Send status update to manager
+      (send manager-agent 
+            (list (cons 'type "status-update")
+                 (cons 'task task-description)
+                 (cons 'progress (format "Step %d: %s" steps response))))
+      
+      (if (tool-calls? response)
+          (progn
+            (set tool-results (execute-tools (tool-calls response) :stream false))
+            (set task-dialog (append task-dialog response tool-results))
+            (set steps (+ steps 1)))
+        (progn
+          ;; Task complete
+          (send manager-agent
+                (list (cons 'type "task-complete")
+                     (cons 'task task-description)
+                     (cons 'result task-dialog)))
+          (return task-dialog)))))
+  
+  ;; Get initial plan
+  (set response (generate dialog model :stream true))
+  (set subtasks (get response 'subtasks))
+  
+  ;; Spawn workers for each subtask
+  (set self-handle (get-shared "current-agent"))
+  (set workers
+       (map (lambda (task) (new-agent worker task self-handle))
+            subtasks))
+  
+  ;; Monitor workers and provide updates
+  (set completed 0)
+  (set total (length workers))
+  
+  (while (< completed total)
+    (set msg (receive))
+    (if (= (get msg 'type) "status-update")
+        (progn
+          ;; Log status
+          (set dialog (append dialog
+                            (list (list (cons 'role "assistant")
+                                       (cons 'content (get msg 'progress)))))))
+      
+      (if (= (get msg 'type) "task-complete")
+          (set completed (+ completed 1))
+        nil)))
+  
+  ;; All workers done, synthesize
+  (set results (wait-all workers))
+  (set synthesis-prompt
+       (list (list (cons 'role "user")
+                  (cons 'content (format "Synthesize:\n%s" results)))))
+  (set synthesis (generate synthesis-prompt model :stream true))
+  
+  (return (append dialog synthesis-prompt synthesis)))
+```
+
+---
+
+## Key Communication Patterns
+
+1. **Interruption**: Supervisor can redirect worker mid-execution
+2. **Message Passing**: Peers collaborate by sending messages
+3. **Shared State**: All agents can read/write common state
+4. **Status Updates**: Workers report progress to manager
+5. **Tournament**: Multiple agents compete, winner selected
+6. **Priority Handling**: Interrupts pause main task, resume after
+
+The runtime must provide:
+- Message queues per agent
+- Interrupt signal delivery
+- Thread-safe shared state
+- Agent handle management
 
 # USER
 

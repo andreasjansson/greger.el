@@ -1270,33 +1270,32 @@ Raises an error if evaluation fails."
               (last-user-node (cdar (last user-nodes))))
     (greger--process-evals-in-node last-user-node :clear-existing t)))
 
-(cl-defun greger--process-evals-in-node (node &key clear-existing)
+(defun greger--first-eval-node (parent)
+  (let ((nodes (treesit-query-capture parent '((eval) @eval) nil nil t)))
+    (when nodes
+      (car nodes))))
+
+(defun greger--next-eval-node (parent end-of-prev-eval)
+  (let ((nodes (treesit-query-capture parent '((eval) @eval) (+ end-of-prev-eval 1) (treesit-node-end parent) t)))
+    (when nodes
+      (car nodes))))
+
+(cl-defun greger--process-evals-in-node (parent &key clear-existing)
   "Process all eval blocks in NODE.
 If CLEAR-EXISTING, clear any existing eval results."
   ;; Store the section's start and end positions (positions don't become outdated)
-  (let ((section-start (treesit-node-start node))
-        (section-end (treesit-node-end node))
-        (next-search-pos (treesit-node-start node)))
-    
-    ;; Keep processing evals until we can't find any more
-    (while (< next-search-pos section-end)
-      ;; Get a fresh section node at the original position
-      ;; The parser re-parses automatically after buffer modifications
-      (let* ((fresh-section-node (treesit-node-on section-start section-end))
-             ;; Find first eval at or after our search position
-             (eval-node (treesit-search-subtree 
-                        fresh-section-node
-                        (lambda (n)
-                          (and (string= (treesit-node-type n) "eval")
-                               (>= (treesit-node-start n) next-search-pos))))))
-        
-        (if eval-node
-            (progn
-              (greger--process-single-eval eval-node :clear-existing clear-existing)
-              ;; Move past this eval for next search
-              (setq next-search-pos (1+ (treesit-node-end eval-node))))
-          ;; No more evals found, exit loop
-          (setq next-search-pos section-end))))))
+  (let ((section-start (treesit-node-start parent))
+        (start-of-eval)
+        (end-of-eval))
+
+    ;; Get a new parent every time since the tree might get outdated between iterations
+    (cl-loop for eval-node = (greger--first-eval-node parent) then (greger--next-eval-node parent end-of-eval)
+             until (not eval-node)
+             do (setq start-of-eval (treesit-node-start eval-node))
+             do (greger--process-single-eval eval-node :clear-existing clear-existing)
+             do (let ((fresh-eval-node (treesit-parent-until (treesit-node-at start-of-eval) "^eval$" t)))
+                  (setq end-of-eval (treesit-node-end fresh-eval-node))
+                  (setq parent (treesit-parent-until fresh-eval-node "^\\(user\\|system\\)$"))))))
 
 (cl-defun greger--process-single-eval (eval-node &key clear-existing)
   "Process a single eval block represented by EVAL-NODE.
