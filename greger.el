@@ -146,7 +146,8 @@ If nil, uses OPENROUTER_API_KEY environment variable."
   directory
   tool-use-metadata
   client-state
-  executing-tools)
+  executing-tools
+  provider)
 
 (defvar-local greger--current-state nil
   "Buffer-local variable to track the current state.")
@@ -714,7 +715,8 @@ When NO-TOOLS is set, disable tools and thinking."
                              :current-iteration 0
                              :chat-buffer (current-buffer)
                              :directory default-directory
-                             :tool-use-metadata `(:safe-shell-commands () :allow-all-shell-commands ,greger-allow-all-shell-commands)))))
+                             :tool-use-metadata `(:safe-shell-commands () :allow-all-shell-commands ,greger-allow-all-shell-commands)
+                             :provider greger-provider))))
 
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use or thinking."
@@ -836,37 +838,54 @@ Uses tree-sitter to find the last node and applies heuristics:
      (goto-char end-pos)
      (insert "\n\n# ASSISTANT\n\n."))))
 
-(defun greger--run-agent-loop (state)
-  "Run the main agent loop with STATE.
-Dispatches to provider-specific implementation based on greger-provider."
-  (if (eq greger-provider 'openrouter)
-      (greger-openrouter--run-agent-loop state)
-    (greger--run-agent-loop-claude state)))
+(defun greger--auth-key-for-provider (provider)
+  (let ((auth-key (cond
+                   ((eq provider 'anthropic)
+                    (or (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))
+                        (getenv "ANTHROPIC_API_KEY")))
+                   ((eq provider 'openrouter)
+                    (or (and greger-openrouter-api-key-fn (funcall greger-openrouter-api-key-fn))
+                        (getenv "OPENROUTER_API_KEY")))
+                   (t (error "Unknown provider:" provider)))))
+    (unless auth-key
+      (error "No OpenRouter API key found. Set OPENROUTER_API_KEY environment variable or configure greger-openrouter-api-key-fn"))
+    auth-key))
 
-(defun greger-openrouter--run-agent-loop (state)
-  "Run agent loop using OpenRouter - parallel to greger--run-agent-loop-claude."
-  (let* ((tools (greger-tools-get-schemas greger-tools))
-         (server-tools greger-server-tools)
+(defun greger--model-for-provider (provider)
+  (cond
+   ((eq provider 'anthropic) greger-model)
+   ((eq provider 'openrouter) greger-openrouter-model)
+   (t (error "Unknown provider:" provider))))
+
+(defun greger--stream-fn-for-provider (provider)
+  (cond
+   ((eq provider 'anthropic) 'greger-client-stream)
+   ((eq provider 'openrouter) greger-openrouter-stream)
+   (t (error "Unknown provider:" provider))))
+
+(defun greger--run-agent-loop (state)
+  "Run the main agent loop with STATE."
+  (let* ((provider (greger-state-provider state))
+         (tools (greger-tools-get-schemas greger-tools))
+         (server-tools (when greger-server-tools
+                         (greger-server-tools-get-schemas greger-server-tools)))
          (chat-buffer (greger-state-chat-buffer state))
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
          (tool-use-metadata (greger-state-tool-use-metadata state))
          (current-iteration (greger-state-current-iteration state))
-         (auth-key (or (and greger-openrouter-api-key-fn 
-                            (funcall greger-openrouter-api-key-fn))
-                       (getenv "OPENROUTER_API_KEY"))))
+         (auth-key (greger--auth-key-for-provider provider))
+         (model (greger--model-for-provider provider))
+         (stream-fn (greger--stream-fn-for-provider provider)))
     
     (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
     
     (when (>= current-iteration greger-max-iterations)
       (error "Maximum iterations (%d) reached" greger-max-iterations))
     
-    (unless auth-key
-      (error "No OpenRouter API key found. Set OPENROUTER_API_KEY environment variable or configure greger-openrouter-api-key-fn"))
-    
     (with-current-buffer chat-buffer
-      (let ((client-state (greger-openrouter-stream
-                           :model greger-openrouter-model
+      (let ((client-state (funcall stream-fn
+                           :model model
                            :dialog dialog
                            :tools tools
                            :server-tools server-tools
@@ -887,55 +906,6 @@ Dispatches to provider-specific implementation based on greger-provider."
         
         (setf (greger-state-client-state state) client-state)
         (setq greger--current-state state)
-        (greger--update-buffer-state)))))
-
-(defun greger--run-agent-loop-claude (state)
-  "Run the main agent loop with STATE using Claude/Anthropic.
-This is the original implementation, unchanged."
-  (let* ((tools (greger-tools-get-schemas greger-tools))
-         (server-tools (when greger-server-tools
-                         (greger-server-tools-get-schemas greger-server-tools)))
-         (chat-buffer (greger-state-chat-buffer state))
-         (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
-         (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
-         (tool-use-metadata (greger-state-tool-use-metadata state))
-         (current-iteration (greger-state-current-iteration state))
-         (auth-key (or (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))
-                       (getenv "ANTHROPIC_API_KEY"))))
-
-    (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
-
-    (when (>= current-iteration greger-max-iterations)
-      (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
-
-    (unless auth-key
-      (error "No API key found.  Set ANTHROPIC_API_KEY environment variable or configure greger-anthropic-key-fn"))
-
-
-    (with-current-buffer chat-buffer
-      (let ((client-state (greger-client-stream
-                           :model greger-model
-                           :dialog dialog
-                           :tools tools
-                           :server-tools server-tools
-                           :buffer chat-buffer
-                           :thinking-budget greger-current-thinking-budget
-                           :auth-key auth-key
-                           :block-start-callback (lambda (content-block)
-                                                   (greger--append-streaming-content-header state content-block))
-                           :text-delta-callback (lambda (text)
-                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
-                           :block-stop-callback (lambda (type content-block)
-                                                  (greger--append-handle-content-block-stop state type content-block))
-                           :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
-                           :error-callback (lambda (error-message)
-                                             (greger--handle-client-error state error-message))
-                           :max-tokens greger-max-tokens)))
-
-        ;; Store the client state for potential cancellation
-        (setf (greger-state-client-state state) client-state)
-        ;; Set buffer-local variable for greger-interrupt to access
-        (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
         (greger--update-buffer-state)))))
 
 (defun greger--clean-excessive-newlines (text)
