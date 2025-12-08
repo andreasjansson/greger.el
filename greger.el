@@ -52,7 +52,8 @@
   '(claude-sonnet-4-20250514
     claude-opus-4-20250514
     claude-opus-4-1-20250805
-    claude-sonnet-4-5)
+    claude-sonnet-4-5
+    claude-opus-4-5)
   "List of available models.")
 
 (defcustom greger-model 'claude-sonnet-4-20250514
@@ -278,6 +279,7 @@ or slightly less bright than default for light themes."
     (define-key map (kbd "C-; u") #'greger-insert-user-tag)
     (define-key map (kbd "C-; s") #'greger-insert-system-tag)
     (define-key map (kbd "C-; m") #'greger-set-model)
+    (define-key map (kbd "C-; p") #'greger-set-provider)
     (define-key map (kbd "C-; c") #'greger-ui-copy-code)
     (define-key map (kbd "C-; t") #'greger-toggle-thinking)
     (define-key map (kbd "C-; f") #'greger-toggle-follow-mode)
@@ -669,12 +671,14 @@ Uses ~/path notation if file is in home directory or subdirectory."
   (interactive)
   (unless (eq greger-provider 'openrouter)
     (user-error "OpenRouter provider not active. Use M-x greger-set-provider first"))
-  (let ((models '("openai/gpt-5"
-                  "openai/gpt-5-codex" 
-                  "openai/gpt-5-mini"
+  (let ((models '("openai/gpt-5.1"
+                  "openai/gpt-5.1-codex" 
+                  "openai/gpt-5.1-codex-mini"
+                  "openai/gpt-5.1-chat" 
                   "anthropic/claude-sonnet-4"
                   "anthropic/claude-opus-4"
-                  "google/gemini-2.5-pro")))
+                  "google/gemini-2.5-pro"
+                  "google/gemini-3-pro-preview")))
     (setq greger-openrouter-model 
           (completing-read "OpenRouter model: " models nil nil))
     (message "OpenRouter model set to: %s" greger-openrouter-model)))
@@ -860,7 +864,7 @@ Uses tree-sitter to find the last node and applies heuristics:
 (defun greger--stream-fn-for-provider (provider)
   (cond
    ((eq provider 'anthropic) 'greger-client-stream)
-   ((eq provider 'openrouter) greger-openrouter-stream)
+   ((eq provider 'openrouter) 'greger-openrouter-stream)
    (t (error "Unknown provider:" provider))))
 
 (defun greger--run-agent-loop (state)
