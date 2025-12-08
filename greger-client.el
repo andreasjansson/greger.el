@@ -35,8 +35,15 @@
 
 ;;; Constants and configuration
 
-(defconst greger-client-api-url "https://api.anthropic.com/v1/messages"
-  "Claude API endpoint URL.")
+(defcustom greger-client-api-url "https://api.anthropic.com/v1/messages"
+  "Claude API endpoint URL."
+  :type 'string
+  :group 'greger)
+
+(defcustom greger-client-api-create-headers-fn 'greger-client-api-create-headers
+  "Claude API endpoint URL."
+  :type '(choice (const nil) function)
+  :group 'greger)
 
 ;;; Data structures
 
@@ -160,16 +167,14 @@ SERVER-TOOLS are server tool definitions.
 THINKING-BUDGET is the number of thinking tokens.
 MAX-TOKENS is the maximum number of tokens to generate.
 AUTH-KEY is the Anthropic API key to use for authentication."
-  (let* ((headers (greger-client--build-headers auth-key))
+  (let* ((headers (funcall greger-client-api-create-headers-fn auth-key))
          (data (greger-client--build-data model dialog tools server-tools thinking-budget max-tokens)))
     (list :url greger-client-api-url
           :method "POST"
           :headers headers
           :data data)))
 
-
-
-(defun greger-client--build-headers (api-key)
+(defun greger-client-api-create-headers (api-key)
   "Build headers for Claude with API-KEY."
   `(("Content-Type" . "application/json")
     ("x-api-key" . ,api-key)
