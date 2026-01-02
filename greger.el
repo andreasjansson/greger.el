@@ -124,7 +124,7 @@ If nil, uses OPENROUTER_API_KEY environment variable."
 
 ;; Tool configuration and agent functionality
 
-(defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "ripgrep" "shell-command" "read-webpage")
+(defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "lspcmd-grep" "lspcmd-files" "lspcmd-show" "lspcmd-refs" "lspcmd-calls" "lspcmd-implementations" "lspcmd-supertypes" "lspcmd-subtypes" "lspcmd-declaration" "lspcmd-rename" "lspcmd-mv" "ripgrep" "shell-command" "read-webpage")
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
@@ -947,7 +947,7 @@ first two."
 
 (defun greger--handle-stream-completion (state content-blocks)
   "Handle completion of stream with STATE and CONTENT-BLOCKS."
-  (if-let ((tool-calls (greger--extract-tool-calls content-blocks)))
+  (if-let* ((tool-calls (greger--extract-tool-calls content-blocks)))
       (progn
         (setf (greger-state-current-iteration state)
               (1+ (greger-state-current-iteration state)))
@@ -955,7 +955,7 @@ first two."
         (greger--execute-tools tool-calls state))
     (greger--finish-response state))
 
-  (when-let ((buffer (greger--live-chat-buffer state)))
+  (when-let* ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
       (greger--update-buffer-state))))
 
@@ -985,7 +985,7 @@ be displayed as they arrive rather than waiting for completion."
       (greger--insert-thinking-signature state signature))))
 
   ;; Update buffer state after client completes
-  (when-let ((buffer (greger--live-chat-buffer state)))
+  (when-let* ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
       (greger--update-buffer-state))))
 
@@ -1031,7 +1031,7 @@ Assumes the last inserted thing is a thinking tag."
       (setf (greger-state-executing-tools state) executing-tools-map))
 
     ;; Update buffer state to show we're executing tools
-    (when-let ((buffer (greger--live-chat-buffer state)))
+    (when-let* ((buffer (greger--live-chat-buffer state)))
       (with-current-buffer buffer
         (greger--update-buffer-state)
 
@@ -1114,9 +1114,9 @@ COMPLETION-CALLBACK is called when complete."
   "Append TEXT to the tool result content node for TOOL-ID in STATE's buffer.
 When IS-COMPLETED is non-nil, also trim trailing newline after the tool's
 end tag and update the buffer state."
-  (when-let ((buffer (greger--live-chat-buffer state)))
+  (when-let* ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
-      (when-let ((inhibit-read-only t)
+      (when-let* ((inhibit-read-only t)
                  (tool-result-content-node (greger--find-tool-result-content-node tool-id))
                  (tool-result-content-start (treesit-node-start tool-result-content-node))
                  (tool-result-content-end (treesit-node-end tool-result-content-node)))
@@ -1143,7 +1143,7 @@ end tag and update the buffer state."
                  (delete-char 1))))
 
            ;; Remove the generating property from the tool result
-           (when-let ((tool-result-node (greger--find-tool-result-node tool-id)))
+           (when-let* ((tool-result-node (greger--find-tool-result-node tool-id)))
              (let ((start (treesit-node-start tool-result-node))
                    (end (treesit-node-end tool-result-node)))
                (remove-text-properties start end '(greger-tool-result-generating))))
@@ -1174,7 +1174,7 @@ the tool_result node itself."
 (defun greger--handle-client-error (state error-message)
   "Handle client error with STATE and ERROR-MESSAGE."
   ;; This will be called from the main thread via the completion handler
-  (when-let ((buffer (greger--live-chat-buffer state)))
+  (when-let* ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
       ;; Clear the buffer-local agent state
       (setq greger--current-state nil)
@@ -1188,7 +1188,7 @@ the tool_result node itself."
 
 (defun greger--finish-response (state)
   "Finish the agent response using STATE."
-  (when-let ((buffer (greger--live-chat-buffer state)))
+  (when-let* ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
         (greger--maybe-save-excursion
