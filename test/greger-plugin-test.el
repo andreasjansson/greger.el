@@ -294,6 +294,218 @@
             (should (equal '("param1") (alist-get 'required input-schema))))))
     (greger-plugin-test--cleanup)))
 
+;; Buffer parsing tests
+
+(ert-deftest greger-plugin-test-parse-system-plugin ()
+  "Test that plugins in SYSTEM section apply to whole session."
+  (unwind-protect
+      (progn
+        ;; Register a test plugin
+        (greger-plugin 'test-plugin
+          :tools
+          ((greger-plugin-tool "test-tool-1"
+             :description "Test"
+             :properties ()
+             :required ()
+             :function (lambda () "test"))))
+
+        (with-temp-buffer
+          (insert "# SYSTEM\n\n<plugin>test-plugin</plugin>\n\nYou are an agent.\n\n# USER\n\nHello")
+          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
+            ;; Should have session plugins
+            (should (member "test-plugin" (plist-get parsed :session-plugins)))
+            (should (member "test-tool-1" (plist-get parsed :session-tools)))
+            ;; Should not have turn plugins
+            (should (null (plist-get parsed :turn-plugins)))
+            (should (null (plist-get parsed :turn-tools))))))
+    (greger-plugin-test--cleanup)))
+
+(ert-deftest greger-plugin-test-parse-user-plugin ()
+  "Test that plugins in USER section apply only to that turn."
+  (unwind-protect
+      (progn
+        (greger-plugin 'test-plugin
+          :tools
+          ((greger-plugin-tool "test-tool-1"
+             :description "Test"
+             :properties ()
+             :required ()
+             :function (lambda () "test"))))
+
+        (with-temp-buffer
+          (insert "# SYSTEM\n\nYou are an agent.\n\n# USER\n\n<plugin>test-plugin</plugin>\n\nHello")
+          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
+            ;; Should have turn plugins
+            (should (member "test-plugin" (plist-get parsed :turn-plugins)))
+            (should (member "test-tool-1" (plist-get parsed :turn-tools)))
+            ;; Should not have session plugins
+            (should (null (plist-get parsed :session-plugins)))
+            (should (null (plist-get parsed :session-tools))))))
+    (greger-plugin-test--cleanup)))
+
+(ert-deftest greger-plugin-test-parse-user-plugin-only-last-section ()
+  "Test that only plugins from the LAST user section are active."
+  (unwind-protect
+      (progn
+        (greger-plugin 'test-plugin
+          :tools
+          ((greger-plugin-tool "test-tool-1"
+             :description "Test"
+             :properties ()
+             :required ()
+             :function (lambda () "test"))))
+
+        (greger-plugin 'test-plugin-2
+          :tools
+          ((greger-plugin-tool "test-tool-2"
+             :description "Test 2"
+             :properties ()
+             :required ()
+             :function (lambda () "test2"))))
+
+        (with-temp-buffer
+          ;; First user section has test-plugin
+          ;; Second (last) user section has test-plugin-2
+          (insert "# SYSTEM\n\nYou are an agent.\n\n")
+          (insert "# USER\n\n<plugin>test-plugin</plugin>\n\nFirst message\n\n")
+          (insert "# ASSISTANT\n\nResponse\n\n")
+          (insert "# USER\n\n<plugin>test-plugin-2</plugin>\n\nSecond message")
+          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
+            ;; Should only have test-plugin-2 from last user section
+            (should (member "test-plugin-2" (plist-get parsed :turn-plugins)))
+            (should (member "test-tool-2" (plist-get parsed :turn-tools)))
+            ;; Should NOT have test-plugin from first user section
+            (should-not (member "test-plugin" (plist-get parsed :turn-plugins)))
+            (should-not (member "test-tool-1" (plist-get parsed :turn-tools))))))
+    (greger-plugin-test--cleanup)))
+
+(ert-deftest greger-plugin-test-parse-both-system-and-user-plugins ()
+  "Test that system and user plugins are combined correctly."
+  (unwind-protect
+      (progn
+        (greger-plugin 'test-plugin
+          :tools
+          ((greger-plugin-tool "test-tool-1"
+             :description "Test"
+             :properties ()
+             :required ()
+             :function (lambda () "test"))))
+
+        (greger-plugin 'test-plugin-2
+          :tools
+          ((greger-plugin-tool "test-tool-2"
+             :description "Test 2"
+             :properties ()
+             :required ()
+             :function (lambda () "test2"))))
+
+        (with-temp-buffer
+          (insert "# SYSTEM\n\n<plugin>test-plugin</plugin>\n\nYou are an agent.\n\n")
+          (insert "# USER\n\n<plugin>test-plugin-2</plugin>\n\nHello")
+          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
+            ;; Should have session plugin
+            (should (member "test-plugin" (plist-get parsed :session-plugins)))
+            (should (member "test-tool-1" (plist-get parsed :session-tools)))
+            ;; Should have turn plugin
+            (should (member "test-plugin-2" (plist-get parsed :turn-plugins)))
+            (should (member "test-tool-2" (plist-get parsed :turn-tools))))))
+    (greger-plugin-test--cleanup)))
+
+(ert-deftest greger-plugin-test-parse-get-buffer-tools ()
+  "Test greger-plugin-get-buffer-tools combines base and plugin tools."
+  (unwind-protect
+      (progn
+        (greger-plugin 'test-plugin
+          :tools
+          ((greger-plugin-tool "test-tool-1"
+             :description "Test"
+             :properties ()
+             :required ()
+             :function (lambda () "test"))))
+
+        (greger-plugin 'test-plugin-2
+          :tools
+          ((greger-plugin-tool "test-tool-2"
+             :description "Test 2"
+             :properties ()
+             :required ()
+             :function (lambda () "test2"))))
+
+        (with-temp-buffer
+          (insert "# SYSTEM\n\n<plugin>test-plugin</plugin>\n\n# USER\n\n<plugin>test-plugin-2</plugin>\n\nHello")
+          (let* ((base-tools '("read-file" "write-file"))
+                 (all-tools (greger-plugin-get-buffer-tools (current-buffer) base-tools)))
+            ;; Should have base tools
+            (should (member "read-file" all-tools))
+            (should (member "write-file" all-tools))
+            ;; Should have session plugin tools
+            (should (member "test-tool-1" all-tools))
+            ;; Should have turn plugin tools
+            (should (member "test-tool-2" all-tools)))))
+    (greger-plugin-test--cleanup)))
+
+(ert-deftest greger-plugin-test-parse-unknown-plugin-ignored ()
+  "Test that unknown plugin names are ignored."
+  (unwind-protect
+      (progn
+        (greger-plugin 'test-plugin
+          :tools
+          ((greger-plugin-tool "test-tool-1"
+             :description "Test"
+             :properties ()
+             :required ()
+             :function (lambda () "test"))))
+
+        (with-temp-buffer
+          (insert "# SYSTEM\n\n<plugin>nonexistent-plugin</plugin>\n<plugin>test-plugin</plugin>\n\n# USER\n\nHello")
+          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
+            ;; Should only have known plugin
+            (should (equal '("test-plugin") (plist-get parsed :session-plugins)))
+            ;; Unknown plugin should be ignored, not error
+            (should-not (member "nonexistent-plugin" (plist-get parsed :session-plugins))))))
+    (greger-plugin-test--cleanup)))
+
+(ert-deftest greger-plugin-test-parse-multiple-plugins-same-section ()
+  "Test that multiple plugins in the same section all apply."
+  (unwind-protect
+      (progn
+        (greger-plugin 'test-plugin
+          :tools
+          ((greger-plugin-tool "test-tool-1"
+             :description "Test"
+             :properties ()
+             :required ()
+             :function (lambda () "test"))))
+
+        (greger-plugin 'test-plugin-2
+          :tools
+          ((greger-plugin-tool "test-tool-2"
+             :description "Test 2"
+             :properties ()
+             :required ()
+             :function (lambda () "test2"))))
+
+        (with-temp-buffer
+          (insert "# SYSTEM\n\n<plugin>test-plugin</plugin>\n<plugin>test-plugin-2</plugin>\n\n# USER\n\nHello")
+          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
+            ;; Should have both plugins
+            (should (member "test-plugin" (plist-get parsed :session-plugins)))
+            (should (member "test-plugin-2" (plist-get parsed :session-plugins)))
+            ;; Should have both tools
+            (should (member "test-tool-1" (plist-get parsed :session-tools)))
+            (should (member "test-tool-2" (plist-get parsed :session-tools))))))
+    (greger-plugin-test--cleanup)))
+
+(ert-deftest greger-plugin-test-parse-no-plugins ()
+  "Test that buffers without plugins work correctly."
+  (with-temp-buffer
+    (insert "# SYSTEM\n\nYou are an agent.\n\n# USER\n\nHello")
+    (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
+      (should (null (plist-get parsed :session-plugins)))
+      (should (null (plist-get parsed :turn-plugins)))
+      (should (null (plist-get parsed :session-tools)))
+      (should (null (plist-get parsed :turn-tools))))))
+
 (provide 'greger-plugin-test)
 
 ;;; greger-plugin-test.el ends here
