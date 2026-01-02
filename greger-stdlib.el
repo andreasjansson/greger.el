@@ -1537,6 +1537,22 @@ Returns a cancel function that can interrupt the command execution."
 
 ;; lspcmd tool implementations
 
+(defun greger-stdlib--run-lspcmd (args callback)
+  "Run lspcmd with ARGS and call CALLBACK with (result error).
+Checks for missing workspace errors and provides helpful message."
+  (greger-stdlib--run-async-subprocess
+   :command "lspcmd"
+   :args args
+   :working-directory nil
+   :callback (lambda (output error)
+               (cond
+                ((and error (string-match-p "No workspace found for" error))
+                 (funcall callback nil "No workspace found. Run lspcmd-workspace-add first with the project root directory."))
+                (error
+                 (funcall callback nil error))
+                (t
+                 (funcall callback output nil))))))
+
 (defun greger-stdlib--lspcmd-grep (pattern callback path kind exclude docs case-sensitive)
   "Search for symbols matching PATTERN using lspcmd grep.
 CALLBACK is called with (result error).
@@ -1549,7 +1565,7 @@ PATH, KIND, EXCLUDE, DOCS, and CASE-SENSITIVE are optional parameters."
 
   (let ((args (list "grep" pattern)))
     (when path
-      (setq args (append args (list path))))
+      (setq args (append args (list (expand-file-name path)))))
     (when kind
       (setq args (append args (list "--kind" kind))))
     (when exclude
@@ -1559,15 +1575,7 @@ PATH, KIND, EXCLUDE, DOCS, and CASE-SENSITIVE are optional parameters."
       (setq args (append args (list "--docs"))))
     (when case-sensitive
       (setq args (append args (list "--case-sensitive"))))
-
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd grep failed: %s" error))
-                   (funcall callback output nil))))))
+    (greger-stdlib--run-lspcmd args callback)))
 
 (defun greger-stdlib--lspcmd-files (callback path exclude include)
   "Show source file tree using lspcmd files.
@@ -1578,22 +1586,14 @@ PATH, EXCLUDE, and INCLUDE are optional parameters."
 
   (let ((args (list "files")))
     (when path
-      (setq args (append args (list path))))
+      (setq args (append args (list (expand-file-name path)))))
     (when exclude
       (seq-doseq (ex exclude)
         (setq args (append args (list "--exclude" ex)))))
     (when include
       (seq-doseq (inc include)
         (setq args (append args (list "--include" inc)))))
-
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd files failed: %s" error))
-                   (funcall callback output nil))))))
+    (greger-stdlib--run-lspcmd args callback)))
 
 (defun greger-stdlib--lspcmd-show (symbol callback context head)
   "Print the definition of SYMBOL using lspcmd show.
@@ -1610,15 +1610,7 @@ CONTEXT and HEAD are optional parameters."
       (setq args (append args (list "--context" (number-to-string context)))))
     (when head
       (setq args (append args (list "--head" (number-to-string head)))))
-
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd show failed: %s" error))
-                   (funcall callback output nil))))))
+    (greger-stdlib--run-lspcmd args callback)))
 
 (defun greger-stdlib--lspcmd-refs (symbol callback context)
   "Find all references to SYMBOL using lspcmd refs.
@@ -1631,15 +1623,7 @@ CONTEXT is optional."
   (let ((args (list "refs" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd refs failed: %s" error))
-                   (funcall callback output nil))))))
+    (greger-stdlib--run-lspcmd args callback)))
 
 (defun greger-stdlib--lspcmd-calls (callback from to max-depth include-non-workspace)
   "Show call hierarchy using lspcmd calls.
@@ -1664,15 +1648,7 @@ At least one of FROM or TO must be specified."
       (setq args (append args (list "--max-depth" (number-to-string max-depth)))))
     (when include-non-workspace
       (setq args (append args (list "--include-non-workspace"))))
-
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd calls failed: %s" error))
-                   (funcall callback output nil))))))
+    (greger-stdlib--run-lspcmd args callback)))
 
 (defun greger-stdlib--lspcmd-implementations (symbol callback context)
   "Find implementations of SYMBOL using lspcmd implementations.
@@ -1685,15 +1661,7 @@ CONTEXT is optional."
   (let ((args (list "implementations" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd implementations failed: %s" error))
-                   (funcall callback output nil))))))
+    (greger-stdlib--run-lspcmd args callback)))
 
 (defun greger-stdlib--lspcmd-supertypes (symbol callback context)
   "Find supertypes of SYMBOL using lspcmd supertypes.
@@ -1706,15 +1674,7 @@ CONTEXT is optional."
   (let ((args (list "supertypes" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd supertypes failed: %s" error))
-                   (funcall callback output nil))))))
+    (greger-stdlib--run-lspcmd args callback)))
 
 (defun greger-stdlib--lspcmd-subtypes (symbol callback context)
   "Find subtypes of SYMBOL using lspcmd subtypes.
@@ -1727,15 +1687,7 @@ CONTEXT is optional."
   (let ((args (list "subtypes" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd subtypes failed: %s" error))
-                   (funcall callback output nil))))))
+    (greger-stdlib--run-lspcmd args callback)))
 
 (defun greger-stdlib--lspcmd-declaration (symbol callback context)
   "Find declaration of SYMBOL using lspcmd declaration.
@@ -1748,62 +1700,34 @@ CONTEXT is optional."
   (let ((args (list "declaration" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd declaration failed: %s" error))
-                   (funcall callback output nil))))))
+    (greger-stdlib--run-lspcmd args callback)))
 
 (defun greger-stdlib--lspcmd-rename (symbol new-name callback)
   "Rename SYMBOL to NEW-NAME using lspcmd rename.
 CALLBACK is called with (result error)."
   (greger-stdlib--assert-arg-string "symbol" symbol :min-length 1)
   (greger-stdlib--assert-arg-string "new-name" new-name :min-length 1)
-
-  (let ((args (list "rename" symbol new-name)))
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd rename failed: %s" error))
-                   (funcall callback output nil))))))
+  (greger-stdlib--run-lspcmd (list "rename" symbol new-name) callback))
 
 (defun greger-stdlib--lspcmd-mv (old-path new-path callback)
   "Move/rename file from OLD-PATH to NEW-PATH using lspcmd mv.
 CALLBACK is called with (result error)."
   (greger-stdlib--assert-arg-string "old-path" old-path :min-length 1)
   (greger-stdlib--assert-arg-string "new-path" new-path :min-length 1)
-
-  (let ((args (list "mv" old-path new-path)))
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd mv failed: %s" error))
-                   (funcall callback output nil))))))
+  (greger-stdlib--run-lspcmd (list "mv" (expand-file-name old-path) (expand-file-name new-path)) callback))
 
 (defun greger-stdlib--lspcmd-workspace-add (root callback)
   "Add a workspace ROOT directory for LSP operations using lspcmd workspace add.
 CALLBACK is called with (result error)."
   (greger-stdlib--assert-arg-string "root" root :min-length 1)
-
-  (let ((args (list "workspace" "add" "--root" (expand-file-name root))))
-    (greger-stdlib--run-async-subprocess
-     :command "lspcmd"
-     :args args
-     :working-directory nil
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil (format "lspcmd workspace add failed: %s" error))
-                   (funcall callback output nil))))))
+  (greger-stdlib--run-async-subprocess
+   :command "lspcmd"
+   :args (list "workspace" "add" "--root" (expand-file-name root))
+   :working-directory nil
+   :callback (lambda (output error)
+               (if error
+                   (funcall callback nil (format "lspcmd workspace add failed: %s" error))
+                 (funcall callback output nil)))))
 
 
 (provide 'greger-stdlib)
