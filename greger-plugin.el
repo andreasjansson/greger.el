@@ -148,10 +148,10 @@ Tools from the last USER section apply only to that turn."
       (let ((session-tools '())
             (turn-tools '()))
         (dolist (plugin-name session-plugins)
-          (when-let ((tools (greger-plugin-tools plugin-name)))
+          (when-let* ((tools (greger-plugin-tools plugin-name)))
             (setq session-tools (append session-tools tools))))
         (dolist (plugin-name turn-plugins)
-          (when-let ((tools (greger-plugin-tools plugin-name)))
+          (when-let* ((tools (greger-plugin-tools plugin-name)))
             (setq turn-tools (append turn-tools tools))))
 
         (list :session-tools (delete-dups session-tools)
@@ -160,24 +160,18 @@ Tools from the last USER section apply only to that turn."
               :turn-plugins turn-plugins)))))
 
 (defun greger-plugin--extract-plugins-from-node (node)
-  "Extract plugin names from <plugin>name</plugin> tags in NODE."
-  (let ((plugins '()))
-    (greger-plugin--walk-tree
-     node
-     (lambda (n)
-       (when (string= (treesit-node-type n) "plugin")
-         (let ((name-node (treesit-node-child-by-field-name n "name")))
-           (when name-node
-             (let ((plugin-name (string-trim (treesit-node-text name-node t))))
-               (when (greger-plugin-exists-p plugin-name)
-                 (push plugin-name plugins))))))))
+  "Extract plugin names from <plugin>name</plugin> tags in NODE.
+Uses regex to parse the text content of the node."
+  (let ((text (treesit-node-text node t))
+        (plugins '()))
+    (with-temp-buffer
+      (insert text)
+      (goto-char (point-min))
+      (while (re-search-forward "<plugin>\\([^<]+\\)</plugin>" nil t)
+        (let ((plugin-name (string-trim (match-string 1))))
+          (when (greger-plugin-exists-p plugin-name)
+            (push plugin-name plugins)))))
     (nreverse plugins)))
-
-(defun greger-plugin--walk-tree (node callback)
-  "Walk NODE tree calling CALLBACK on each node."
-  (funcall callback node)
-  (dolist (child (treesit-node-children node))
-    (greger-plugin--walk-tree child callback)))
 
 (defun greger-plugin-get-buffer-tools (buffer base-tools)
   "Get tools for BUFFER: BASE-TOOLS plus enabled plugin tools.
