@@ -50,23 +50,30 @@ Example:
        :required (\"pattern\")
        :function my-grep-fn)))"
   (declare (indent 1))
-  (let ((name-str (cond
-                   ((and (listp name) (eq (car name) 'quote))
-                    (symbol-name (cadr name)))
-                   ((symbolp name)
-                    (symbol-name name))
-                   (t name)))
-        (skills (plist-get args :skills))
-        (tools (plist-get args :tools)))
-    `(let ((tool-names '()))
-       (dolist (tool-def (list ,@tools))
-         (let ((tool-name (plist-get tool-def :name)))
-           (push tool-name tool-names)
-           (greger-plugin--register-tool-from-def tool-def)))
+  (let* ((name-str (cond
+                    ((and (listp name) (eq (car name) 'quote))
+                     (symbol-name (cadr name)))
+                    ((symbolp name)
+                     (symbol-name name))
+                    (t name)))
+         (skills (plist-get args :skills))
+         (tools (plist-get args :tools))
+         (tool-defs (mapcar #'greger-plugin--expand-tool-def tools))
+         (tool-names (mapcar (lambda (def) (plist-get def :name)) tool-defs)))
+    `(progn
+       ,@(mapcar (lambda (def) `(greger-plugin--register-tool-from-def ',def))
+                 tool-defs)
        (puthash ,name-str
-                (list :tools (nreverse tool-names)
+                (list :tools ',tool-names
                       :skills ,skills)
                 greger-plugin-registry))))
+
+(defun greger-plugin--expand-tool-def (tool-form)
+  "Expand TOOL-FORM (a greger-plugin-tool call) to a plist at macro-expansion time."
+  (if (and (listp tool-form)
+           (eq (car tool-form) 'greger-plugin-tool))
+      (apply #'greger-plugin-tool (cdr tool-form))
+    (error "Invalid tool definition: %S" tool-form)))
 
 (defun greger-plugin--register-tool-from-def (tool-def)
   "Register a tool from TOOL-DEF plist."
