@@ -172,9 +172,15 @@ If Claude doesn't respond within this time, fallback to user input."
 ;; LSP tools (via lspcmd)
 ;; These are preferred over ripgrep for code search
 
+(defconst greger-stdlib--lspcmd-root-property
+  '(root . ((type . "string")
+            (description . "Workspace root directory. Defaults to current working directory.")
+            (default . nil)))
+  "Common root property for lspcmd tools.")
+
 (greger-register-tool "lspcmd-grep"
                       :description "Search for symbols matching a regex pattern using LSP. PREFERRED over ripgrep for finding function/class/method definitions. Only searches symbol names (not file contents). Use ripgrep for string literals, comments, or multi-word text search."
-                      :properties '((pattern . ((type . "string")
+                      :properties `((pattern . ((type . "string")
                                                 (description . "Regex pattern to match symbol names (case-insensitive by default)")))
                                     (path . ((type . "string")
                                              (description . "File path or directory (supports wildcards like '*.go'). Directories search recursively.")
@@ -191,14 +197,15 @@ If Claude doesn't respond within this time, fallback to user input."
                                              (default . nil)))
                                     (case-sensitive . ((type . "boolean")
                                                        (description . "Case-sensitive pattern matching")
-                                                       (default . nil))))
+                                                       (default . nil)))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '("pattern")
                       :function 'greger-stdlib--lspcmd-grep
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-files"
                       :description "Show source file tree with symbol and line counts. Good starting point for exploring a project."
-                      :properties '((path . ((type . "string")
+                      :properties `((path . ((type . "string")
                                              (description . "Directory path to list (defaults to workspace root)")
                                              (default . nil)))
                                     (exclude . ((type . "array")
@@ -208,39 +215,42 @@ If Claude doesn't respond within this time, fallback to user input."
                                     (include . ((type . "array")
                                                 (items . ((type . "string")))
                                                 (description . "Include default-excluded directories (e.g., .git, node_modules)")
-                                                (default . nil))))
+                                                (default . nil)))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '()
                       :function 'greger-stdlib--lspcmd-files
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-show"
                       :description "Print the full definition/body of a symbol. PREFERRED over read-file for viewing function/method bodies."
-                      :properties '((symbol . ((type . "string")
+                      :properties `((symbol . ((type . "string")
                                                (description . "Symbol to show. Formats: SymbolName, Parent.Symbol, path:Symbol, path:Parent.Symbol, path:line:Symbol")))
                                     (context . ((type . "integer")
                                                 (description . "Lines of context around definition")
                                                 (default . nil)))
                                     (head . ((type . "integer")
                                              (description . "Maximum lines to show (default: 200)")
-                                             (default . nil))))
+                                             (default . nil)))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '("symbol")
                       :function 'greger-stdlib--lspcmd-show
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-refs"
                       :description "Find all references to a symbol across the workspace. PREFERRED over ripgrep for finding symbol usages."
-                      :properties '((symbol . ((type . "string")
+                      :properties `((symbol . ((type . "string")
                                                (description . "Symbol to find references for. Formats: SymbolName, Parent.Symbol, path:Symbol")))
                                     (context . ((type . "integer")
                                                 (description . "Lines of context around each reference")
-                                                (default . nil))))
+                                                (default . nil)))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '("symbol")
                       :function 'greger-stdlib--lspcmd-refs
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-calls"
                       :description "Show call hierarchy for a symbol. Find what a function calls (--from) or what calls it (--to)."
-                      :properties '((from . ((type . "string")
+                      :properties `((from . ((type . "string")
                                              (description . "Starting symbol to show outgoing calls from")
                                              (default . nil)))
                                     (to . ((type . "string")
@@ -251,71 +261,78 @@ If Claude doesn't respond within this time, fallback to user input."
                                                   (default . nil)))
                                     (include-non-workspace . ((type . "boolean")
                                                               (description . "Include calls to symbols outside workspace (stdlib, dependencies)")
-                                                              (default . nil))))
+                                                              (default . nil)))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '()
                       :function 'greger-stdlib--lspcmd-calls
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-implementations"
                       :description "Find implementations of an interface or abstract method."
-                      :properties '((symbol . ((type . "string")
+                      :properties `((symbol . ((type . "string")
                                                (description . "Interface or abstract method to find implementations of")))
                                     (context . ((type . "integer")
                                                 (description . "Lines of context around each implementation")
-                                                (default . nil))))
+                                                (default . nil)))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '("symbol")
                       :function 'greger-stdlib--lspcmd-implementations
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-supertypes"
                       :description "Find direct supertypes (parent classes/interfaces) of a type."
-                      :properties '((symbol . ((type . "string")
+                      :properties `((symbol . ((type . "string")
                                                (description . "Type to find supertypes of")))
                                     (context . ((type . "integer")
                                                 (description . "Lines of context")
-                                                (default . nil))))
+                                                (default . nil)))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '("symbol")
                       :function 'greger-stdlib--lspcmd-supertypes
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-subtypes"
                       :description "Find direct subtypes (child classes) of a type."
-                      :properties '((symbol . ((type . "string")
+                      :properties `((symbol . ((type . "string")
                                                (description . "Type to find subtypes of")))
                                     (context . ((type . "integer")
                                                 (description . "Lines of context")
-                                                (default . nil))))
+                                                (default . nil)))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '("symbol")
                       :function 'greger-stdlib--lspcmd-subtypes
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-declaration"
                       :description "Find the declaration of a symbol."
-                      :properties '((symbol . ((type . "string")
+                      :properties `((symbol . ((type . "string")
                                                (description . "Symbol to find declaration of")))
                                     (context . ((type . "integer")
                                                 (description . "Lines of context")
-                                                (default . nil))))
+                                                (default . nil)))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '("symbol")
                       :function 'greger-stdlib--lspcmd-declaration
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-rename"
                       :description "Rename a symbol across the entire workspace."
-                      :properties '((symbol . ((type . "string")
+                      :properties `((symbol . ((type . "string")
                                                (description . "Symbol to rename. Formats: SymbolName, Parent.Symbol, path:Symbol")))
                                     (new-name . ((type . "string")
-                                                 (description . "New name for the symbol"))))
+                                                 (description . "New name for the symbol")))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '("symbol" "new-name")
                       :function 'greger-stdlib--lspcmd-rename
                       :pass-callback t)
 
 (greger-register-tool "lspcmd-mv"
                       :description "Move/rename a file and update all imports across the workspace."
-                      :properties '((old-path . ((type . "string")
+                      :properties `((old-path . ((type . "string")
                                                  (description . "Current file path")))
                                     (new-path . ((type . "string")
-                                                 (description . "New file path"))))
+                                                 (description . "New file path")))
+                                    ,greger-stdlib--lspcmd-root-property)
                       :required '("old-path" "new-path")
                       :function 'greger-stdlib--lspcmd-mv
                       :pass-callback t)
