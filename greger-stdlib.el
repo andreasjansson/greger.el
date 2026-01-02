@@ -1554,31 +1554,34 @@ Returns a cancel function that can interrupt the command execution."
 
 ;; lspcmd tool implementations
 
-(defun greger-stdlib--run-lspcmd (args callback)
-  "Run lspcmd with ARGS and call CALLBACK with (result error).
+(defun greger-stdlib--run-lspcmd (args callback working-directory)
+  "Run lspcmd with ARGS in WORKING-DIRECTORY and call CALLBACK with (result error).
 Checks for missing workspace errors and provides helpful message."
-  (greger-stdlib--run-async-subprocess
-   :command "lspcmd"
-   :args args
-   :working-directory nil
-   :callback (lambda (output error)
-               (cond
-                ((and error (string-match-p "No workspace found for" error))
-                 (funcall callback nil "No workspace found. Run lspcmd-workspace-add first with the project root directory."))
-                (error
-                 (funcall callback nil error))
-                (t
-                 (funcall callback output nil))))))
+  (let ((expanded-dir (expand-file-name (or working-directory "."))))
+    (greger-stdlib--run-async-subprocess
+     :command "lspcmd"
+     :args args
+     :working-directory expanded-dir
+     :callback (lambda (output error)
+                 (cond
+                  ((and error (string-match-p "No workspace found for" error))
+                   (funcall callback nil (format "No workspace found for directory: %s. Run lspcmd-workspace-add first with the project root directory." expanded-dir)))
+                  (error
+                   (funcall callback nil error))
+                  (t
+                   (funcall callback output nil)))))))
 
-(defun greger-stdlib--lspcmd-grep (pattern callback path kind exclude docs case-sensitive)
+(defun greger-stdlib--lspcmd-grep (pattern callback path kind exclude docs case-sensitive root)
   "Search for symbols matching PATTERN using lspcmd grep.
 CALLBACK is called with (result error).
-PATH, KIND, EXCLUDE, DOCS, and CASE-SENSITIVE are optional parameters."
+PATH, KIND, EXCLUDE, DOCS, CASE-SENSITIVE, and ROOT are optional parameters."
   (greger-stdlib--assert-arg-string "pattern" pattern :min-length 1)
   (when path
     (greger-stdlib--assert-arg-string "path" path))
   (when kind
     (greger-stdlib--assert-arg-string "kind" kind))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
 
   (let ((args (list "grep" pattern)))
     (when path
@@ -1592,14 +1595,16 @@ PATH, KIND, EXCLUDE, DOCS, and CASE-SENSITIVE are optional parameters."
       (setq args (append args (list "--docs"))))
     (when case-sensitive
       (setq args (append args (list "--case-sensitive"))))
-    (greger-stdlib--run-lspcmd args callback)))
+    (greger-stdlib--run-lspcmd args callback root)))
 
-(defun greger-stdlib--lspcmd-files (callback path exclude include)
+(defun greger-stdlib--lspcmd-files (callback path exclude include root)
   "Show source file tree using lspcmd files.
 CALLBACK is called with (result error).
-PATH, EXCLUDE, and INCLUDE are optional parameters."
+PATH, EXCLUDE, INCLUDE, and ROOT are optional parameters."
   (when path
     (greger-stdlib--assert-arg-string "path" path))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
 
   (let ((args (list "files")))
     (when path
@@ -1610,42 +1615,46 @@ PATH, EXCLUDE, and INCLUDE are optional parameters."
     (when include
       (seq-doseq (inc include)
         (setq args (append args (list "--include" inc)))))
-    (greger-stdlib--run-lspcmd args callback)))
+    (greger-stdlib--run-lspcmd args callback root)))
 
-(defun greger-stdlib--lspcmd-show (symbol callback context head)
+(defun greger-stdlib--lspcmd-show (symbol callback context head root)
   "Print the definition of SYMBOL using lspcmd show.
 CALLBACK is called with (result error).
-CONTEXT and HEAD are optional parameters."
+CONTEXT, HEAD, and ROOT are optional parameters."
   (greger-stdlib--assert-arg-string "symbol" symbol :min-length 1)
   (when context
     (greger-stdlib--assert-arg-int "context" context :ge 0))
   (when head
     (greger-stdlib--assert-arg-int "head" head :ge 1))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
 
   (let ((args (list "show" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
     (when head
       (setq args (append args (list "--head" (number-to-string head)))))
-    (greger-stdlib--run-lspcmd args callback)))
+    (greger-stdlib--run-lspcmd args callback root)))
 
-(defun greger-stdlib--lspcmd-refs (symbol callback context)
+(defun greger-stdlib--lspcmd-refs (symbol callback context root)
   "Find all references to SYMBOL using lspcmd refs.
 CALLBACK is called with (result error).
-CONTEXT is optional."
+CONTEXT and ROOT are optional."
   (greger-stdlib--assert-arg-string "symbol" symbol :min-length 1)
   (when context
     (greger-stdlib--assert-arg-int "context" context :ge 0))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
 
   (let ((args (list "refs" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-    (greger-stdlib--run-lspcmd args callback)))
+    (greger-stdlib--run-lspcmd args callback root)))
 
-(defun greger-stdlib--lspcmd-calls (callback from to max-depth include-non-workspace)
+(defun greger-stdlib--lspcmd-calls (callback from to max-depth include-non-workspace root)
   "Show call hierarchy using lspcmd calls.
 CALLBACK is called with (result error).
-FROM, TO, MAX-DEPTH, and INCLUDE-NON-WORKSPACE are optional parameters.
+FROM, TO, MAX-DEPTH, INCLUDE-NON-WORKSPACE, and ROOT are optional parameters.
 At least one of FROM or TO must be specified."
   (unless (or from to)
     (error "At least one of 'from' or 'to' must be specified"))
@@ -1655,6 +1664,8 @@ At least one of FROM or TO must be specified."
     (greger-stdlib--assert-arg-string "to" to))
   (when max-depth
     (greger-stdlib--assert-arg-int "max-depth" max-depth :ge 1))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
 
   (let ((args (list "calls")))
     (when from
@@ -1665,86 +1676,101 @@ At least one of FROM or TO must be specified."
       (setq args (append args (list "--max-depth" (number-to-string max-depth)))))
     (when include-non-workspace
       (setq args (append args (list "--include-non-workspace"))))
-    (greger-stdlib--run-lspcmd args callback)))
+    (greger-stdlib--run-lspcmd args callback root)))
 
-(defun greger-stdlib--lspcmd-implementations (symbol callback context)
+(defun greger-stdlib--lspcmd-implementations (symbol callback context root)
   "Find implementations of SYMBOL using lspcmd implementations.
 CALLBACK is called with (result error).
-CONTEXT is optional."
+CONTEXT and ROOT are optional."
   (greger-stdlib--assert-arg-string "symbol" symbol :min-length 1)
   (when context
     (greger-stdlib--assert-arg-int "context" context :ge 0))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
 
   (let ((args (list "implementations" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-    (greger-stdlib--run-lspcmd args callback)))
+    (greger-stdlib--run-lspcmd args callback root)))
 
-(defun greger-stdlib--lspcmd-supertypes (symbol callback context)
+(defun greger-stdlib--lspcmd-supertypes (symbol callback context root)
   "Find supertypes of SYMBOL using lspcmd supertypes.
 CALLBACK is called with (result error).
-CONTEXT is optional."
+CONTEXT and ROOT are optional."
   (greger-stdlib--assert-arg-string "symbol" symbol :min-length 1)
   (when context
     (greger-stdlib--assert-arg-int "context" context :ge 0))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
 
   (let ((args (list "supertypes" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-    (greger-stdlib--run-lspcmd args callback)))
+    (greger-stdlib--run-lspcmd args callback root)))
 
-(defun greger-stdlib--lspcmd-subtypes (symbol callback context)
+(defun greger-stdlib--lspcmd-subtypes (symbol callback context root)
   "Find subtypes of SYMBOL using lspcmd subtypes.
 CALLBACK is called with (result error).
-CONTEXT is optional."
+CONTEXT and ROOT are optional."
   (greger-stdlib--assert-arg-string "symbol" symbol :min-length 1)
   (when context
     (greger-stdlib--assert-arg-int "context" context :ge 0))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
 
   (let ((args (list "subtypes" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-    (greger-stdlib--run-lspcmd args callback)))
+    (greger-stdlib--run-lspcmd args callback root)))
 
-(defun greger-stdlib--lspcmd-declaration (symbol callback context)
+(defun greger-stdlib--lspcmd-declaration (symbol callback context root)
   "Find declaration of SYMBOL using lspcmd declaration.
 CALLBACK is called with (result error).
-CONTEXT is optional."
+CONTEXT and ROOT are optional."
   (greger-stdlib--assert-arg-string "symbol" symbol :min-length 1)
   (when context
     (greger-stdlib--assert-arg-int "context" context :ge 0))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
 
   (let ((args (list "declaration" symbol)))
     (when context
       (setq args (append args (list "--context" (number-to-string context)))))
-    (greger-stdlib--run-lspcmd args callback)))
+    (greger-stdlib--run-lspcmd args callback root)))
 
-(defun greger-stdlib--lspcmd-rename (symbol new-name callback)
+(defun greger-stdlib--lspcmd-rename (symbol new-name callback root)
   "Rename SYMBOL to NEW-NAME using lspcmd rename.
-CALLBACK is called with (result error)."
+CALLBACK is called with (result error).
+ROOT is optional."
   (greger-stdlib--assert-arg-string "symbol" symbol :min-length 1)
   (greger-stdlib--assert-arg-string "new-name" new-name :min-length 1)
-  (greger-stdlib--run-lspcmd (list "rename" symbol new-name) callback))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
+  (greger-stdlib--run-lspcmd (list "rename" symbol new-name) callback root))
 
-(defun greger-stdlib--lspcmd-mv (old-path new-path callback)
+(defun greger-stdlib--lspcmd-mv (old-path new-path callback root)
   "Move/rename file from OLD-PATH to NEW-PATH using lspcmd mv.
-CALLBACK is called with (result error)."
+CALLBACK is called with (result error).
+ROOT is optional."
   (greger-stdlib--assert-arg-string "old-path" old-path :min-length 1)
   (greger-stdlib--assert-arg-string "new-path" new-path :min-length 1)
-  (greger-stdlib--run-lspcmd (list "mv" (expand-file-name old-path) (expand-file-name new-path)) callback))
+  (when root
+    (greger-stdlib--assert-arg-string "root" root))
+  (greger-stdlib--run-lspcmd (list "mv" (expand-file-name old-path) (expand-file-name new-path)) callback root))
 
 (defun greger-stdlib--lspcmd-workspace-add (root callback)
   "Add a workspace ROOT directory for LSP operations using lspcmd workspace add.
 CALLBACK is called with (result error)."
   (greger-stdlib--assert-arg-string "root" root :min-length 1)
-  (greger-stdlib--run-async-subprocess
-   :command "lspcmd"
-   :args (list "workspace" "add" "--root" (expand-file-name root))
-   :working-directory nil
-   :callback (lambda (output error)
-               (if error
-                   (funcall callback nil (format "lspcmd workspace add failed: %s" error))
-                 (funcall callback output nil)))))
+  (let ((expanded-root (expand-file-name root)))
+    (greger-stdlib--run-async-subprocess
+     :command "lspcmd"
+     :args (list "workspace" "add" "--root" expanded-root)
+     :working-directory expanded-root
+     :callback (lambda (output error)
+                 (if error
+                     (funcall callback nil (format "lspcmd workspace add failed: %s" error))
+                   (funcall callback output nil))))))
 
 
 (provide 'greger-stdlib)
