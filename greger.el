@@ -46,6 +46,7 @@
 (require 'greger-stdlib)
 (require 'greger-ui)
 (require 'greger-prompt)
+(require 'greger-plugin)
 
 ;; Eval functionality
 (defconst greger-available-models
