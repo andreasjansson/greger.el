@@ -118,6 +118,75 @@ Example:
     (maphash (lambda (name _) (push name names)) greger-plugin-registry)
     (nreverse names)))
 
+;; Buffer parsing for <plugin> tags
+
+(defun greger-plugin-parse-buffer-plugins (buffer)
+  "Parse BUFFER for <plugin> tags and return tools to enable.
+Returns a plist with :session-tools (from SYSTEM) and :turn-tools (from last USER).
+Tools from SYSTEM apply to the whole session.
+Tools from the last USER section apply only to that turn."
+  (with-current-buffer buffer
+    (let* ((parser (treesit-parser-create 'greger))
+           (root-node (treesit-parser-root-node parser))
+           (session-plugins '())
+           (turn-plugins '()))
+
+      ;; Walk all nodes to find system and user sections
+      (dolist (child (treesit-node-children root-node))
+        (let ((node-type (treesit-node-type child)))
+          (cond
+           ;; System section: plugins apply to whole session
+           ((string= node-type "system")
+            (let ((plugins (greger-plugin--extract-plugins-from-node child)))
+              (setq session-plugins (append session-plugins plugins))))
+
+           ;; User section: only keep plugins from the LAST user section
+           ((string= node-type "user")
+            (setq turn-plugins (greger-plugin--extract-plugins-from-node child))))))
+
+      ;; Collect all tools from session and turn plugins
+      (let ((session-tools '())
+            (turn-tools '()))
+        (dolist (plugin-name session-plugins)
+          (when-let ((tools (greger-plugin-tools plugin-name)))
+            (setq session-tools (append session-tools tools))))
+        (dolist (plugin-name turn-plugins)
+          (when-let ((tools (greger-plugin-tools plugin-name)))
+            (setq turn-tools (append turn-tools tools))))
+
+        (list :session-tools (delete-dups session-tools)
+              :turn-tools (delete-dups turn-tools)
+              :session-plugins session-plugins
+              :turn-plugins turn-plugins)))))
+
+(defun greger-plugin--extract-plugins-from-node (node)
+  "Extract plugin names from <plugin>name</plugin> tags in NODE."
+  (let ((plugins '()))
+    (greger-plugin--walk-tree
+     node
+     (lambda (n)
+       (when (string= (treesit-node-type n) "plugin")
+         (let ((name-node (treesit-node-child-by-field-name n "name")))
+           (when name-node
+             (let ((plugin-name (string-trim (treesit-node-text name-node t))))
+               (when (greger-plugin-exists-p plugin-name)
+                 (push plugin-name plugins))))))))
+    (nreverse plugins)))
+
+(defun greger-plugin--walk-tree (node callback)
+  "Walk NODE tree calling CALLBACK on each node."
+  (funcall callback node)
+  (dolist (child (treesit-node-children node))
+    (greger-plugin--walk-tree child callback)))
+
+(defun greger-plugin-get-buffer-tools (buffer base-tools)
+  "Get tools for BUFFER: BASE-TOOLS plus enabled plugin tools.
+Session plugins (from SYSTEM) and turn plugins (from last USER) are combined."
+  (let* ((parsed (greger-plugin-parse-buffer-plugins buffer))
+         (session-tools (plist-get parsed :session-tools))
+         (turn-tools (plist-get parsed :turn-tools)))
+    (delete-dups (append base-tools session-tools turn-tools))))
+
 (provide 'greger-plugin)
 
 ;;; greger-plugin.el ends here
