@@ -233,6 +233,10 @@ The alist maps parameter names to their values."
     (when (string= name "str-replace")
       (setq params (greger-parser--str-replace-undiff-params params)))
 
+    ;; Ensure params is an empty hash-table if nil, so it encodes to {} not null
+    (unless params
+      (setq params (make-hash-table)))
+
     `((role . "assistant")
       (content . (((type . "tool_use")
                    (id . ,id)
