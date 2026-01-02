@@ -320,6 +320,14 @@ If Claude doesn't respond within this time, fallback to user input."
                       :function 'greger-stdlib--lspcmd-mv
                       :pass-callback t)
 
+(greger-register-tool "lspcmd-workspace-add"
+                      :description "Add a workspace root directory for LSP operations. Required before using other lspcmd tools on a new project."
+                      :properties '((root . ((type . "string")
+                                             (description . "Workspace root directory path"))))
+                      :required '("root")
+                      :function 'greger-stdlib--lspcmd-workspace-add
+                      :pass-callback t)
+
 ;; Ripgrep tool
 
 (greger-register-tool "ripgrep"
