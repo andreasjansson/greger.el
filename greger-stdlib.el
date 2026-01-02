@@ -1790,6 +1790,21 @@ CALLBACK is called with (result error)."
                      (funcall callback nil (format "lspcmd mv failed: %s" error))
                    (funcall callback output nil))))))
 
+(defun greger-stdlib--lspcmd-workspace-add (root callback)
+  "Add a workspace ROOT directory for LSP operations using lspcmd workspace add.
+CALLBACK is called with (result error)."
+  (greger-stdlib--assert-arg-string "root" root :min-length 1)
+
+  (let ((args (list "workspace" "add" "--root" (expand-file-name root))))
+    (greger-stdlib--run-async-subprocess
+     :command "lspcmd"
+     :args args
+     :working-directory nil
+     :callback (lambda (output error)
+                 (if error
+                     (funcall callback nil (format "lspcmd workspace add failed: %s" error))
+                   (funcall callback output nil))))))
+
 
 (provide 'greger-stdlib)
 
