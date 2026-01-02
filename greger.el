@@ -124,7 +124,7 @@ If nil, uses OPENROUTER_API_KEY environment variable."
 
 ;; Tool configuration and agent functionality
 
-(defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "lspcmd-grep" "lspcmd-files" "lspcmd-show" "lspcmd-refs" "lspcmd-calls" "lspcmd-implementations" "lspcmd-supertypes" "lspcmd-subtypes" "lspcmd-declaration" "lspcmd-rename" "lspcmd-mv" "ripgrep" "shell-command" "read-webpage")
+(defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "lspcmd-grep" "lspcmd-files" "lspcmd-show" "lspcmd-refs" "lspcmd-calls" "lspcmd-implementations" "lspcmd-supertypes" "lspcmd-subtypes" "lspcmd-declaration" "lspcmd-rename" "lspcmd-mv" "lspcmd-workspace-add" "ripgrep" "shell-command" "read-webpage")
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
