@@ -155,11 +155,15 @@ The raw JSON string will be displayed for the server tool definition."
                 greger-server-tools-registry))))
 
 (defun greger-tools-get-schemas (tool-names)
-  "Get tool schemas for TOOL-NAMES."
+  "Get tool schemas for TOOL-NAMES.
+If a tool has a :schema-fn, call it to get the dynamic schema."
   (mapcar (lambda (tool-name)
             (let ((tool-def (gethash tool-name greger-tools-registry)))
               (if tool-def
-                  (plist-get tool-def :schema)
+                  (let ((schema-fn (plist-get tool-def :schema-fn)))
+                    (if schema-fn
+                        (funcall schema-fn)
+                      (plist-get tool-def :schema)))
                 (error "Unknown tool: %s" tool-name))))
           tool-names))
 
