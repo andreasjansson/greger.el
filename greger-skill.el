@@ -1,4 +1,4 @@
-;;; greger-plugin.el --- Skills system for greger -*- lexical-binding: t -*-
+;;; greger-skill.el --- Skills system for greger -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Andreas Jansson
 
@@ -10,10 +10,13 @@
 ;;; Commentary:
 ;; Provides a skills system for Greger, inspired by Claude Code's skills.
 ;; Skills are markdown documents that teach the agent how to perform specific tasks.
-;; Skills can be declared per-session using <skill>path</skill> in the buffer.
 ;;
-;; In # SYSTEM: skills apply to the whole session
-;; In # USER: skills apply only to that turn (last USER section only)
+;; Skills can be added to the registry in two ways:
+;; 1. Discovered from directories in `greger-skill-directories'
+;; 2. Declared in buffer using <skill>name-or-path</skill> tags
+;;
+;; Once in the registry, skills appear in the `skill` tool's description.
+;; The model can then call the skill tool to load the skill content.
 
 ;;; Code:
 
@@ -39,7 +42,7 @@ Later directories take precedence when skill names conflict."
   content
   source-file)
 
-;; Skill discovery
+;; Skill discovery from directories
 
 (defun greger-skill-discover ()
   "Discover and register skills from `greger-skill-directories'."
@@ -60,7 +63,7 @@ Later directories take precedence when skill names conflict."
     (let* ((frontmatter (greger-skill--parse-frontmatter))
            (content (buffer-substring-no-properties (point) (point-max)))
            (name (or (cdr (assoc "name" frontmatter))
-                     (file-name-nondirectory (directory-file-name 
+                     (file-name-nondirectory (directory-file-name
                                               (file-name-directory file)))))
            (description (or (cdr (assoc "description" frontmatter)) ""))
            (skill (make-greger-skill
@@ -88,6 +91,8 @@ Returns alist of key-value pairs.  Moves point past frontmatter."
         (forward-line 1))
       result)))
 
+;; Registry access
+
 (defun greger-skill-get (name)
   "Get skill by NAME from registry."
   (gethash name greger-skill-registry))
@@ -113,10 +118,53 @@ Returns alist of key-value pairs.  Moves point past frontmatter."
         (string-join (sort skills #'string<) "\n")
       "No skills available.")))
 
-;; Skill tool - allows agent to load skills dynamically
+;; Buffer parsing - adds skills from <skill> tags to registry
+
+(defun greger-skill-register-from-buffer (buffer)
+  "Parse BUFFER for <skill> tags and add referenced skills to registry.
+Skills can be referenced by:
+- Name (if already discovered from directories)
+- File path to a SKILL.md file"
+  (let ((skill-refs (greger-skill--parse-skill-tags buffer)))
+    (dolist (ref skill-refs)
+      (greger-skill--register-from-ref ref))))
+
+(defun greger-skill--parse-skill-tags (buffer)
+  "Parse BUFFER and return list of skill references from <skill> tags."
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (let ((refs '()))
+        (while (re-search-forward "<skill>\\([^<]+\\)</skill>" nil t)
+          (let ((ref (string-trim (match-string 1))))
+            (push ref refs)))
+        (delete-dups (nreverse refs))))))
+
+(defun greger-skill--register-from-ref (ref)
+  "Register a skill from REF.
+REF can be a skill name (already in registry) or a file path."
+  (cond
+   ;; Already in registry - nothing to do
+   ((greger-skill-exists-p ref)
+    nil)
+   ;; File path to SKILL.md
+   ((and (file-exists-p ref)
+         (file-regular-p ref)
+         (string-suffix-p ".md" ref))
+    (greger-skill--register-from-file ref))
+   ;; File path to directory containing SKILL.md
+   ((and (file-exists-p ref)
+         (file-directory-p ref))
+    (let ((skill-file (expand-file-name "SKILL.md" ref)))
+      (when (file-exists-p skill-file)
+        (greger-skill--register-from-file skill-file))))
+   ;; Not found - ignore silently (model will get error when trying to load)
+   (t nil)))
+
+;; Skill tool - allows model to load skills
 
 (defun greger-skill--load (name)
-  "Load skill NAME and return its content for injection into context."
+  "Load skill NAME and return its content."
   (if-let* ((skill (greger-skill-get name)))
       (format "# Skill: %s\n\n%s"
               (greger-skill-name skill)
@@ -165,104 +213,6 @@ When users ask you to perform tasks, check if any of the available skills below 
   :function #'greger-skill--load
   :schema-fn #'greger-skill--get-tool-schema)
 
-;; Buffer parsing for <skill> and <skill-disable> tags
-
-(defun greger-skill-parse-buffer (buffer)
-  "Parse BUFFER for <skill> and <skill-disable> tags.
-Returns a plist with:
-  :session-skills - Skills from SYSTEM (apply to whole session)
-  :turn-skills - Skills from last USER section (apply only to that turn)
-  :turn-disabled - Skills disabled in last USER section via <skill-disable>"
-  (with-current-buffer buffer
-    (let* ((parser (treesit-parser-create 'greger))
-           (root-node (treesit-parser-root-node parser))
-           (session-skills '())
-           (turn-skills '())
-           (turn-disabled '()))
-
-      ;; Walk all nodes to find system and user sections
-      (dolist (child (treesit-node-children root-node))
-        (let ((node-type (treesit-node-type child)))
-          (cond
-           ;; System section: skills apply to whole session
-           ((string= node-type "system")
-            (let ((skills (greger-skill--extract-from-node child)))
-              (setq session-skills (append session-skills skills))))
-
-           ;; User section: only keep skills/disables from the LAST user section
-           ((string= node-type "user")
-            (setq turn-skills (greger-skill--extract-from-node child))
-            (setq turn-disabled (greger-skill--extract-disabled-from-node child))))))
-
-      (list :session-skills (delete-dups session-skills)
-            :turn-skills (delete-dups turn-skills)
-            :turn-disabled (delete-dups turn-disabled)))))
-
-(defun greger-skill--extract-from-node (node)
-  "Extract skill paths from <skill>path</skill> tags in NODE.
-Paths can be:
-- A skill name (looked up in registry)
-- A file path to a SKILL.md or markdown file
-Uses regex to parse the text content of the node."
-  (let ((text (treesit-node-text node t))
-        (skills '()))
-    (with-temp-buffer
-      (insert text)
-      (goto-char (point-min))
-      (while (re-search-forward "<skill>\\([^<]+\\)</skill>" nil t)
-        (let ((skill-ref (string-trim (match-string 1))))
-          (push skill-ref skills))))
-    (nreverse skills)))
-
-(defun greger-skill--extract-disabled-from-node (node)
-  "Extract disabled skill names from <skill-disable>name</skill-disable> tags in NODE."
-  (let ((text (treesit-node-text node t))
-        (disabled '()))
-    (with-temp-buffer
-      (insert text)
-      (goto-char (point-min))
-      (while (re-search-forward "<skill-disable>\\([^<]+\\)</skill-disable>" nil t)
-        (let ((skill-ref (string-trim (match-string 1))))
-          (push skill-ref disabled))))
-    (nreverse disabled)))
-
-(defun greger-skill-load-from-ref (skill-ref)
-  "Load a skill from SKILL-REF.
-SKILL-REF can be:
-- A skill name (looked up in registry)
-- A file path to a SKILL.md or markdown file"
-  (cond
-   ;; Skill name in registry
-   ((greger-skill-exists-p skill-ref)
-    (greger-skill--load skill-ref))
-   ;; File path
-   ((and (file-exists-p skill-ref)
-         (file-regular-p skill-ref))
-    (with-temp-buffer
-      (insert-file-contents skill-ref)
-      (buffer-string)))
-   ;; Not found
-   (t nil)))
-
-(defun greger-skill-get-buffer-skills-content (buffer)
-  "Get combined skill content for BUFFER.
-Returns a string with all skill content to inject, or nil if no skills.
-Skills disabled via <skill-disable> in the last USER section are excluded."
-  (let* ((parsed (greger-skill-parse-buffer buffer))
-         (session-skills (plist-get parsed :session-skills))
-         (turn-skills (plist-get parsed :turn-skills))
-         (turn-disabled (plist-get parsed :turn-disabled))
-         (all-skills (delete-dups (append session-skills turn-skills)))
-         ;; Filter out disabled skills
-         (active-skills (seq-remove (lambda (skill) (member skill turn-disabled))
-                                    all-skills))
-         (contents '()))
-    (dolist (skill-ref active-skills)
-      (when-let* ((content (greger-skill-load-from-ref skill-ref)))
-        (push content contents)))
-    (when contents
-      (string-join (nreverse contents) "\n\n---\n\n"))))
-
 (provide 'greger-skill)
 
-;;; greger-plugin.el ends here
+;;; greger-skill.el ends here
