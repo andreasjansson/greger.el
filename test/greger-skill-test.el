@@ -1,7 +1,7 @@
-;;; greger-plugin-test.el --- Tests for greger skills system -*- lexical-binding: t -*-
+;;; greger-skill-test.el --- Tests for greger skills system -*- lexical-binding: t -*-
 
 (require 'ert)
-(require 'greger-plugin)
+(require 'greger-skill)
 
 ;; Test helper functions
 
