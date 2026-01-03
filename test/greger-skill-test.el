@@ -133,7 +133,7 @@
   (unwind-protect
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "schema-test" "Schema test skill" "Content")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           (let ((schema (greger-skill--get-tool-schema)))
             (should (equal "skill" (alist-get 'name schema)))
@@ -149,7 +149,7 @@
   (unwind-protect
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "exec-test" "Execution test" "Execute instructions")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           (let ((result nil) (error nil))
             (greger-tools-execute :tool-name "skill"
@@ -167,19 +167,17 @@
   (unwind-protect
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "buffer-skill" "Buffer skill" "Buffer content")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           ;; Clear registry to test that register-from-buffer adds it back
           (greger-skill-test--cleanup-registry)
           (should-not (greger-skill-exists-p "buffer-skill"))
-          ;; Now register from buffer
+          ;; Now register from buffer - need to re-discover since we cleared registry
           (with-temp-buffer
             (insert "# SYSTEM\n\n<skill>buffer-skill</skill>\n\n# USER\n\nHello")
-            ;; Need to re-discover since we cleared registry
-            (let ((greger-skill-directories (list temp-dir)))
-              (greger-skill-discover)
-              (greger-skill-register-from-buffer (current-buffer))
-              (should (greger-skill-exists-p "buffer-skill"))))))
+            (greger-skill-discover)
+            (greger-skill-register-from-buffer (current-buffer))
+            (should (greger-skill-exists-p "buffer-skill")))))
     (greger-skill-test--cleanup-temp-dir)
     (greger-skill-test--cleanup-registry)))
 
