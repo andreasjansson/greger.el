@@ -643,7 +643,7 @@ Hello from greger test!
 (ert-deftest greger-end-to-end-test-skill-loading ()
   "Test that skills are loaded and used by the agent.
 Creates a skill with a secret code that the model couldn't know without loading it."
-  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+  (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
 
   (let* ((temp-dir (make-temp-file "greger-skill-test" t))
          (skill-dir (expand-file-name "secret-keeper" temp-dir))
