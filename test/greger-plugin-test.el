@@ -1,510 +1,275 @@
-;;; greger-plugin-test.el --- Tests for greger-plugin -*- lexical-binding: t -*-
+;;; greger-plugin-test.el --- Tests for greger skills system -*- lexical-binding: t -*-
 
 (require 'ert)
 (require 'greger-plugin)
 
 ;; Test helper functions
 
-(defun greger-plugin-test--cleanup ()
-  "Clean up test plugins and tools from registries."
-  (remhash "test-plugin" greger-plugin-registry)
-  (remhash "test-plugin-2" greger-plugin-registry)
-  (remhash "test-tool-1" greger-tools-registry)
-  (remhash "test-tool-2" greger-tools-registry)
-  (remhash "test-tool-3" greger-tools-registry))
+(defvar greger-plugin-test--temp-dir nil
+  "Temporary directory for test skills.")
 
-;; Test functions for plugin tools
+(defun greger-plugin-test--setup-temp-dir ()
+  "Create temporary directory for test skills."
+  (setq greger-plugin-test--temp-dir (make-temp-file "greger-skills-test" t))
+  greger-plugin-test--temp-dir)
 
-(defun greger-plugin-test--echo (message)
-  "Simple test function that echoes MESSAGE."
-  (format "echo: %s" message))
+(defun greger-plugin-test--cleanup-temp-dir ()
+  "Clean up temporary directory."
+  (when (and greger-plugin-test--temp-dir
+             (file-directory-p greger-plugin-test--temp-dir))
+    (delete-directory greger-plugin-test--temp-dir t)
+    (setq greger-plugin-test--temp-dir nil)))
 
-(defun greger-plugin-test--add (a b)
-  "Test function that adds A and B."
-  (+ a b))
+(defun greger-plugin-test--create-skill (name description content)
+  "Create a test skill with NAME, DESCRIPTION, and CONTENT."
+  (let ((skill-dir (expand-file-name name greger-plugin-test--temp-dir)))
+    (make-directory skill-dir t)
+    (with-temp-file (expand-file-name "SKILL.md" skill-dir)
+      (insert "---\n")
+      (insert (format "name: %s\n" name))
+      (insert (format "description: %s\n" description))
+      (insert "---\n\n")
+      (insert content))
+    skill-dir))
 
-(defun greger-plugin-test--greet (name &optional greeting)
-  "Test function with optional parameter."
-  (format "%s, %s!" (or greeting "Hello") name))
+(defun greger-plugin-test--cleanup-registry ()
+  "Clean up the skill registry."
+  (clrhash greger-skill-registry))
 
+;; Skill discovery tests
 
-;; Tests
-
-(ert-deftest greger-plugin-test-tool-definition ()
-  "Test that greger-plugin-tool creates proper tool definition plists."
-  (let ((tool-def (greger-plugin-tool "my-tool"
-                    :description "A test tool"
-                    :properties '((param . ((type . "string"))))
-                    :required '("param")
-                    :function 'my-function)))
-    (should (equal "my-tool" (plist-get tool-def :name)))
-    (should (equal "A test tool" (plist-get tool-def :description)))
-    (should (equal '((param . ((type . "string")))) (plist-get tool-def :properties)))
-    (should (equal '("param") (plist-get tool-def :required)))
-    (should (equal 'my-function (plist-get tool-def :function)))))
-
-(ert-deftest greger-plugin-test-tool-definition-with-optional-args ()
-  "Test that greger-plugin-tool handles optional args."
-  (let ((tool-def (greger-plugin-tool "my-tool"
-                    :description "A test tool"
-                    :properties '()
-                    :required '()
-                    :function 'my-function
-                    :pass-buffer t
-                    :pass-callback t
-                    :streaming t
-                    :pass-metadata t)))
-    (should (eq t (plist-get tool-def :pass-buffer)))
-    (should (eq t (plist-get tool-def :pass-callback)))
-    (should (eq t (plist-get tool-def :streaming)))
-    (should (eq t (plist-get tool-def :pass-metadata)))))
-
-(ert-deftest greger-plugin-test-plugin-registration ()
-  "Test that greger-plugin registers plugins and their tools."
+(ert-deftest greger-skill-test-discover-skills ()
+  "Test that skills are discovered from directories."
   (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "First test tool"
-             :properties ((message . ((type . "string") (description . "Message"))))
-             :required ("message")
-             :function greger-plugin-test--echo)))
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "test-skill" "A test skill" "# Test\n\nDo the thing.")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (should (greger-skill-exists-p "test-skill"))
+          (let ((skill (greger-skill-get "test-skill")))
+            (should (equal "test-skill" (greger-skill-name skill)))
+            (should (equal "A test skill" (greger-skill-description skill)))
+            (should (string-match-p "Do the thing" (greger-skill-content skill))))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
-        ;; Plugin should be registered
-        (should (greger-plugin-exists-p "test-plugin"))
-
-        ;; Plugin tools should be listed
-        (should (equal '("test-tool-1") (greger-plugin-tools "test-plugin")))
-
-        ;; Tool should be registered in tools registry
-        (should (gethash "test-tool-1" greger-tools-registry)))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-plugin-with-multiple-tools ()
-  "Test that plugins can have multiple tools."
+(ert-deftest greger-skill-test-discover-multiple-skills ()
+  "Test that multiple skills are discovered."
   (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "First test tool"
-             :properties ((message . ((type . "string"))))
-             :required ("message")
-             :function greger-plugin-test--echo)
-           (greger-plugin-tool "test-tool-2"
-             :description "Second test tool"
-             :properties ((a . ((type . "integer")))
-                          (b . ((type . "integer"))))
-             :required ("a" "b")
-             :function greger-plugin-test--add)))
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "skill-one" "First skill" "Content one")
+        (greger-plugin-test--create-skill "skill-two" "Second skill" "Content two")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (should (greger-skill-exists-p "skill-one"))
+          (should (greger-skill-exists-p "skill-two"))
+          (should (= 2 (length (greger-skill-list))))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
-        ;; Plugin should have both tools
-        (should (equal '("test-tool-1" "test-tool-2") (greger-plugin-tools "test-plugin")))
-
-        ;; Both tools should be registered
-        (should (gethash "test-tool-1" greger-tools-registry))
-        (should (gethash "test-tool-2" greger-tools-registry)))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-plugin-tools-are-executable ()
-  "Test that plugin tools can be executed via greger-tools-execute."
+(ert-deftest greger-skill-test-skill-list ()
+  "Test greger-skill-list returns all skills."
   (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Echo tool"
-             :properties ((message . ((type . "string") (description . "Message"))))
-             :required ("message")
-             :function greger-plugin-test--echo)
-           (greger-plugin-tool "test-tool-2"
-             :description "Add tool"
-             :properties ((a . ((type . "integer") (description . "First number")))
-                          (b . ((type . "integer") (description . "Second number"))))
-             :required ("a" "b")
-             :function greger-plugin-test--add)))
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "alpha" "Alpha skill" "Alpha content")
+        (greger-plugin-test--create-skill "beta" "Beta skill" "Beta content")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (let ((skills (greger-skill-list)))
+            (should (member "alpha" skills))
+            (should (member "beta" skills)))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
-        ;; Execute first tool
-        (let ((result nil) (error nil))
-          (greger-tools-execute :tool-name "test-tool-1"
-                                :args '((message . "hello"))
-                                :callback (lambda (r e) (setq result r error e)))
-          (should (equal "echo: hello" result))
-          (should (null error)))
-
-        ;; Execute second tool
-        (let ((result nil) (error nil))
-          (greger-tools-execute :tool-name "test-tool-2"
-                                :args '((a . 5) (b . 3))
-                                :callback (lambda (r e) (setq result r error e)))
-          (should (equal 8 result))
-          (should (null error))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-plugin-tool-with-optional-params ()
-  "Test that plugin tools work with optional parameters."
+(ert-deftest greger-skill-test-skill-list-with-descriptions ()
+  "Test greger-skill-list-with-descriptions formats correctly."
   (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-3"
-             :description "Greet tool"
-             :properties ((name . ((type . "string") (description . "Name")))
-                          (greeting . ((type . "string") (description . "Greeting") (default . nil))))
-             :required ("name")
-             :function greger-plugin-test--greet)))
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "my-skill" "Does something useful" "Content")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (let ((listing (greger-skill-list-with-descriptions)))
+            (should (string-match-p "my-skill" listing))
+            (should (string-match-p "Does something useful" listing)))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
-        ;; With only required param
-        (let ((result nil) (error nil))
-          (greger-tools-execute :tool-name "test-tool-3"
-                                :args '((name . "World"))
-                                :callback (lambda (r e) (setq result r error e)))
-          (should (equal "Hello, World!" result))
-          (should (null error)))
+;; Skill loading tests
 
-        ;; With optional param
-        (let ((result nil) (error nil))
-          (greger-tools-execute :tool-name "test-tool-3"
-                                :args '((name . "World") (greeting . "Goodbye"))
-                                :callback (lambda (r e) (setq result r error e)))
-          (should (equal "Goodbye, World!" result))
-          (should (null error))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-plugin-with-skills-path ()
-  "Test that plugins can have a skills path."
+(ert-deftest greger-skill-test-load-skill ()
+  "Test loading a skill by name."
   (unwind-protect
-      (let ((skill-path "/tmp/test-skill.md"))
-        ;; Create a test skill file
-        (with-temp-file skill-path
-          (insert "# Test Skill\n\nThis is a test skill."))
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "loader-test" "Test loading" "# Instructions\n\nDo this.")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (let ((content (greger-skill--load "loader-test")))
+            (should (string-match-p "Skill: loader-test" content))
+            (should (string-match-p "Do this" content)))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
-        (greger-plugin 'test-plugin
-          :skills skill-path
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test tool"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
+(ert-deftest greger-skill-test-load-nonexistent-skill ()
+  "Test loading a skill that doesn't exist."
+  (greger-plugin-test--cleanup-registry)
+  (let ((content (greger-skill--load "nonexistent")))
+    (should (string-match-p "not found" content))
+    (should (string-match-p "Available skills" content))))
 
-        ;; Skill content should be retrievable
-        (let ((skill-content (greger-plugin-skill "test-plugin")))
-          (should (stringp skill-content))
-          (should (string-match-p "Test Skill" skill-content)))
+;; Skill tool registration tests
 
-        ;; Clean up skill file
-        (delete-file skill-path))
-    (greger-plugin-test--cleanup)))
+(ert-deftest greger-skill-test-skill-tool-registered ()
+  "Test that the skill tool is registered."
+  (should (gethash "skill" greger-tools-registry))
+  (should (gethash "skill-list" greger-tools-registry)))
 
-(ert-deftest greger-plugin-test-plugin-skill-nonexistent-file ()
-  "Test that greger-plugin-skill returns nil for nonexistent files."
+(ert-deftest greger-skill-test-skill-tool-execution ()
+  "Test executing the skill tool."
   (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :skills "/nonexistent/path/SKILL.md"
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test tool"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "exec-test" "Execution test" "Execute instructions")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (let ((result nil) (error nil))
+            (greger-tools-execute :tool-name "skill"
+                                  :args '((name . "exec-test"))
+                                  :callback (lambda (r e) (setq result r error e)))
+            (should (null error))
+            (should (string-match-p "Execute instructions" result)))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
-        (should (null (greger-plugin-skill "test-plugin"))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-plugin-list ()
-  "Test that greger-plugin-list returns all registered plugins."
+(ert-deftest greger-skill-test-skill-list-tool-execution ()
+  "Test executing the skill-list tool."
   (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "list-test" "List test skill" "Content")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (let ((result nil) (error nil))
+            (greger-tools-execute :tool-name "skill-list"
+                                  :args '()
+                                  :callback (lambda (r e) (setq result r error e)))
+            (should (null error))
+            (should (string-match-p "list-test" result))
+            (should (string-match-p "List test skill" result)))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
-        (greger-plugin 'test-plugin-2
-          :tools
-          ((greger-plugin-tool "test-tool-2"
-             :description "Test 2"
-             :properties ()
-             :required ()
-             :function (lambda () "test2"))))
+;; Buffer parsing tests for <skill> tags
 
-        (let ((plugins (greger-plugin-list)))
-          (should (member "test-plugin" plugins))
-          (should (member "test-plugin-2" plugins))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-plugin-exists-p ()
-  "Test greger-plugin-exists-p function."
+(ert-deftest greger-skill-test-parse-system-skill ()
+  "Test that skills in SYSTEM section apply to whole session."
   (unwind-protect
-      (progn
-        (should-not (greger-plugin-exists-p "test-plugin"))
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "system-skill" "System skill" "System content")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (with-temp-buffer
+            (insert "# SYSTEM\n\n<skill>system-skill</skill>\n\nYou are an agent.\n\n# USER\n\nHello")
+            (let* ((parsed (greger-skill-parse-buffer (current-buffer))))
+              (should (member "system-skill" (plist-get parsed :session-skills)))
+              (should (null (plist-get parsed :turn-skills)))))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
-
-        (should (greger-plugin-exists-p "test-plugin"))
-        (should-not (greger-plugin-exists-p "nonexistent-plugin")))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-plugin-quoted-name ()
-  "Test that plugin name can be quoted."
+(ert-deftest greger-skill-test-parse-user-skill ()
+  "Test that skills in USER section apply only to that turn."
   (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "user-skill" "User skill" "User content")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (with-temp-buffer
+            (insert "# SYSTEM\n\nYou are an agent.\n\n# USER\n\n<skill>user-skill</skill>\n\nHello")
+            (let* ((parsed (greger-skill-parse-buffer (current-buffer))))
+              (should (member "user-skill" (plist-get parsed :turn-skills)))
+              (should (null (plist-get parsed :session-skills)))))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
-        (should (greger-plugin-exists-p "test-plugin")))
-    (greger-plugin-test--cleanup)))
+(ert-deftest greger-skill-test-parse-user-skill-only-last-section ()
+  "Test that only skills from the LAST user section are active."
+  (with-temp-buffer
+    (insert "# SYSTEM\n\nYou are an agent.\n\n")
+    (insert "# USER\n\n<skill>first-skill</skill>\n\nFirst message\n\n")
+    (insert "# ASSISTANT\n\nResponse\n\n")
+    (insert "# USER\n\n<skill>second-skill</skill>\n\nSecond message")
+    (let* ((parsed (greger-skill-parse-buffer (current-buffer))))
+      ;; Should only have second-skill from last user section
+      (should (member "second-skill" (plist-get parsed :turn-skills)))
+      ;; Should NOT have first-skill from first user section
+      (should-not (member "first-skill" (plist-get parsed :turn-skills))))))
 
-(ert-deftest greger-plugin-test-tool-schema-generation ()
-  "Test that plugin tools generate proper schemas."
-  (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "A descriptive message"
-             :properties ((param1 . ((type . "string") (description . "First param")))
-                          (param2 . ((type . "integer") (description . "Second param") (default . 10))))
-             :required ("param1")
-             :function greger-plugin-test--echo)))
+(ert-deftest greger-skill-test-parse-both-system-and-user-skills ()
+  "Test that system and user skills are collected correctly."
+  (with-temp-buffer
+    (insert "# SYSTEM\n\n<skill>session-skill</skill>\n\nYou are an agent.\n\n")
+    (insert "# USER\n\n<skill>turn-skill</skill>\n\nHello")
+    (let* ((parsed (greger-skill-parse-buffer (current-buffer))))
+      (should (member "session-skill" (plist-get parsed :session-skills)))
+      (should (member "turn-skill" (plist-get parsed :turn-skills))))))
 
-        (let* ((schemas (greger-tools-get-schemas '("test-tool-1")))
-               (schema (car schemas)))
-          (should (equal "test-tool-1" (alist-get 'name schema)))
-          (should (equal "A descriptive message" (alist-get 'description schema)))
-          (let ((input-schema (alist-get 'input_schema schema)))
-            (should (equal "object" (alist-get 'type input-schema)))
-            (should (equal '("param1") (alist-get 'required input-schema))))))
-    (greger-plugin-test--cleanup)))
+(ert-deftest greger-skill-test-parse-multiple-skills-same-section ()
+  "Test that multiple skills in the same section all apply."
+  (with-temp-buffer
+    (insert "# SYSTEM\n\n<skill>skill-one</skill>\n<skill>skill-two</skill>\n\n# USER\n\nHello")
+    (let* ((parsed (greger-skill-parse-buffer (current-buffer))))
+      (should (member "skill-one" (plist-get parsed :session-skills)))
+      (should (member "skill-two" (plist-get parsed :session-skills))))))
 
-;; Buffer parsing tests
-
-(ert-deftest greger-plugin-test-parse-system-plugin ()
-  "Test that plugins in SYSTEM section apply to whole session."
-  (unwind-protect
-      (progn
-        ;; Register a test plugin
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
-
-        (with-temp-buffer
-          (insert "# SYSTEM\n\n<plugin>test-plugin</plugin>\n\nYou are an agent.\n\n# USER\n\nHello")
-          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
-            ;; Should have session plugins
-            (should (member "test-plugin" (plist-get parsed :session-plugins)))
-            (should (member "test-tool-1" (plist-get parsed :session-tools)))
-            ;; Should not have turn plugins
-            (should (null (plist-get parsed :turn-plugins)))
-            (should (null (plist-get parsed :turn-tools))))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-parse-user-plugin ()
-  "Test that plugins in USER section apply only to that turn."
-  (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
-
-        (with-temp-buffer
-          (insert "# SYSTEM\n\nYou are an agent.\n\n# USER\n\n<plugin>test-plugin</plugin>\n\nHello")
-          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
-            ;; Should have turn plugins
-            (should (member "test-plugin" (plist-get parsed :turn-plugins)))
-            (should (member "test-tool-1" (plist-get parsed :turn-tools)))
-            ;; Should not have session plugins
-            (should (null (plist-get parsed :session-plugins)))
-            (should (null (plist-get parsed :session-tools))))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-parse-user-plugin-only-last-section ()
-  "Test that only plugins from the LAST user section are active."
-  (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
-
-        (greger-plugin 'test-plugin-2
-          :tools
-          ((greger-plugin-tool "test-tool-2"
-             :description "Test 2"
-             :properties ()
-             :required ()
-             :function (lambda () "test2"))))
-
-        (with-temp-buffer
-          ;; First user section has test-plugin
-          ;; Second (last) user section has test-plugin-2
-          (insert "# SYSTEM\n\nYou are an agent.\n\n")
-          (insert "# USER\n\n<plugin>test-plugin</plugin>\n\nFirst message\n\n")
-          (insert "# ASSISTANT\n\nResponse\n\n")
-          (insert "# USER\n\n<plugin>test-plugin-2</plugin>\n\nSecond message")
-          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
-            ;; Should only have test-plugin-2 from last user section
-            (should (member "test-plugin-2" (plist-get parsed :turn-plugins)))
-            (should (member "test-tool-2" (plist-get parsed :turn-tools)))
-            ;; Should NOT have test-plugin from first user section
-            (should-not (member "test-plugin" (plist-get parsed :turn-plugins)))
-            (should-not (member "test-tool-1" (plist-get parsed :turn-tools))))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-parse-both-system-and-user-plugins ()
-  "Test that system and user plugins are combined correctly."
-  (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
-
-        (greger-plugin 'test-plugin-2
-          :tools
-          ((greger-plugin-tool "test-tool-2"
-             :description "Test 2"
-             :properties ()
-             :required ()
-             :function (lambda () "test2"))))
-
-        (with-temp-buffer
-          (insert "# SYSTEM\n\n<plugin>test-plugin</plugin>\n\nYou are an agent.\n\n")
-          (insert "# USER\n\n<plugin>test-plugin-2</plugin>\n\nHello")
-          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
-            ;; Should have session plugin
-            (should (member "test-plugin" (plist-get parsed :session-plugins)))
-            (should (member "test-tool-1" (plist-get parsed :session-tools)))
-            ;; Should have turn plugin
-            (should (member "test-plugin-2" (plist-get parsed :turn-plugins)))
-            (should (member "test-tool-2" (plist-get parsed :turn-tools))))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-parse-get-buffer-tools ()
-  "Test greger-plugin-get-buffer-tools combines base and plugin tools."
-  (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
-
-        (greger-plugin 'test-plugin-2
-          :tools
-          ((greger-plugin-tool "test-tool-2"
-             :description "Test 2"
-             :properties ()
-             :required ()
-             :function (lambda () "test2"))))
-
-        (with-temp-buffer
-          (insert "# SYSTEM\n\n<plugin>test-plugin</plugin>\n\n# USER\n\n<plugin>test-plugin-2</plugin>\n\nHello")
-          (let* ((base-tools '("read-file" "write-file"))
-                 (all-tools (greger-plugin-get-buffer-tools (current-buffer) base-tools)))
-            ;; Should have base tools
-            (should (member "read-file" all-tools))
-            (should (member "write-file" all-tools))
-            ;; Should have session plugin tools
-            (should (member "test-tool-1" all-tools))
-            ;; Should have turn plugin tools
-            (should (member "test-tool-2" all-tools)))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-parse-unknown-plugin-ignored ()
-  "Test that unknown plugin names are ignored."
-  (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
-
-        (with-temp-buffer
-          (insert "# SYSTEM\n\n<plugin>nonexistent-plugin</plugin>\n<plugin>test-plugin</plugin>\n\n# USER\n\nHello")
-          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
-            ;; Should only have known plugin
-            (should (equal '("test-plugin") (plist-get parsed :session-plugins)))
-            ;; Unknown plugin should be ignored, not error
-            (should-not (member "nonexistent-plugin" (plist-get parsed :session-plugins))))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-parse-multiple-plugins-same-section ()
-  "Test that multiple plugins in the same section all apply."
-  (unwind-protect
-      (progn
-        (greger-plugin 'test-plugin
-          :tools
-          ((greger-plugin-tool "test-tool-1"
-             :description "Test"
-             :properties ()
-             :required ()
-             :function (lambda () "test"))))
-
-        (greger-plugin 'test-plugin-2
-          :tools
-          ((greger-plugin-tool "test-tool-2"
-             :description "Test 2"
-             :properties ()
-             :required ()
-             :function (lambda () "test2"))))
-
-        (with-temp-buffer
-          (insert "# SYSTEM\n\n<plugin>test-plugin</plugin>\n<plugin>test-plugin-2</plugin>\n\n# USER\n\nHello")
-          (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
-            ;; Should have both plugins
-            (should (member "test-plugin" (plist-get parsed :session-plugins)))
-            (should (member "test-plugin-2" (plist-get parsed :session-plugins)))
-            ;; Should have both tools
-            (should (member "test-tool-1" (plist-get parsed :session-tools)))
-            (should (member "test-tool-2" (plist-get parsed :session-tools))))))
-    (greger-plugin-test--cleanup)))
-
-(ert-deftest greger-plugin-test-parse-no-plugins ()
-  "Test that buffers without plugins work correctly."
+(ert-deftest greger-skill-test-parse-no-skills ()
+  "Test that buffers without skills work correctly."
   (with-temp-buffer
     (insert "# SYSTEM\n\nYou are an agent.\n\n# USER\n\nHello")
-    (let* ((parsed (greger-plugin-parse-buffer-plugins (current-buffer))))
-      (should (null (plist-get parsed :session-plugins)))
-      (should (null (plist-get parsed :turn-plugins)))
-      (should (null (plist-get parsed :session-tools)))
-      (should (null (plist-get parsed :turn-tools))))))
+    (let* ((parsed (greger-skill-parse-buffer (current-buffer))))
+      (should (null (plist-get parsed :session-skills)))
+      (should (null (plist-get parsed :turn-skills))))))
+
+(ert-deftest greger-skill-test-parse-file-path-skill ()
+  "Test that file paths work as skill references."
+  (let ((skill-file (make-temp-file "test-skill" nil ".md")))
+    (unwind-protect
+        (progn
+          (with-temp-file skill-file
+            (insert "# Direct File Skill\n\nThis is loaded from a file path."))
+          (with-temp-buffer
+            (insert (format "# SYSTEM\n\n<skill>%s</skill>\n\n# USER\n\nHello" skill-file))
+            (let* ((parsed (greger-skill-parse-buffer (current-buffer))))
+              (should (member skill-file (plist-get parsed :session-skills))))))
+      (delete-file skill-file))))
+
+(ert-deftest greger-skill-test-load-from-file-path ()
+  "Test loading a skill directly from a file path."
+  (let ((skill-file (make-temp-file "test-skill" nil ".md")))
+    (unwind-protect
+        (progn
+          (with-temp-file skill-file
+            (insert "# Direct File Skill\n\nLoad me directly."))
+          (let ((content (greger-skill-load-from-ref skill-file)))
+            (should (string-match-p "Load me directly" content))))
+      (delete-file skill-file))))
+
+(ert-deftest greger-skill-test-get-buffer-skills-content ()
+  "Test getting combined skill content for a buffer."
+  (unwind-protect
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "content-test" "Content test" "Skill content here")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (with-temp-buffer
+            (insert "# SYSTEM\n\n<skill>content-test</skill>\n\n# USER\n\nHello")
+            (let ((content (greger-skill-get-buffer-skills-content (current-buffer))))
+              (should (stringp content))
+              (should (string-match-p "Skill content here" content))))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
+
+(ert-deftest greger-skill-test-get-buffer-skills-content-empty ()
+  "Test that buffers without skills return nil."
+  (with-temp-buffer
+    (insert "# SYSTEM\n\nYou are an agent.\n\n# USER\n\nHello")
+    (should (null (greger-skill-get-buffer-skills-content (current-buffer))))))
 
 (provide 'greger-plugin-test)
 
