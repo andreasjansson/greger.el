@@ -162,12 +162,13 @@ Skills can be referenced by:
 
 (defun greger-skill--register-from-ref (ref)
   "Register a skill from REF.
-REF can be a skill name (already in registry) or a file path."
+REF can be a skill name (already in registry) or a file path.
+Throws an error if the skill cannot be found or is invalid."
   (cond
    ;; Already in registry - nothing to do
    ((greger-skill-exists-p ref)
     nil)
-   ;; File path to SKILL.md
+   ;; File path to .md file
    ((and (file-exists-p ref)
          (file-regular-p ref)
          (string-suffix-p ".md" ref))
@@ -176,10 +177,18 @@ REF can be a skill name (already in registry) or a file path."
    ((and (file-exists-p ref)
          (file-directory-p ref))
     (let ((skill-file (expand-file-name "SKILL.md" ref)))
-      (when (file-exists-p skill-file)
-        (greger-skill--register-from-file skill-file))))
-   ;; Not found - ignore silently (model will get error when trying to load)
-   (t nil)))
+      (if (file-exists-p skill-file)
+          (greger-skill--register-from-file skill-file)
+        (error "Skill directory '%s' does not contain SKILL.md" ref))))
+   ;; File path that doesn't exist
+   ((or (string-suffix-p ".md" ref)
+        (string-prefix-p "/" ref)
+        (string-prefix-p "~" ref)
+        (string-prefix-p "./" ref))
+    (error "Skill file not found: %s" ref))
+   ;; Skill name not in registry
+   (t
+    (error "Skill '%s' not found. Run greger-skill-discover or check your .claude/skills directory" ref))))
 
 ;; Skill tool - allows model to load skills
 
