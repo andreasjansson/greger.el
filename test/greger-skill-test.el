@@ -9,8 +9,10 @@
   "Temporary directory for test skills.")
 
 (defun greger-skill-test--setup-temp-dir ()
-  "Create temporary directory for test skills."
+  "Create temporary directory with .claude/skills structure for testing."
   (setq greger-skill-test--temp-dir (make-temp-file "greger-skills-test" t))
+  ;; Create .claude/skills structure
+  (make-directory (expand-file-name ".claude/skills" greger-skill-test--temp-dir) t)
   greger-skill-test--temp-dir)
 
 (defun greger-skill-test--cleanup-temp-dir ()
@@ -21,8 +23,8 @@
     (setq greger-skill-test--temp-dir nil)))
 
 (defun greger-skill-test--create-skill (name description content)
-  "Create a test skill with NAME, DESCRIPTION, and CONTENT."
-  (let ((skill-dir (expand-file-name name greger-skill-test--temp-dir)))
+  "Create a test skill with NAME, DESCRIPTION, and CONTENT in .claude/skills."
+  (let ((skill-dir (expand-file-name (concat ".claude/skills/" name) greger-skill-test--temp-dir)))
     (make-directory skill-dir t)
     (with-temp-file (expand-file-name "SKILL.md" skill-dir)
       (insert "---\n")
@@ -39,11 +41,11 @@
 ;; Skill discovery tests
 
 (ert-deftest greger-skill-test-discover-skills ()
-  "Test that skills are discovered from directories."
+  "Test that skills are discovered from .claude/skills directories."
   (unwind-protect
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "test-skill" "A test skill" "# Test\n\nDo the thing.")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           (should (greger-skill-exists-p "test-skill"))
           (let ((skill (greger-skill-get "test-skill")))
@@ -59,7 +61,7 @@
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "skill-one" "First skill" "Content one")
         (greger-skill-test--create-skill "skill-two" "Second skill" "Content two")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           (should (greger-skill-exists-p "skill-one"))
           (should (greger-skill-exists-p "skill-two"))
@@ -73,7 +75,7 @@
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "alpha" "Alpha skill" "Alpha content")
         (greger-skill-test--create-skill "beta" "Beta skill" "Beta content")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           (let ((skills (greger-skill-list)))
             (should (member "alpha" skills))
@@ -86,7 +88,7 @@
   (unwind-protect
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "my-skill" "Does something useful" "Content")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           (let ((listing (greger-skill-list-with-descriptions)))
             (should (string-match-p "my-skill" listing))
@@ -101,7 +103,7 @@
   (unwind-protect
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "loader-test" "Test loading" "# Instructions\n\nDo this.")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           (let ((content (greger-skill--load "loader-test")))
             ;; OpenCode format: "## Skill: {name}\n\n**Base directory**: {dir}\n\n{content}"
