@@ -239,7 +239,7 @@
   (unwind-protect
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "dynamic-skill" "Dynamic skill" "Dynamic content")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           ;; Check that skill appears in schema
           (let* ((schema (greger-skill--get-tool-schema))
