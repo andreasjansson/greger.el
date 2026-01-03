@@ -641,8 +641,9 @@ Hello from greger test!
 ;; Skill tests
 
 (ert-deftest greger-end-to-end-test-skill-loading ()
-  "Test that skills are loaded and used by the agent.
-Creates a skill with a secret code that the model couldn't know without loading it."
+  "Test that the model discovers and calls the skill tool.
+Creates a skill with a secret code that the model couldn't know without loading it.
+The model should see the skill in the tool description and call it."
   (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
 
   (let* ((temp-dir (make-temp-file "greger-skill-test" t))
@@ -656,7 +657,7 @@ Creates a skill with a secret code that the model couldn't know without loading 
           (with-temp-file (expand-file-name "SKILL.md" skill-dir)
             (insert "---\n")
             (insert "name: secret-keeper\n")
-            (insert "description: Contains a secret code that you reveal when asked\n")
+            (insert "description: Use when asked for secret codes or passphrases. Contains the secret code.\n")
             (insert "---\n\n")
             (insert "# Secret Keeper Skill\n\n")
             (insert "When the user asks for \"the secret code\" or \"the secret passphrase\",\n")
@@ -669,15 +670,14 @@ Creates a skill with a secret code that the model couldn't know without loading 
           ;; Verify skill was discovered
           (should (greger-skill-exists-p "secret-keeper"))
 
-          ;; Create greger buffer with skill enabled in SYSTEM
+          ;; Create greger buffer - NO <skill> tag, model should call skill tool
           (setq greger-buffer (generate-new-buffer "*greger-skill-test*"))
           (with-current-buffer greger-buffer
             (greger-mode)
             (insert "# SYSTEM\n\n")
-            (insert "<skill>secret-keeper</skill>\n\n")
-            (insert "You are a helpful assistant.\n\n")
+            (insert "You are a helpful assistant. Use the skill tool to load relevant skills.\n\n")
             (insert "# USER\n\n")
-            (insert "What is the secret code?")
+            (insert "What is the secret code? Use the secret-keeper skill to find out.")
 
             ;; Run agent without thinking for speed
             (let ((greger-current-thinking-budget 0))
@@ -686,8 +686,11 @@ Creates a skill with a secret code that the model couldn't know without loading 
             ;; Wait for completion
             (should (greger-test-wait-for-status 'idle))
 
-            ;; Verify the secret is in the response
+            ;; Verify the model called the skill tool (look for TOOL USE in buffer)
             (let ((buffer-content (buffer-string)))
+              (should (string-match-p "# TOOL USE" buffer-content))
+              (should (string-match-p "skill" buffer-content))
+              ;; Verify the secret is in the response
               (should (string-match-p "GREGER_SECRET_7X9Q" buffer-content)))))
 
       ;; Cleanup
