@@ -125,23 +125,44 @@ Returns alist of key-value pairs.  Moves point past frontmatter."
             name
             (greger-skill-list-with-descriptions))))
 
-(defun greger-skill--list-available ()
-  "List all available skills."
-  (greger-skill-list-with-descriptions))
+(defun greger-skill--build-description ()
+  "Build the skill tool description with available skills list."
+  (let ((base-description "Load a skill to get specialized instructions for a task. Skills provide domain-specific knowledge and workflows.
+
+<skills_instructions>
+When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge. Invoke a skill by calling this tool with the skill name.
+</skills_instructions>
+
+<available_skills>
+")
+        (skills-list (let ((skills '()))
+                       (maphash (lambda (name skill)
+                                  (push (format "<skill>\n<name>%s</name>\n<description>%s</description>\n</skill>"
+                                                name
+                                                (greger-skill-description skill))
+                                        skills))
+                                greger-skill-registry)
+                       (if skills
+                           (string-join (sort skills #'string<) "\n")
+                         "<no_skills_available/>"))))
+    (concat base-description skills-list "\n</available_skills>")))
+
+(defun greger-skill--get-tool-schema ()
+  "Get the skill tool schema with dynamic description."
+  `((name . "skill")
+    (description . ,(greger-skill--build-description))
+    (input_schema . ((type . "object")
+                     (properties . ((name . ((type . "string")
+                                             (description . "Name of the skill to load")))))
+                     (required . ("name"))))))
 
 ;; Register the skill tool
 (greger-register-tool "skill"
-  :description "Load a skill to get specialized instructions for a task. Skills provide domain-specific knowledge and workflows. Use skill-list to see available skills first."
+  :description "Load a skill to get specialized instructions for a task."
   :properties '((name . ((type . "string")
                          (description . "Name of the skill to load"))))
   :required '("name")
   :function #'greger-skill--load)
-
-(greger-register-tool "skill-list"
-  :description "List all available skills with their descriptions. Use this to discover what skills are available before loading one."
-  :properties '()
-  :required '()
-  :function #'greger-skill--list-available)
 
 ;; Buffer parsing for <skill> and <skill-disable> tags
 
