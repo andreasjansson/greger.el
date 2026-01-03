@@ -249,6 +249,72 @@
     (greger-skill-test--cleanup-temp-dir)
     (greger-skill-test--cleanup-registry)))
 
+;; Error handling tests
+
+(ert-deftest greger-skill-test-error-skill-not-found ()
+  "Test that referencing a nonexistent skill throws an error."
+  (greger-skill-test--cleanup-registry)
+  (should-error (greger-skill--register-from-ref "nonexistent-skill")
+                :type 'error))
+
+(ert-deftest greger-skill-test-error-file-not-found ()
+  "Test that referencing a nonexistent file throws an error."
+  (greger-skill-test--cleanup-registry)
+  (should-error (greger-skill--register-from-ref "/tmp/nonexistent-skill.md")
+                :type 'error))
+
+(ert-deftest greger-skill-test-error-missing-frontmatter ()
+  "Test that a skill file without frontmatter throws an error."
+  (let ((skill-file (make-temp-file "test-skill" nil ".md")))
+    (unwind-protect
+        (progn
+          (with-temp-file skill-file
+            (insert "# No Frontmatter\n\nJust content, no YAML."))
+          (greger-skill-test--cleanup-registry)
+          (should-error (greger-skill--register-from-ref skill-file)
+                        :type 'error))
+      (delete-file skill-file))))
+
+(ert-deftest greger-skill-test-error-missing-name ()
+  "Test that a skill file without name in frontmatter throws an error."
+  (let ((skill-file (make-temp-file "test-skill" nil ".md")))
+    (unwind-protect
+        (progn
+          (with-temp-file skill-file
+            (insert "---\n")
+            (insert "description: Has description but no name\n")
+            (insert "---\n\n")
+            (insert "Content here"))
+          (greger-skill-test--cleanup-registry)
+          (should-error (greger-skill--register-from-ref skill-file)
+                        :type 'error))
+      (delete-file skill-file))))
+
+(ert-deftest greger-skill-test-error-missing-description ()
+  "Test that a skill file without description in frontmatter throws an error."
+  (let ((skill-file (make-temp-file "test-skill" nil ".md")))
+    (unwind-protect
+        (progn
+          (with-temp-file skill-file
+            (insert "---\n")
+            (insert "name: has-name-no-desc\n")
+            (insert "---\n\n")
+            (insert "Content here"))
+          (greger-skill-test--cleanup-registry)
+          (should-error (greger-skill--register-from-ref skill-file)
+                        :type 'error))
+      (delete-file skill-file))))
+
+(ert-deftest greger-skill-test-error-directory-without-skill-md ()
+  "Test that referencing a directory without SKILL.md throws an error."
+  (let ((temp-dir (make-temp-file "test-skill-dir" t)))
+    (unwind-protect
+        (progn
+          (greger-skill-test--cleanup-registry)
+          (should-error (greger-skill--register-from-ref temp-dir)
+                        :type 'error))
+      (delete-directory temp-dir t))))
+
 (provide 'greger-skill-test)
 
 ;;; greger-skill-test.el ends here
