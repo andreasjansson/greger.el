@@ -872,12 +872,11 @@ Uses tree-sitter to find the last node and applies heuristics:
   "Run the main agent loop with STATE."
   (let* ((provider (greger-state-provider state))
          (chat-buffer (greger-state-chat-buffer state))
+         (_ (greger-skill-register-from-buffer chat-buffer))
          (tools (greger-tools-get-schemas greger-tools))
          (server-tools (when greger-server-tools
                          (greger-server-tools-get-schemas greger-server-tools)))
-         (dialog (greger--inject-skills-into-dialog
-                  (greger-parser-markdown-buffer-to-dialog chat-buffer)
-                  chat-buffer))
+         (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
          (tool-use-metadata (greger-state-tool-use-metadata state))
          (current-iteration (greger-state-current-iteration state))
@@ -920,19 +919,6 @@ Uses tree-sitter to find the last node and applies heuristics:
 If TEXT ends with more than two consecutive newlines, remove all but the
 first two."
   (replace-regexp-in-string "\n\n\n+\\'" "\n\n" text))
-
-(defun greger--inject-skills-into-dialog (dialog buffer)
-  "Inject skill content from BUFFER into DIALOG.
-Skills declared with <skill> tags are loaded and appended to the system message."
-  (when-let* ((skill-content (greger-skill-get-buffer-skills-content buffer)))
-    (let ((system-entry (car (seq-filter (lambda (entry)
-                                           (string= (alist-get 'role entry) "system"))
-                                         dialog))))
-      (when system-entry
-        (let ((current-content (alist-get 'content system-entry)))
-          (setf (alist-get 'content system-entry)
-                (concat current-content "\n\n# Loaded Skills\n\n" skill-content))))))
-  dialog)
 
 (defun greger--force-code-close (state)
   (with-current-buffer (greger-state-chat-buffer state)
