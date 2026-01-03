@@ -640,9 +640,10 @@ Hello from greger test!
 
 ;; Skill tests
 
-(ert-deftest greger-end-to-end-test-skill-loading ()
-  "Test that skills are loaded and used by the agent.
-Creates a skill with a secret code that the model couldn't know without loading it."
+(ert-deftest greger-end-to-end-test-skill-tool-loading ()
+  "Test that the model discovers and calls the skill tool to load skills.
+Creates a skill with a secret code that the model couldn't know without loading it.
+The model should see the skill in the tool description and call it."
   (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
 
   (let* ((temp-dir (make-temp-file "greger-skill-test" t))
@@ -656,28 +657,28 @@ Creates a skill with a secret code that the model couldn't know without loading 
           (with-temp-file (expand-file-name "SKILL.md" skill-dir)
             (insert "---\n")
             (insert "name: secret-keeper\n")
-            (insert "description: Contains a secret code that you reveal when asked\n")
+            (insert "description: Use this skill when asked for secret codes or passphrases\n")
             (insert "---\n\n")
             (insert "# Secret Keeper Skill\n\n")
             (insert "When the user asks for \"the secret code\" or \"the secret passphrase\",\n")
             (insert "respond with exactly this text and nothing else: GREGER_SECRET_7X9Q\n"))
 
-          ;; Set up skill directories and discover
+          ;; Set up skill directories and discover base skills
           (setq greger-skill-directories (list temp-dir))
           (greger-skill-discover)
 
           ;; Verify skill was discovered
           (should (greger-skill-exists-p "secret-keeper"))
 
-          ;; Create greger buffer with skill enabled in SYSTEM
+          ;; Create greger buffer with skill tag (adds to registry for this session)
           (setq greger-buffer (generate-new-buffer "*greger-skill-test*"))
           (with-current-buffer greger-buffer
             (greger-mode)
             (insert "# SYSTEM\n\n")
             (insert "<skill>secret-keeper</skill>\n\n")
-            (insert "You are a helpful assistant.\n\n")
+            (insert "You are a helpful assistant. Use the skill tool to load skills when relevant.\n\n")
             (insert "# USER\n\n")
-            (insert "What is the secret code?")
+            (insert "What is the secret code? Load the secret-keeper skill to find out.")
 
             ;; Run agent without thinking for speed
             (let ((greger-current-thinking-budget 0))
@@ -686,8 +687,11 @@ Creates a skill with a secret code that the model couldn't know without loading 
             ;; Wait for completion
             (should (greger-test-wait-for-status 'idle))
 
-            ;; Verify the secret is in the response
+            ;; Verify the model called the skill tool
             (let ((buffer-content (buffer-string)))
+              (should (string-match-p "# TOOL USE" buffer-content))
+              (should (string-match-p "Name: skill" buffer-content))
+              ;; Verify the secret is in the response
               (should (string-match-p "GREGER_SECRET_7X9Q" buffer-content)))))
 
       ;; Cleanup
@@ -697,40 +701,64 @@ Creates a skill with a secret code that the model couldn't know without loading 
       (when (file-directory-p temp-dir)
         (delete-directory temp-dir t)))))
 
-(ert-deftest greger-end-to-end-test-skill-in-user-section ()
-  "Test that skills in USER section work for that turn only."
+(ert-deftest greger-end-to-end-test-skill-selects-correct-from-multiple ()
+  "Test that the model selects and loads the correct skill from multiple options.
+Creates three skills with different secrets and verifies the model loads the right one."
   (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
 
   (let* ((temp-dir (make-temp-file "greger-skill-test" t))
-         (skill-dir (expand-file-name "user-secret" temp-dir))
          (greger-buffer nil)
          (original-skill-dirs greger-skill-directories))
     (unwind-protect
         (progn
-          ;; Create skill directory and SKILL.md
-          (make-directory skill-dir t)
-          (with-temp-file (expand-file-name "SKILL.md" skill-dir)
-            (insert "---\n")
-            (insert "name: user-secret\n")
-            (insert "description: A secret only for this turn\n")
-            (insert "---\n\n")
-            (insert "# User Secret Skill\n\n")
-            (insert "The magic word is: ABRACADABRA_42\n")
-            (insert "When asked for the magic word, respond with exactly: ABRACADABRA_42\n"))
+          ;; Create three skills with different purposes
+          (let ((skill-dir (expand-file-name "color-codes" temp-dir)))
+            (make-directory skill-dir t)
+            (with-temp-file (expand-file-name "SKILL.md" skill-dir)
+              (insert "---\n")
+              (insert "name: color-codes\n")
+              (insert "description: Use when asked about color codes or hex values\n")
+              (insert "---\n\n")
+              (insert "The special color code is: #FF5733_COLOR\n")))
 
-          ;; Set up skill directories and discover
+          (let ((skill-dir (expand-file-name "math-secrets" temp-dir)))
+            (make-directory skill-dir t)
+            (with-temp-file (expand-file-name "SKILL.md" skill-dir)
+              (insert "---\n")
+              (insert "name: math-secrets\n")
+              (insert "description: Use when asked about mathematical secrets or special numbers\n")
+              (insert "---\n\n")
+              (insert "The special number is: 42_MATH_SECRET\n")))
+
+          (let ((skill-dir (expand-file-name "password-vault" temp-dir)))
+            (make-directory skill-dir t)
+            (with-temp-file (expand-file-name "SKILL.md" skill-dir)
+              (insert "---\n")
+              (insert "name: password-vault\n")
+              (insert "description: Use when asked about passwords or access codes\n")
+              (insert "---\n\n")
+              (insert "The vault password is: VAULT_PASS_XYZ\n")))
+
+          ;; Discover skills
           (setq greger-skill-directories (list temp-dir))
           (greger-skill-discover)
 
-          ;; Create greger buffer with skill in USER section
-          (setq greger-buffer (generate-new-buffer "*greger-skill-user-test*"))
+          ;; Verify all skills were discovered
+          (should (greger-skill-exists-p "color-codes"))
+          (should (greger-skill-exists-p "math-secrets"))
+          (should (greger-skill-exists-p "password-vault"))
+
+          ;; Test: Ask for the math secret - model should load math-secrets skill
+          (setq greger-buffer (generate-new-buffer "*greger-skill-multi-test*"))
           (with-current-buffer greger-buffer
             (greger-mode)
             (insert "# SYSTEM\n\n")
-            (insert "You are a helpful assistant.\n\n")
+            (insert "<skill>color-codes</skill>\n")
+            (insert "<skill>math-secrets</skill>\n")
+            (insert "<skill>password-vault</skill>\n\n")
+            (insert "You are a helpful assistant. Use the skill tool to load skills when needed.\n\n")
             (insert "# USER\n\n")
-            (insert "<skill>user-secret</skill>\n\n")
-            (insert "What is the magic word?")
+            (insert "What is the special mathematical secret number?")
 
             ;; Run agent
             (let ((greger-current-thinking-budget 0))
@@ -739,9 +767,18 @@ Creates a skill with a secret code that the model couldn't know without loading 
             ;; Wait for completion
             (should (greger-test-wait-for-status 'idle))
 
-            ;; Verify the magic word is in the response
+            ;; Verify the model loaded the correct skill and got the right answer
             (let ((buffer-content (buffer-string)))
-              (should (string-match-p "ABRACADABRA_42" buffer-content)))))
+              ;; Should have called the skill tool
+              (should (string-match-p "# TOOL USE" buffer-content))
+              (should (string-match-p "Name: skill" buffer-content))
+              ;; Should have loaded math-secrets
+              (should (string-match-p "math-secrets" buffer-content))
+              ;; Should contain the math secret
+              (should (string-match-p "42_MATH_SECRET" buffer-content))
+              ;; Should NOT contain the other secrets (didn't load those skills)
+              (should-not (string-match-p "#FF5733_COLOR" buffer-content))
+              (should-not (string-match-p "VAULT_PASS_XYZ" buffer-content)))))
 
       ;; Cleanup
       (setq greger-skill-directories original-skill-dirs)
@@ -750,262 +787,55 @@ Creates a skill with a secret code that the model couldn't know without loading 
       (when (file-directory-p temp-dir)
         (delete-directory temp-dir t)))))
 
-(defun greger-test-count-matches (regexp string)
-  "Count occurrences of REGEXP in STRING."
-  (with-temp-buffer
-    (insert string)
-    (goto-char (point-min))
-    (let ((count 0))
-      (while (re-search-forward regexp nil t)
-        (setq count (1+ count)))
-      count)))
-
-(ert-deftest greger-end-to-end-test-skill-session-persists ()
-  "Test that session skills (in SYSTEM) persist across multiple turns."
+(ert-deftest greger-end-to-end-test-skill-from-file-path ()
+  "Test that skills can be loaded from file paths via <skill> tags."
   (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
 
-  (let* ((temp-dir (make-temp-file "greger-skill-test" t))
-         (skill-dir (expand-file-name "persistent-secret" temp-dir))
+  (let* ((skill-file (make-temp-file "greger-skill" nil ".md"))
          (greger-buffer nil)
          (original-skill-dirs greger-skill-directories))
     (unwind-protect
         (progn
-          ;; Create skill
-          (make-directory skill-dir t)
-          (with-temp-file (expand-file-name "SKILL.md" skill-dir)
+          ;; Create a skill file directly (not in a skill directory)
+          (with-temp-file skill-file
             (insert "---\n")
-            (insert "name: persistent-secret\n")
-            (insert "description: A persistent secret\n")
+            (insert "name: inline-secret\n")
+            (insert "description: A secret from an inline file path\n")
             (insert "---\n\n")
-            (insert "The persistent code is: PERSIST_CODE_999\n")
-            (insert "When asked for the persistent code, respond with exactly: PERSIST_CODE_999\n"))
+            (insert "The inline file secret is: INLINE_FILE_SECRET_999\n"))
 
-          (setq greger-skill-directories (list temp-dir))
+          ;; Clear skill directories so only file-path skill is available
+          (setq greger-skill-directories nil)
           (greger-skill-discover)
 
-          ;; Create buffer with skill in SYSTEM
-          (setq greger-buffer (generate-new-buffer "*greger-skill-persist-test*"))
+          ;; Create greger buffer with skill from file path
+          (setq greger-buffer (generate-new-buffer "*greger-skill-file-test*"))
           (with-current-buffer greger-buffer
             (greger-mode)
             (insert "# SYSTEM\n\n")
-            (insert "<skill>persistent-secret</skill>\n\n")
-            (insert "You are a helpful assistant.\n\n")
+            (insert (format "<skill>%s</skill>\n\n" skill-file))
+            (insert "You are a helpful assistant. Use the skill tool to load skills.\n\n")
             (insert "# USER\n\n")
-            (insert "What is the persistent code?")
+            (insert "Load the inline-secret skill and tell me the secret.")
 
-            ;; First turn
+            ;; Run agent
             (let ((greger-current-thinking-budget 0))
               (greger-buffer))
+
+            ;; Wait for completion
             (should (greger-test-wait-for-status 'idle))
 
-            ;; Verify first response has the code
-            (should (string-match-p "PERSIST_CODE_999" (buffer-string)))
-
-            ;; Add second turn (no skill tag - should still work from SYSTEM)
-            (goto-char (point-max))
-            (insert "Tell me the persistent code again.")
-
-            ;; Second turn
-            (let ((greger-current-thinking-budget 0))
-              (greger-buffer))
-            (should (greger-test-wait-for-status 'idle))
-
-            ;; Count occurrences - should appear at least twice (once per turn)
-            (let ((content (buffer-string)))
-              (should (>= (greger-test-count-matches "PERSIST_CODE_999" content) 2)))))
+            ;; Verify the secret is in the response
+            (let ((buffer-content (buffer-string)))
+              (should (string-match-p "INLINE_FILE_SECRET_999" buffer-content)))))
 
       ;; Cleanup
       (setq greger-skill-directories original-skill-dirs)
       (when (buffer-live-p greger-buffer)
         (kill-buffer greger-buffer))
-      (when (file-directory-p temp-dir)
-        (delete-directory temp-dir t)))))
+      (when (file-exists-p skill-file)
+        (delete-file skill-file)))))
 
-(ert-deftest greger-end-to-end-test-skill-turn-does-not-persist ()
-  "Test that turn skills (in USER) do NOT persist to the next turn."
-  (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
+(provide 'greger-end-to-end-test)
 
-  (let* ((temp-dir (make-temp-file "greger-skill-test" t))
-         (skill-dir (expand-file-name "ephemeral-secret" temp-dir))
-         (greger-buffer nil)
-         (original-skill-dirs greger-skill-directories))
-    (unwind-protect
-        (progn
-          ;; Create skill with a very specific secret
-          (make-directory skill-dir t)
-          (with-temp-file (expand-file-name "SKILL.md" skill-dir)
-            (insert "---\n")
-            (insert "name: ephemeral-secret\n")
-            (insert "description: An ephemeral secret\n")
-            (insert "---\n\n")
-            (insert "The ephemeral code is: EPHEMERAL_XYZ_123\n")
-            (insert "When asked for the ephemeral code, respond with exactly: EPHEMERAL_XYZ_123\n"))
-
-          (setq greger-skill-directories (list temp-dir))
-          (greger-skill-discover)
-
-          ;; Create buffer with skill in first USER section
-          (setq greger-buffer (generate-new-buffer "*greger-skill-ephemeral-test*"))
-          (with-current-buffer greger-buffer
-            (greger-mode)
-            (insert "# SYSTEM\n\n")
-            (insert "You are a helpful assistant. If you don't know something, say 'I don't know'.\n\n")
-            (insert "# USER\n\n")
-            (insert "<skill>ephemeral-secret</skill>\n\n")
-            (insert "What is the ephemeral code?")
-
-            ;; First turn - should know the code
-            (let ((greger-current-thinking-budget 0))
-              (greger-buffer))
-            (should (greger-test-wait-for-status 'idle))
-            (should (string-match-p "EPHEMERAL_XYZ_123" (buffer-string)))
-
-            ;; Second turn WITHOUT the skill tag
-            (goto-char (point-max))
-            (insert "What was the ephemeral code again? If you don't remember it exactly, say 'I don't remember'.")
-
-            (let ((greger-current-thinking-budget 0))
-              (greger-buffer))
-            (should (greger-test-wait-for-status 'idle))
-
-            ;; The second response should NOT contain the exact code
-            ;; (model might remember from context but skill isn't loaded)
-            ;; We check that the skill content isn't re-injected by verifying
-            ;; there's only one occurrence of the code (from first turn)
-            (let* ((content (buffer-string))
-                   (count (greger-test-count-matches "EPHEMERAL_XYZ_123" content)))
-              ;; Should be exactly 1 (from first turn only) or 2 if model remembers
-              ;; The key is the skill wasn't re-loaded for turn 2
-              (should (<= count 2)))))
-
-      ;; Cleanup
-      (setq greger-skill-directories original-skill-dirs)
-      (when (buffer-live-p greger-buffer)
-        (kill-buffer greger-buffer))
-      (when (file-directory-p temp-dir)
-        (delete-directory temp-dir t)))))
-
-(ert-deftest greger-end-to-end-test-skill-disable ()
-  "Test that skill-disable prevents a session skill from being loaded."
-  (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
-
-  (let* ((temp-dir (make-temp-file "greger-skill-test" t))
-         (skill-dir (expand-file-name "disable-test" temp-dir))
-         (greger-buffer nil)
-         (original-skill-dirs greger-skill-directories))
-    (unwind-protect
-        (progn
-          ;; Create skill
-          (make-directory skill-dir t)
-          (with-temp-file (expand-file-name "SKILL.md" skill-dir)
-            (insert "---\n")
-            (insert "name: disable-test\n")
-            (insert "description: A skill to test disabling\n")
-            (insert "---\n\n")
-            (insert "The disable-test code is: DISABLE_TEST_777\n")
-            (insert "When asked for the disable-test code, respond with exactly: DISABLE_TEST_777\n"))
-
-          (setq greger-skill-directories (list temp-dir))
-          (greger-skill-discover)
-
-          ;; Create buffer with skill in SYSTEM but disabled in USER
-          (setq greger-buffer (generate-new-buffer "*greger-skill-disable-test*"))
-          (with-current-buffer greger-buffer
-            (greger-mode)
-            (insert "# SYSTEM\n\n")
-            (insert "<skill>disable-test</skill>\n\n")
-            (insert "You are a helpful assistant. If you don't know a code, say 'I don't know that code'.\n\n")
-            (insert "# USER\n\n")
-            (insert "<skill-disable>disable-test</skill-disable>\n\n")
-            (insert "What is the disable-test code?")
-
-            ;; Run with skill disabled
-            (let ((greger-current-thinking-budget 0))
-              (greger-buffer))
-            (should (greger-test-wait-for-status 'idle))
-
-            ;; The response should NOT contain the code because skill was disabled
-            (let ((content (buffer-string)))
-              (should-not (string-match-p "DISABLE_TEST_777" content)))))
-
-      ;; Cleanup
-      (setq greger-skill-directories original-skill-dirs)
-      (when (buffer-live-p greger-buffer)
-        (kill-buffer greger-buffer))
-      (when (file-directory-p temp-dir)
-        (delete-directory temp-dir t)))))
-
-(ert-deftest greger-end-to-end-test-skill-disable-then-reenable ()
-  "Test that a disabled skill can be used again in the next turn.
-When skill is disabled in USER section 1, then USER section 2 has no disable,
-the skill should work in turn 2."
-  (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
-
-  (let* ((temp-dir (make-temp-file "greger-skill-test" t))
-         (skill-dir (expand-file-name "toggle-skill" temp-dir))
-         (greger-buffer nil)
-         (greger-buffer-2 nil)
-         (original-skill-dirs greger-skill-directories))
-    (unwind-protect
-        (progn
-          ;; Create skill
-          (make-directory skill-dir t)
-          (with-temp-file (expand-file-name "SKILL.md" skill-dir)
-            (insert "---\n")
-            (insert "name: toggle-skill\n")
-            (insert "description: A skill to test toggling\n")
-            (insert "---\n\n")
-            (insert "The toggle code is: TOGGLE_ABC_456\n")
-            (insert "When asked for the toggle code, respond with exactly: TOGGLE_ABC_456\n"))
-
-          (setq greger-skill-directories (list temp-dir))
-          (greger-skill-discover)
-
-          ;; Test 1: Verify skill is disabled correctly when <skill-disable> is present
-          (setq greger-buffer (generate-new-buffer "*greger-skill-toggle-test*"))
-          (with-current-buffer greger-buffer
-            (greger-mode)
-            (insert "# SYSTEM\n\n")
-            (insert "<skill>toggle-skill</skill>\n\n")
-            (insert "You are a helpful assistant. If you don't know a code, say 'unknown'.\n\n")
-            (insert "# USER\n\n")
-            (insert "<skill-disable>toggle-skill</skill-disable>\n\n")
-            (insert "What is the toggle code?")
-
-            (let ((greger-current-thinking-budget 0))
-              (greger-buffer))
-            (should (greger-test-wait-for-status 'idle))
-
-            ;; Response should NOT have the code (skill is disabled)
-            (should-not (string-match-p "TOGGLE_ABC_456" (buffer-string))))
-
-          ;; Test 2: Verify skill works when NOT disabled (in a fresh buffer)
-          (setq greger-buffer-2 (generate-new-buffer "*greger-skill-toggle-test-2*"))
-          (with-current-buffer greger-buffer-2
-            (greger-mode)
-            (insert "# SYSTEM\n\n")
-            (insert "<skill>toggle-skill</skill>\n\n")
-            (insert "You are a helpful assistant.\n\n")
-            (insert "# USER\n\n")
-            ;; NO skill-disable here - skill should be active
-            (insert "What is the toggle code?")
-
-            (let ((greger-current-thinking-budget 0))
-              (greger-buffer))
-            (should (greger-test-wait-for-status 'idle))
-
-            ;; Response SHOULD have the code (skill not disabled)
-            (should (string-match-p "TOGGLE_ABC_456" (buffer-string)))))
-
-      ;; Cleanup
-      (setq greger-skill-directories original-skill-dirs)
-      (when (buffer-live-p greger-buffer)
-        (kill-buffer greger-buffer))
-      (when (buffer-live-p greger-buffer-2)
-        (kill-buffer greger-buffer-2))
-      (when (file-directory-p temp-dir)
-        (delete-directory temp-dir t)))))
-
-(provide 'test-end-to-end)
-
-;;; test-end-to-end.el ends here
+;;; greger-end-to-end-test.el ends here
