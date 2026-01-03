@@ -120,13 +120,27 @@
 
 (ert-deftest greger-skill-test-skill-tool-registered ()
   "Test that the skill tool is registered."
-  (should (gethash "skill" greger-tools-registry))
-  (should (gethash "skill-list" greger-tools-registry)))
+  (should (gethash "skill" greger-tools-registry)))
 
 (ert-deftest greger-skill-test-skill-tools-in-greger-tools ()
-  "Test that skill tools are in greger-tools (offered to model)."
-  (should (member "skill" greger-tools))
-  (should (member "skill-list" greger-tools)))
+  "Test that skill tool is in greger-tools (offered to model)."
+  (should (member "skill" greger-tools)))
+
+(ert-deftest greger-skill-test-skill-tool-dynamic-schema ()
+  "Test that the skill tool has a dynamic schema with available skills."
+  (unwind-protect
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "schema-test" "Schema test skill" "Content")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (let ((schema (greger-skill--get-tool-schema)))
+            (should (equal "skill" (alist-get 'name schema)))
+            (let ((description (alist-get 'description schema)))
+              (should (string-match-p "<available_skills>" description))
+              (should (string-match-p "schema-test" description))
+              (should (string-match-p "Schema test skill" description))))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
 
 (ert-deftest greger-skill-test-skill-tool-execution ()
   "Test executing the skill tool."
