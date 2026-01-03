@@ -271,6 +271,72 @@
     (insert "# SYSTEM\n\nYou are an agent.\n\n# USER\n\nHello")
     (should (null (greger-skill-get-buffer-skills-content (current-buffer))))))
 
+;; skill-disable tests
+
+(ert-deftest greger-skill-test-parse-skill-disable ()
+  "Test that skill-disable tags are parsed from USER section."
+  (with-temp-buffer
+    (insert "# SYSTEM\n\n<skill>session-skill</skill>\n\n# USER\n\n<skill-disable>session-skill</skill-disable>\n\nHello")
+    (let* ((parsed (greger-skill-parse-buffer (current-buffer))))
+      (should (member "session-skill" (plist-get parsed :session-skills)))
+      (should (member "session-skill" (plist-get parsed :turn-disabled))))))
+
+(ert-deftest greger-skill-test-skill-disable-filters-content ()
+  "Test that disabled skills are not included in content."
+  (unwind-protect
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "to-disable" "Will be disabled" "DISABLED_CONTENT_XYZ")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          ;; Without disable - should include content
+          (with-temp-buffer
+            (insert "# SYSTEM\n\n<skill>to-disable</skill>\n\n# USER\n\nHello")
+            (let ((content (greger-skill-get-buffer-skills-content (current-buffer))))
+              (should (string-match-p "DISABLED_CONTENT_XYZ" content))))
+          ;; With disable - should NOT include content
+          (with-temp-buffer
+            (insert "# SYSTEM\n\n<skill>to-disable</skill>\n\n# USER\n\n<skill-disable>to-disable</skill-disable>\n\nHello")
+            (let ((content (greger-skill-get-buffer-skills-content (current-buffer))))
+              (should (null content))))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
+
+(ert-deftest greger-skill-test-skill-disable-only-affects-specified ()
+  "Test that skill-disable only disables the specified skill."
+  (unwind-protect
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "keep-me" "Keep this" "KEEP_CONTENT")
+        (greger-plugin-test--create-skill "disable-me" "Disable this" "DISABLE_CONTENT")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (with-temp-buffer
+            (insert "# SYSTEM\n\n<skill>keep-me</skill>\n<skill>disable-me</skill>\n\n")
+            (insert "# USER\n\n<skill-disable>disable-me</skill-disable>\n\nHello")
+            (let ((content (greger-skill-get-buffer-skills-content (current-buffer))))
+              (should (string-match-p "KEEP_CONTENT" content))
+              (should-not (string-match-p "DISABLE_CONTENT" content))))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
+
+(ert-deftest greger-skill-test-skill-disable-multiple ()
+  "Test that multiple skills can be disabled."
+  (unwind-protect
+      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
+        (greger-plugin-test--create-skill "skill-a" "Skill A" "CONTENT_A")
+        (greger-plugin-test--create-skill "skill-b" "Skill B" "CONTENT_B")
+        (greger-plugin-test--create-skill "skill-c" "Skill C" "CONTENT_C")
+        (let ((greger-skill-directories (list temp-dir)))
+          (greger-skill-discover)
+          (with-temp-buffer
+            (insert "# SYSTEM\n\n<skill>skill-a</skill>\n<skill>skill-b</skill>\n<skill>skill-c</skill>\n\n")
+            (insert "# USER\n\n<skill-disable>skill-a</skill-disable>\n<skill-disable>skill-c</skill-disable>\n\nHello")
+            (let ((content (greger-skill-get-buffer-skills-content (current-buffer))))
+              (should-not (string-match-p "CONTENT_A" content))
+              (should (string-match-p "CONTENT_B" content))
+              (should-not (string-match-p "CONTENT_C" content))))))
+    (greger-plugin-test--cleanup-temp-dir)
+    (greger-plugin-test--cleanup-registry)))
+
 (provide 'greger-skill-test)
 
 ;;; greger-plugin-test.el ends here
