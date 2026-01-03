@@ -202,14 +202,14 @@ REF can be a skill name (already in registry) or a file path."
     (description . ,(greger-skill--build-description))
     (input_schema . ((type . "object")
                      (properties . ((name . ((type . "string")
-                                             (description . "Name of the skill to load")))))
+                                             (description . "The skill identifier from available_skills (e.g., 'code-review' or 'category/helper')")))))
                      (required . ("name"))))))
 
 ;; Register the skill tool with dynamic schema
 (greger-register-tool "skill"
-  :description "Load a skill to get specialized instructions for a task."
+  :description "Load a skill to get detailed instructions for a specific task."
   :properties '((name . ((type . "string")
-                         (description . "Name of the skill to load"))))
+                         (description . "The skill identifier from available_skills (e.g., 'code-review' or 'category/helper')"))))
   :required '("name")
   :function #'greger-skill--load
   :schema-fn #'greger-skill--get-tool-schema)
