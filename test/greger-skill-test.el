@@ -271,6 +271,6 @@
     (insert "# SYSTEM\n\nYou are an agent.\n\n# USER\n\nHello")
     (should (null (greger-skill-get-buffer-skills-content (current-buffer))))))
 
-(provide 'greger-plugin-test)
+(provide 'greger-skill-test)
 
 ;;; greger-plugin-test.el ends here
