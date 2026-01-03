@@ -872,8 +872,7 @@ Uses tree-sitter to find the last node and applies heuristics:
   "Run the main agent loop with STATE."
   (let* ((provider (greger-state-provider state))
          (chat-buffer (greger-state-chat-buffer state))
-         (effective-tools (greger-plugin-get-buffer-tools chat-buffer greger-tools))
-         (tools (greger-tools-get-schemas effective-tools))
+         (tools (greger-tools-get-schemas greger-tools))
          (server-tools (when greger-server-tools
                          (greger-server-tools-get-schemas greger-server-tools)))
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
