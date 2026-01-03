@@ -166,34 +166,35 @@ REF can be a skill name (already in registry) or a file path."
 (defun greger-skill--load (name)
   "Load skill NAME and return its content."
   (if-let* ((skill (greger-skill-get name)))
-      (format "# Skill: %s\n\n%s"
-              (greger-skill-name skill)
-              (greger-skill-content skill))
-    (format "Skill '%s' not found. Available skills:\n%s"
-            name
-            (greger-skill-list-with-descriptions))))
+      (let ((dir (if (greger-skill-source-file skill)
+                     (file-name-directory (greger-skill-source-file skill))
+                   default-directory)))
+        (format "## Skill: %s\n\n**Base directory**: %s\n\n%s"
+                (greger-skill-name skill)
+                dir
+                (string-trim (greger-skill-content skill))))
+    (let ((available (greger-skill-list)))
+      (error "Skill \"%s\" not found. Available skills: %s"
+             name
+             (if available (string-join available ", ") "none")))))
 
 (defun greger-skill--build-description ()
   "Build the skill tool description with available skills list."
-  (let ((base-description "Load a skill to get specialized instructions for a task. Skills provide domain-specific knowledge and workflows.
-
-<skills_instructions>
-When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge. Invoke a skill by calling this tool with the skill name.
-</skills_instructions>
-
-<available_skills>
-")
-        (skills-list (let ((skills '()))
-                       (maphash (lambda (name skill)
-                                  (push (format "<skill>\n<name>%s</name>\n<description>%s</description>\n</skill>"
-                                                name
-                                                (greger-skill-description skill))
-                                        skills))
-                                greger-skill-registry)
-                       (if skills
-                           (string-join (sort skills #'string<) "\n")
-                         "<no_skills_available/>"))))
-    (concat base-description skills-list "\n</available_skills>")))
+  (let ((skill-count (hash-table-count greger-skill-registry)))
+    (if (= skill-count 0)
+        "Load a skill to get detailed instructions for a specific task. No skills are currently available."
+      (let ((skills-xml (let ((skills '()))
+                          (maphash (lambda (name skill)
+                                     (push (format "<skill> <name>%s</name> <description>%s</description> </skill>"
+                                                   name
+                                                   (greger-skill-description skill))
+                                           skills))
+                                   greger-skill-registry)
+                          (string-join (sort skills #'string<) " "))))
+        (concat "Load a skill to get detailed instructions for a specific task. "
+                "Skills provide specialized knowledge and step-by-step guidance. "
+                "Use this when a task matches an available skill's description. "
+                "<available_skills> " skills-xml " </available_skills>")))))
 
 (defun greger-skill--get-tool-schema ()
   "Get the skill tool schema with dynamic description."
