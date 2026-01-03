@@ -76,22 +76,31 @@ Scans:
     (dolist (skill-file skill-files)
       (greger-skill--register-from-file skill-file))))
 
-(defun greger-skill--register-from-file (file)
-  "Register a skill from FILE (SKILL.md format)."
+(defun greger-skill--register-from-file (file &optional strict)
+  "Register a skill from FILE (SKILL.md format).
+If STRICT is non-nil, throw an error if frontmatter is missing or invalid.
+When called from discovery, STRICT is nil (skip invalid files silently).
+When called from <skill> tags, STRICT is t (report errors to user)."
   (with-temp-buffer
     (insert-file-contents file)
     (let* ((frontmatter (greger-skill--parse-frontmatter))
            (content (buffer-substring-no-properties (point) (point-max)))
-           (name (or (cdr (assoc "name" frontmatter))
-                     (file-name-nondirectory (directory-file-name
-                                              (file-name-directory file)))))
-           (description (or (cdr (assoc "description" frontmatter)) ""))
-           (skill (make-greger-skill
-                   :name name
-                   :description description
-                   :content content
-                   :source-file file)))
-      (puthash name skill greger-skill-registry))))
+           (name (cdr (assoc "name" frontmatter)))
+           (description (cdr (assoc "description" frontmatter))))
+      (when strict
+        (unless frontmatter
+          (error "Skill file '%s' is missing YAML frontmatter (---)" file))
+        (unless name
+          (error "Skill file '%s' is missing required 'name' in frontmatter" file))
+        (unless description
+          (error "Skill file '%s' is missing required 'description' in frontmatter" file)))
+      (when (and name description)
+        (let ((skill (make-greger-skill
+                      :name name
+                      :description description
+                      :content content
+                      :source-file file)))
+          (puthash name skill greger-skill-registry))))))
 
 (defun greger-skill--parse-frontmatter ()
   "Parse YAML frontmatter from current buffer.
