@@ -125,7 +125,7 @@ If nil, uses OPENROUTER_API_KEY environment variable."
 
 ;; Tool configuration and agent functionality
 
-(defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "ripgrep" "shell-command" "read-webpage" "skill" "skill-list")
+(defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "ripgrep" "shell-command" "read-webpage" "skill")
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
