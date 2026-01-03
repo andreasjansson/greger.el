@@ -97,14 +97,16 @@
 ;; Skill loading tests
 
 (ert-deftest greger-skill-test-load-skill ()
-  "Test loading a skill by name."
+  "Test loading a skill by name returns OpenCode-style output."
   (unwind-protect
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "loader-test" "Test loading" "# Instructions\n\nDo this.")
         (let ((greger-skill-directories (list temp-dir)))
           (greger-skill-discover)
           (let ((content (greger-skill--load "loader-test")))
-            (should (string-match-p "Skill: loader-test" content))
+            ;; OpenCode format: "## Skill: {name}\n\n**Base directory**: {dir}\n\n{content}"
+            (should (string-match-p "## Skill: loader-test" content))
+            (should (string-match-p "\\*\\*Base directory\\*\\*:" content))
             (should (string-match-p "Do this" content)))))
     (greger-skill-test--cleanup-temp-dir)
     (greger-skill-test--cleanup-registry)))
