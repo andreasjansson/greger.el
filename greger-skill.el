@@ -23,15 +23,6 @@
 (require 'treesit)
 (require 'greger-tools)
 
-(defcustom greger-skill-directories
-  (list (expand-file-name "~/.config/greger/skills")
-        ".greger/skills")
-  "Directories to search for skill definitions.
-Each directory is searched for subdirectories containing SKILL.md files.
-Later directories take precedence when skill names conflict."
-  :type '(repeat directory)
-  :group 'greger)
-
 (defvar greger-skill-registry (make-hash-table :test 'equal)
   "Registry mapping skill names to their definitions.")
 
@@ -44,17 +35,46 @@ Later directories take precedence when skill names conflict."
 
 ;; Skill discovery from directories
 
+(defun greger-skill--find-project-claude-dirs ()
+  "Find all .claude directories from current directory up to git root."
+  (let ((dirs '())
+        (current default-directory)
+        (root (locate-dominating-file default-directory ".git")))
+    (while (and current
+                (not (string= current "/"))
+                (or (null root)
+                    (string-prefix-p root current)))
+      (let ((claude-dir (expand-file-name ".claude" current)))
+        (when (file-directory-p claude-dir)
+          (push claude-dir dirs)))
+      (setq current (file-name-directory (directory-file-name current))))
+    (nreverse dirs)))
+
+(defun greger-skill--scan-skills-in-dir (dir)
+  "Scan DIR/skills/ for SKILL.md files recursively."
+  (let ((skills-dir (expand-file-name "skills" dir)))
+    (when (file-directory-p skills-dir)
+      (directory-files-recursively skills-dir "^SKILL\\.md$"))))
+
 (defun greger-skill-discover ()
-  "Discover and register skills from `greger-skill-directories'."
+  "Discover and register skills from Claude-compatible directories.
+Scans:
+- ~/.claude/skills/**/SKILL.md (global)
+- .claude/skills/**/SKILL.md (project, walking up to git root)"
   (clrhash greger-skill-registry)
-  (dolist (dir (reverse greger-skill-directories))
-    (let ((expanded-dir (expand-file-name dir)))
-      (when (file-directory-p expanded-dir)
-        (dolist (skill-dir (directory-files expanded-dir t "^[^.]"))
-          (when (file-directory-p skill-dir)
-            (let ((skill-file (expand-file-name "SKILL.md" skill-dir)))
-              (when (file-exists-p skill-file)
-                (greger-skill--register-from-file skill-file)))))))))
+  (let ((skill-files '()))
+    ;; Global ~/.claude/skills/
+    (let ((global-claude (expand-file-name "~/.claude")))
+      (when (file-directory-p global-claude)
+        (setq skill-files (append skill-files
+                                  (greger-skill--scan-skills-in-dir global-claude)))))
+    ;; Project .claude/skills/ directories (walking up)
+    (dolist (claude-dir (greger-skill--find-project-claude-dirs))
+      (setq skill-files (append skill-files
+                                (greger-skill--scan-skills-in-dir claude-dir))))
+    ;; Register all found skills (later ones override earlier for same name)
+    (dolist (skill-file skill-files)
+      (greger-skill--register-from-file skill-file))))
 
 (defun greger-skill--register-from-file (file)
   "Register a skill from FILE (SKILL.md format)."
