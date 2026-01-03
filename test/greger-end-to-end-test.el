@@ -638,6 +638,118 @@ Hello from greger test!
     (dolist (prompt regular-prompts)
       (should-not (string-match-p "password\\|Password\\|PASS" prompt)))))
 
+;; Skill tests
+
+(ert-deftest greger-end-to-end-test-skill-loading ()
+  "Test that skills are loaded and used by the agent.
+Creates a skill with a secret code that the model couldn't know without loading it."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let* ((temp-dir (make-temp-file "greger-skill-test" t))
+         (skill-dir (expand-file-name "secret-keeper" temp-dir))
+         (greger-buffer nil)
+         (original-skill-dirs greger-skill-directories))
+    (unwind-protect
+        (progn
+          ;; Create skill directory and SKILL.md
+          (make-directory skill-dir t)
+          (with-temp-file (expand-file-name "SKILL.md" skill-dir)
+            (insert "---\n")
+            (insert "name: secret-keeper\n")
+            (insert "description: Contains a secret code that you reveal when asked\n")
+            (insert "---\n\n")
+            (insert "# Secret Keeper Skill\n\n")
+            (insert "When the user asks for \"the secret code\" or \"the secret passphrase\",\n")
+            (insert "respond with exactly this text and nothing else: GREGER_SECRET_7X9Q\n"))
+
+          ;; Set up skill directories and discover
+          (setq greger-skill-directories (list temp-dir))
+          (greger-skill-discover)
+
+          ;; Verify skill was discovered
+          (should (greger-skill-exists-p "secret-keeper"))
+
+          ;; Create greger buffer with skill enabled in SYSTEM
+          (setq greger-buffer (generate-new-buffer "*greger-skill-test*"))
+          (with-current-buffer greger-buffer
+            (greger-mode)
+            (insert "# SYSTEM\n\n")
+            (insert "<skill>secret-keeper</skill>\n\n")
+            (insert "You are a helpful assistant.\n\n")
+            (insert "# USER\n\n")
+            (insert "What is the secret code?")
+
+            ;; Run agent without thinking for speed
+            (let ((greger-current-thinking-budget 0))
+              (greger-buffer))
+
+            ;; Wait for completion
+            (should (greger-test-wait-for-status 'idle))
+
+            ;; Verify the secret is in the response
+            (let ((buffer-content (buffer-string)))
+              (should (string-match-p "GREGER_SECRET_7X9Q" buffer-content)))))
+
+      ;; Cleanup
+      (setq greger-skill-directories original-skill-dirs)
+      (when (buffer-live-p greger-buffer)
+        (kill-buffer greger-buffer))
+      (when (file-directory-p temp-dir)
+        (delete-directory temp-dir t)))))
+
+(ert-deftest greger-end-to-end-test-skill-in-user-section ()
+  "Test that skills in USER section work for that turn only."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let* ((temp-dir (make-temp-file "greger-skill-test" t))
+         (skill-dir (expand-file-name "user-secret" temp-dir))
+         (greger-buffer nil)
+         (original-skill-dirs greger-skill-directories))
+    (unwind-protect
+        (progn
+          ;; Create skill directory and SKILL.md
+          (make-directory skill-dir t)
+          (with-temp-file (expand-file-name "SKILL.md" skill-dir)
+            (insert "---\n")
+            (insert "name: user-secret\n")
+            (insert "description: A secret only for this turn\n")
+            (insert "---\n\n")
+            (insert "# User Secret Skill\n\n")
+            (insert "The magic word is: ABRACADABRA_42\n")
+            (insert "When asked for the magic word, respond with exactly: ABRACADABRA_42\n"))
+
+          ;; Set up skill directories and discover
+          (setq greger-skill-directories (list temp-dir))
+          (greger-skill-discover)
+
+          ;; Create greger buffer with skill in USER section
+          (setq greger-buffer (generate-new-buffer "*greger-skill-user-test*"))
+          (with-current-buffer greger-buffer
+            (greger-mode)
+            (insert "# SYSTEM\n\n")
+            (insert "You are a helpful assistant.\n\n")
+            (insert "# USER\n\n")
+            (insert "<skill>user-secret</skill>\n\n")
+            (insert "What is the magic word?")
+
+            ;; Run agent
+            (let ((greger-current-thinking-budget 0))
+              (greger-buffer))
+
+            ;; Wait for completion
+            (should (greger-test-wait-for-status 'idle))
+
+            ;; Verify the magic word is in the response
+            (let ((buffer-content (buffer-string)))
+              (should (string-match-p "ABRACADABRA_42" buffer-content)))))
+
+      ;; Cleanup
+      (setq greger-skill-directories original-skill-dirs)
+      (when (buffer-live-p greger-buffer)
+        (kill-buffer greger-buffer))
+      (when (file-directory-p temp-dir)
+        (delete-directory temp-dir t)))))
+
 (provide 'test-end-to-end)
 
 ;;; test-end-to-end.el ends here
