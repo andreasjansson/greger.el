@@ -143,18 +143,20 @@ Returns alist of key-value pairs.  Moves point past frontmatter."
   :required '()
   :function #'greger-skill--list-available)
 
-;; Buffer parsing for <skill> tags
+;; Buffer parsing for <skill> and <skill-disable> tags
 
 (defun greger-skill-parse-buffer (buffer)
-  "Parse BUFFER for <skill> tags and return available skills.
-Returns a plist with :session-skills (from SYSTEM) and :turn-skills (from last USER).
-Skills from SYSTEM apply to the whole session.
-Skills from the last USER section apply only to that turn."
+  "Parse BUFFER for <skill> and <skill-disable> tags.
+Returns a plist with:
+  :session-skills - Skills from SYSTEM (apply to whole session)
+  :turn-skills - Skills from last USER section (apply only to that turn)
+  :turn-disabled - Skills disabled in last USER section via <skill-disable>"
   (with-current-buffer buffer
     (let* ((parser (treesit-parser-create 'greger))
            (root-node (treesit-parser-root-node parser))
            (session-skills '())
-           (turn-skills '()))
+           (turn-skills '())
+           (turn-disabled '()))
 
       ;; Walk all nodes to find system and user sections
       (dolist (child (treesit-node-children root-node))
@@ -165,12 +167,14 @@ Skills from the last USER section apply only to that turn."
             (let ((skills (greger-skill--extract-from-node child)))
               (setq session-skills (append session-skills skills))))
 
-           ;; User section: only keep skills from the LAST user section
+           ;; User section: only keep skills/disables from the LAST user section
            ((string= node-type "user")
-            (setq turn-skills (greger-skill--extract-from-node child))))))
+            (setq turn-skills (greger-skill--extract-from-node child))
+            (setq turn-disabled (greger-skill--extract-disabled-from-node child))))))
 
       (list :session-skills (delete-dups session-skills)
-            :turn-skills (delete-dups turn-skills)))))
+            :turn-skills (delete-dups turn-skills)
+            :turn-disabled (delete-dups turn-disabled)))))
 
 (defun greger-skill--extract-from-node (node)
   "Extract skill paths from <skill>path</skill> tags in NODE.
@@ -187,6 +191,18 @@ Uses regex to parse the text content of the node."
         (let ((skill-ref (string-trim (match-string 1))))
           (push skill-ref skills))))
     (nreverse skills)))
+
+(defun greger-skill--extract-disabled-from-node (node)
+  "Extract disabled skill names from <skill-disable>name</skill-disable> tags in NODE."
+  (let ((text (treesit-node-text node t))
+        (disabled '()))
+    (with-temp-buffer
+      (insert text)
+      (goto-char (point-min))
+      (while (re-search-forward "<skill-disable>\\([^<]+\\)</skill-disable>" nil t)
+        (let ((skill-ref (string-trim (match-string 1))))
+          (push skill-ref disabled))))
+    (nreverse disabled)))
 
 (defun greger-skill-load-from-ref (skill-ref)
   "Load a skill from SKILL-REF.
