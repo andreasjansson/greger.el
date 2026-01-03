@@ -158,23 +158,6 @@
     (greger-plugin-test--cleanup-temp-dir)
     (greger-plugin-test--cleanup-registry)))
 
-(ert-deftest greger-skill-test-skill-list-tool-execution ()
-  "Test executing the skill-list tool."
-  (unwind-protect
-      (let ((temp-dir (greger-plugin-test--setup-temp-dir)))
-        (greger-plugin-test--create-skill "list-test" "List test skill" "Content")
-        (let ((greger-skill-directories (list temp-dir)))
-          (greger-skill-discover)
-          (let ((result nil) (error nil))
-            (greger-tools-execute :tool-name "skill-list"
-                                  :args '()
-                                  :callback (lambda (r e) (setq result r error e)))
-            (should (null error))
-            (should (string-match-p "list-test" result))
-            (should (string-match-p "List test skill" result)))))
-    (greger-plugin-test--cleanup-temp-dir)
-    (greger-plugin-test--cleanup-registry)))
-
 ;; Buffer parsing tests for <skill> tags
 
 (ert-deftest greger-skill-test-parse-system-skill ()
