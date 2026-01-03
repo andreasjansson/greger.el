@@ -699,7 +699,7 @@ Creates a skill with a secret code that the model couldn't know without loading 
 
 (ert-deftest greger-end-to-end-test-skill-in-user-section ()
   "Test that skills in USER section work for that turn only."
-  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+  (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
 
   (let* ((temp-dir (make-temp-file "greger-skill-test" t))
          (skill-dir (expand-file-name "user-secret" temp-dir))
