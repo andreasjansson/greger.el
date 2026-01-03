@@ -750,6 +750,16 @@ Creates a skill with a secret code that the model couldn't know without loading 
       (when (file-directory-p temp-dir)
         (delete-directory temp-dir t)))))
 
+(defun greger-test-count-matches (regexp string)
+  "Count occurrences of REGEXP in STRING."
+  (with-temp-buffer
+    (insert string)
+    (goto-char (point-min))
+    (let ((count 0))
+      (while (re-search-forward regexp nil t)
+        (setq count (1+ count)))
+      count)))
+
 (ert-deftest greger-end-to-end-test-skill-session-persists ()
   "Test that session skills (in SYSTEM) persist across multiple turns."
   (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
@@ -802,7 +812,7 @@ Creates a skill with a secret code that the model couldn't know without loading 
 
             ;; Count occurrences - should appear at least twice (once per turn)
             (let ((content (buffer-string)))
-              (should (>= (s-count-matches "PERSIST_CODE_999" content) 2)))))
+              (should (>= (greger-test-count-matches "PERSIST_CODE_999" content) 2)))))
 
       ;; Cleanup
       (setq greger-skill-directories original-skill-dirs)
@@ -863,7 +873,7 @@ Creates a skill with a secret code that the model couldn't know without loading 
             ;; We check that the skill content isn't re-injected by verifying
             ;; there's only one occurrence of the code (from first turn)
             (let* ((content (buffer-string))
-                   (count (s-count-matches "EPHEMERAL_XYZ_123" content)))
+                   (count (greger-test-count-matches "EPHEMERAL_XYZ_123" content)))
               ;; Should be exactly 1 (from first turn only) or 2 if model remembers
               ;; The key is the skill wasn't re-loaded for turn 2
               (should (<= count 2)))))
