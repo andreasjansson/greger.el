@@ -241,6 +241,6 @@ Skills disabled via <skill-disable> in the last USER section are excluded."
     (when contents
       (string-join (nreverse contents) "\n\n---\n\n"))))
 
-(provide 'greger-plugin)
+(provide 'greger-skill)
 
 ;;; greger-plugin.el ends here
