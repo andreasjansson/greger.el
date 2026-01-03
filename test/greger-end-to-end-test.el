@@ -784,11 +784,10 @@ Creates three skills with different secrets and verifies the model loads the rig
   (skip-unless (or (getenv "ANTHROPIC_API_KEY") greger-anthropic-key-fn))
 
   (let* ((skill-file (make-temp-file "greger-skill" nil ".md"))
-         (greger-buffer nil)
-         (original-skill-dirs greger-skill-directories))
+         (greger-buffer nil))
     (unwind-protect
         (progn
-          ;; Create a skill file directly (not in a skill directory)
+          ;; Create a skill file directly (not in a .claude/skills directory)
           (with-temp-file skill-file
             (insert "---\n")
             (insert "name: project-config\n")
@@ -796,9 +795,8 @@ Creates three skills with different secrets and verifies the model loads the rig
             (insert "---\n\n")
             (insert "The deployment token is: INLINE_FILE_SECRET_999\n"))
 
-          ;; Clear skill directories so only file-path skill is available
-          (setq greger-skill-directories nil)
-          (greger-skill-discover)
+          ;; Clear registry and discover (will find nothing without .claude dirs)
+          (clrhash greger-skill-registry)
 
           ;; Create greger buffer with skill from file path
           (setq greger-buffer (generate-new-buffer "*greger-skill-file-test*"))
@@ -822,7 +820,6 @@ Creates three skills with different secrets and verifies the model loads the rig
               (should (string-match-p "INLINE_FILE_SECRET_999" buffer-content)))))
 
       ;; Cleanup
-      (setq greger-skill-directories original-skill-dirs)
       (when (buffer-live-p greger-buffer)
         (kill-buffer greger-buffer))
       (when (file-exists-p skill-file)
