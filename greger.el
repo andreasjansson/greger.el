@@ -919,19 +919,6 @@ If TEXT ends with more than two consecutive newlines, remove all but the
 first two."
   (replace-regexp-in-string "\n\n\n+\\'" "\n\n" text))
 
-(defun greger--inject-skills-into-dialog (dialog buffer)
-  "Inject skill content from BUFFER into DIALOG.
-Skills declared with <skill> tags are loaded and appended to the system message."
-  (when-let* ((skill-content (greger-skill-get-buffer-skills-content buffer)))
-    (let ((system-entry (car (seq-filter (lambda (entry)
-                                           (string= (alist-get 'role entry) "system"))
-                                         dialog))))
-      (when system-entry
-        (let ((current-content (alist-get 'content system-entry)))
-          (setf (alist-get 'content system-entry)
-                (concat current-content "\n\n# Loaded Skills\n\n" skill-content))))))
-  dialog)
-
 (defun greger--force-code-close (state)
   (with-current-buffer (greger-state-chat-buffer state)
     (let ((end-is-code nil)
