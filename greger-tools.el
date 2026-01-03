@@ -77,7 +77,9 @@ Example:
   `greger-tools-execute\='
   calling the callback with the result.
   When :pass-metadata is set to t, the metadata from the parser will be passed
-  as a \='metadata\=' parameter."
+  as a \='metadata\=' parameter.
+  When :schema-fn is set, it should be a function that returns the schema.
+  This is called each time the schema is needed, allowing for dynamic schemas."
   (let ((description (plist-get args :description))
         (properties (plist-get args :properties))
         (required (plist-get args :required))
@@ -85,7 +87,8 @@ Example:
         (pass-buffer (plist-get args :pass-buffer))
         (pass-callback (plist-get args :pass-callback))
         (streaming (plist-get args :streaming))
-        (pass-metadata (plist-get args :pass-metadata)))
+        (pass-metadata (plist-get args :pass-metadata))
+        (schema-fn (plist-get args :schema-fn)))
     (puthash name
              (list :schema (list (cons 'name name)
                                  (cons 'description description)
@@ -93,6 +96,7 @@ Example:
                                        (list (cons 'type "object")
                                              (cons 'properties properties)
                                              (cons 'required required))))
+                   :schema-fn schema-fn
                    :function function
                    :pass-buffer pass-buffer
                    :pass-callback pass-callback
