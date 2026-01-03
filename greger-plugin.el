@@ -224,13 +224,18 @@ SKILL-REF can be:
 
 (defun greger-skill-get-buffer-skills-content (buffer)
   "Get combined skill content for BUFFER.
-Returns a string with all skill content to inject, or nil if no skills."
+Returns a string with all skill content to inject, or nil if no skills.
+Skills disabled via <skill-disable> in the last USER section are excluded."
   (let* ((parsed (greger-skill-parse-buffer buffer))
          (session-skills (plist-get parsed :session-skills))
          (turn-skills (plist-get parsed :turn-skills))
+         (turn-disabled (plist-get parsed :turn-disabled))
          (all-skills (delete-dups (append session-skills turn-skills)))
+         ;; Filter out disabled skills
+         (active-skills (seq-remove (lambda (skill) (member skill turn-disabled))
+                                    all-skills))
          (contents '()))
-    (dolist (skill-ref all-skills)
+    (dolist (skill-ref active-skills)
       (when-let* ((content (greger-skill-load-from-ref skill-ref)))
         (push content contents)))
     (when contents
