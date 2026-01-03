@@ -110,11 +110,9 @@
     (greger-skill-test--cleanup-registry)))
 
 (ert-deftest greger-skill-test-load-nonexistent-skill ()
-  "Test loading a skill that doesn't exist."
+  "Test loading a skill that doesn't exist throws an error."
   (greger-skill-test--cleanup-registry)
-  (let ((content (greger-skill--load "nonexistent")))
-    (should (string-match-p "not found" content))
-    (should (string-match-p "Available skills" content))))
+  (should-error (greger-skill--load "nonexistent") :type 'error))
 
 ;; Skill tool registration tests
 
