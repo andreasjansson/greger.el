@@ -1,4 +1,4 @@
-;;; greger-plugin.el --- Plugin system for greger -*- lexical-binding: t -*-
+;;; greger-plugin.el --- Skills system for greger -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Andreas Jansson
 
@@ -8,178 +8,217 @@
 ;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
-;; Provides a plugin system for Greger that allows grouping tools and skills.
-;; Plugins can be enabled per-session using <plugin>name</plugin> in the buffer.
+;; Provides a skills system for Greger, inspired by Claude Code's skills.
+;; Skills are markdown documents that teach the agent how to perform specific tasks.
+;; Skills can be declared per-session using <skill>path</skill> in the buffer.
+;;
+;; In # SYSTEM: skills apply to the whole session
+;; In # USER: skills apply only to that turn (last USER section only)
 
 ;;; Code:
 
+(require 'treesit)
 (require 'greger-tools)
 
-(defvar greger-plugin-registry (make-hash-table :test 'equal)
-  "Registry mapping plugin names to their definitions.")
+(defcustom greger-skill-directories
+  (list (expand-file-name "~/.config/greger/skills")
+        ".greger/skills")
+  "Directories to search for skill definitions.
+Each directory is searched for subdirectories containing SKILL.md files.
+Later directories take precedence when skill names conflict."
+  :type '(repeat directory)
+  :group 'greger)
 
-(defun greger-plugin-tool (name &rest args)
-  "Define a tool NAME with ARGS.  Returns a tool definition plist.
-Used inside `greger-plugin' :tools list.
+(defvar greger-skill-registry (make-hash-table :test 'equal)
+  "Registry mapping skill names to their definitions.")
 
-ARGS is a plist with:
-  :description - Tool description string
-  :properties  - Alist of parameter definitions
-  :required    - List of required parameter names
-  :function    - Function to call when tool is executed
+(cl-defstruct greger-skill
+  "Structure representing a Greger skill."
+  name
+  description
+  content
+  source-file)
 
-Additional args supported by `greger-register-tool' are also accepted:
-  :pass-buffer, :pass-callback, :streaming, :pass-metadata"
-  (append (list :name name) args))
+;; Skill discovery
 
-(defmacro greger-plugin (name &rest args)
-  "Define plugin NAME with :skills and :tools.
+(defun greger-skill-discover ()
+  "Discover and register skills from `greger-skill-directories'."
+  (clrhash greger-skill-registry)
+  (dolist (dir (reverse greger-skill-directories))
+    (let ((expanded-dir (expand-file-name dir)))
+      (when (file-directory-p expanded-dir)
+        (dolist (skill-dir (directory-files expanded-dir t "^[^.]"))
+          (when (file-directory-p skill-dir)
+            (let ((skill-file (expand-file-name "SKILL.md" skill-dir)))
+              (when (file-exists-p skill-file)
+                (greger-skill--register-from-file skill-file)))))))))
 
-NAME is a symbol (quoted or unquoted).
-ARGS is a plist with:
-  :skills - Path to a SKILL.md file (optional)
-  :tools  - List of tool definitions created with `greger-plugin-tool'
+(defun greger-skill--register-from-file (file)
+  "Register a skill from FILE (SKILL.md format)."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (let* ((frontmatter (greger-skill--parse-frontmatter))
+           (content (buffer-substring-no-properties (point) (point-max)))
+           (name (or (cdr (assoc "name" frontmatter))
+                     (file-name-nondirectory (directory-file-name 
+                                              (file-name-directory file)))))
+           (description (or (cdr (assoc "description" frontmatter)) ""))
+           (skill (make-greger-skill
+                   :name name
+                   :description description
+                   :content content
+                   :source-file file)))
+      (puthash name skill greger-skill-registry))))
 
-Example:
-  (greger-plugin \\='lspcmd
-    :skills \"~/.config/greger/skills/lspcmd/SKILL.md\"
-    :tools
-    ((greger-plugin-tool \"lspcmd-grep\"
-       :description \"Search symbols...\"
-       :properties ((pattern . ((type . \"string\"))))
-       :required (\"pattern\")
-       :function my-grep-fn)))"
-  (declare (indent 1))
-  (let* ((name-str (cond
-                    ((and (listp name) (eq (car name) 'quote))
-                     (symbol-name (cadr name)))
-                    ((symbolp name)
-                     (symbol-name name))
-                    (t name)))
-         (skills (plist-get args :skills))
-         (tools (plist-get args :tools))
-         (tool-defs (mapcar #'greger-plugin--expand-tool-def tools))
-         (tool-names (mapcar (lambda (def) (plist-get def :name)) tool-defs)))
-    `(progn
-       ,@(mapcar (lambda (def) `(greger-plugin--register-tool-from-def ',def))
-                 tool-defs)
-       (puthash ,name-str
-                (list :tools ',tool-names
-                      :skills ,skills)
-                greger-plugin-registry))))
+(defun greger-skill--parse-frontmatter ()
+  "Parse YAML frontmatter from current buffer.
+Returns alist of key-value pairs.  Moves point past frontmatter."
+  (goto-char (point-min))
+  (when (looking-at "---\n")
+    (forward-line 1)
+    (let ((start (point))
+          (result '()))
+      (when (re-search-forward "^---$" nil t)
+        (let ((yaml-text (buffer-substring-no-properties start (match-beginning 0))))
+          (dolist (line (split-string yaml-text "\n" t))
+            (when (string-match "^\\([^:]+\\):\\s-*\\(.*\\)$" line)
+              (push (cons (string-trim (match-string 1 line))
+                          (string-trim (match-string 2 line)))
+                    result))))
+        (forward-line 1))
+      result)))
 
-(defun greger-plugin--expand-tool-def (tool-form)
-  "Expand TOOL-FORM (a greger-plugin-tool call) to a plist at macro-expansion time."
-  (if (and (listp tool-form)
-           (eq (car tool-form) 'greger-plugin-tool))
-      (apply #'greger-plugin-tool (cdr tool-form))
-    (error "Invalid tool definition: %S" tool-form)))
+(defun greger-skill-get (name)
+  "Get skill by NAME from registry."
+  (gethash name greger-skill-registry))
 
-(defun greger-plugin--register-tool-from-def (tool-def)
-  "Register a tool from TOOL-DEF plist."
-  (let ((name (plist-get tool-def :name))
-        (description (plist-get tool-def :description))
-        (properties (plist-get tool-def :properties))
-        (required (plist-get tool-def :required))
-        (function (plist-get tool-def :function))
-        (pass-buffer (plist-get tool-def :pass-buffer))
-        (pass-callback (plist-get tool-def :pass-callback))
-        (streaming (plist-get tool-def :streaming))
-        (pass-metadata (plist-get tool-def :pass-metadata)))
-    (greger-register-tool name
-                          :description description
-                          :properties properties
-                          :required required
-                          :function function
-                          :pass-buffer pass-buffer
-                          :pass-callback pass-callback
-                          :streaming streaming
-                          :pass-metadata pass-metadata)))
+(defun greger-skill-exists-p (name)
+  "Return non-nil if skill NAME exists."
+  (not (null (gethash name greger-skill-registry))))
 
-(defun greger-plugin-tools (name)
-  "Get list of tool names for plugin NAME."
-  (plist-get (gethash name greger-plugin-registry) :tools))
-
-(defun greger-plugin-skill (name)
-  "Get skill content for plugin NAME, or nil if not found."
-  (when-let* ((path (plist-get (gethash name greger-plugin-registry) :skills))
-              ((file-exists-p path)))
-    (with-temp-buffer
-      (insert-file-contents path)
-      (buffer-string))))
-
-(defun greger-plugin-exists-p (name)
-  "Return non-nil if plugin NAME exists in the registry."
-  (gethash name greger-plugin-registry))
-
-(defun greger-plugin-list ()
-  "Return list of all registered plugin names."
+(defun greger-skill-list ()
+  "Return list of all registered skill names."
   (let ((names '()))
-    (maphash (lambda (name _) (push name names)) greger-plugin-registry)
-    (nreverse names)))
+    (maphash (lambda (name _) (push name names)) greger-skill-registry)
+    (sort names #'string<)))
 
-;; Buffer parsing for <plugin> tags
+(defun greger-skill-list-with-descriptions ()
+  "Return formatted string of all skills with descriptions."
+  (let ((skills '()))
+    (maphash (lambda (name skill)
+               (push (format "- %s: %s" name (greger-skill-description skill))
+                     skills))
+             greger-skill-registry)
+    (if skills
+        (string-join (sort skills #'string<) "\n")
+      "No skills available.")))
 
-(defun greger-plugin-parse-buffer-plugins (buffer)
-  "Parse BUFFER for <plugin> tags and return tools to enable.
-Returns a plist with :session-tools (from SYSTEM) and :turn-tools (from last USER).
-Tools from SYSTEM apply to the whole session.
-Tools from the last USER section apply only to that turn."
+;; Skill tool - allows agent to load skills dynamically
+
+(defun greger-skill--load (name)
+  "Load skill NAME and return its content for injection into context."
+  (if-let* ((skill (greger-skill-get name)))
+      (format "# Skill: %s\n\n%s"
+              (greger-skill-name skill)
+              (greger-skill-content skill))
+    (format "Skill '%s' not found. Available skills:\n%s"
+            name
+            (greger-skill-list-with-descriptions))))
+
+(defun greger-skill--list-available ()
+  "List all available skills."
+  (greger-skill-list-with-descriptions))
+
+;; Register the skill tool
+(greger-register-tool "skill"
+  :description "Load a skill to get specialized instructions for a task. Skills provide domain-specific knowledge and workflows. Use skill-list to see available skills first."
+  :properties '((name . ((type . "string")
+                         (description . "Name of the skill to load"))))
+  :required '("name")
+  :function #'greger-skill--load)
+
+(greger-register-tool "skill-list"
+  :description "List all available skills with their descriptions. Use this to discover what skills are available before loading one."
+  :properties '()
+  :required '()
+  :function #'greger-skill--list-available)
+
+;; Buffer parsing for <skill> tags
+
+(defun greger-skill-parse-buffer (buffer)
+  "Parse BUFFER for <skill> tags and return available skills.
+Returns a plist with :session-skills (from SYSTEM) and :turn-skills (from last USER).
+Skills from SYSTEM apply to the whole session.
+Skills from the last USER section apply only to that turn."
   (with-current-buffer buffer
     (let* ((parser (treesit-parser-create 'greger))
            (root-node (treesit-parser-root-node parser))
-           (session-plugins '())
-           (turn-plugins '()))
+           (session-skills '())
+           (turn-skills '()))
 
       ;; Walk all nodes to find system and user sections
       (dolist (child (treesit-node-children root-node))
         (let ((node-type (treesit-node-type child)))
           (cond
-           ;; System section: plugins apply to whole session
+           ;; System section: skills apply to whole session
            ((string= node-type "system")
-            (let ((plugins (greger-plugin--extract-plugins-from-node child)))
-              (setq session-plugins (append session-plugins plugins))))
+            (let ((skills (greger-skill--extract-from-node child)))
+              (setq session-skills (append session-skills skills))))
 
-           ;; User section: only keep plugins from the LAST user section
+           ;; User section: only keep skills from the LAST user section
            ((string= node-type "user")
-            (setq turn-plugins (greger-plugin--extract-plugins-from-node child))))))
+            (setq turn-skills (greger-skill--extract-from-node child))))))
 
-      ;; Collect all tools from session and turn plugins
-      (let ((session-tools '())
-            (turn-tools '()))
-        (dolist (plugin-name session-plugins)
-          (when-let* ((tools (greger-plugin-tools plugin-name)))
-            (setq session-tools (append session-tools tools))))
-        (dolist (plugin-name turn-plugins)
-          (when-let* ((tools (greger-plugin-tools plugin-name)))
-            (setq turn-tools (append turn-tools tools))))
+      (list :session-skills (delete-dups session-skills)
+            :turn-skills (delete-dups turn-skills)))))
 
-        (list :session-tools (delete-dups session-tools)
-              :turn-tools (delete-dups turn-tools)
-              :session-plugins session-plugins
-              :turn-plugins turn-plugins)))))
-
-(defun greger-plugin--extract-plugins-from-node (node)
-  "Extract plugin names from <plugin>name</plugin> tags in NODE.
+(defun greger-skill--extract-from-node (node)
+  "Extract skill paths from <skill>path</skill> tags in NODE.
+Paths can be:
+- A skill name (looked up in registry)
+- A file path to a SKILL.md or markdown file
 Uses regex to parse the text content of the node."
   (let ((text (treesit-node-text node t))
-        (plugins '()))
+        (skills '()))
     (with-temp-buffer
       (insert text)
       (goto-char (point-min))
-      (while (re-search-forward "<plugin>\\([^<]+\\)</plugin>" nil t)
-        (let ((plugin-name (string-trim (match-string 1))))
-          (when (greger-plugin-exists-p plugin-name)
-            (push plugin-name plugins)))))
-    (nreverse plugins)))
+      (while (re-search-forward "<skill>\\([^<]+\\)</skill>" nil t)
+        (let ((skill-ref (string-trim (match-string 1))))
+          (push skill-ref skills))))
+    (nreverse skills)))
 
-(defun greger-plugin-get-buffer-tools (buffer base-tools)
-  "Get tools for BUFFER: BASE-TOOLS plus enabled plugin tools.
-Session plugins (from SYSTEM) and turn plugins (from last USER) are combined."
-  (let* ((parsed (greger-plugin-parse-buffer-plugins buffer))
-         (session-tools (plist-get parsed :session-tools))
-         (turn-tools (plist-get parsed :turn-tools)))
-    (delete-dups (append base-tools session-tools turn-tools))))
+(defun greger-skill-load-from-ref (skill-ref)
+  "Load a skill from SKILL-REF.
+SKILL-REF can be:
+- A skill name (looked up in registry)
+- A file path to a SKILL.md or markdown file"
+  (cond
+   ;; Skill name in registry
+   ((greger-skill-exists-p skill-ref)
+    (greger-skill--load skill-ref))
+   ;; File path
+   ((and (file-exists-p skill-ref)
+         (file-regular-p skill-ref))
+    (with-temp-buffer
+      (insert-file-contents skill-ref)
+      (buffer-string)))
+   ;; Not found
+   (t nil)))
+
+(defun greger-skill-get-buffer-skills-content (buffer)
+  "Get combined skill content for BUFFER.
+Returns a string with all skill content to inject, or nil if no skills."
+  (let* ((parsed (greger-skill-parse-buffer buffer))
+         (session-skills (plist-get parsed :session-skills))
+         (turn-skills (plist-get parsed :turn-skills))
+         (all-skills (delete-dups (append session-skills turn-skills)))
+         (contents '()))
+    (dolist (skill-ref all-skills)
+      (when-let* ((content (greger-skill-load-from-ref skill-ref)))
+        (push content contents)))
+    (when contents
+      (string-join (nreverse contents) "\n\n---\n\n"))))
 
 (provide 'greger-plugin)
 
