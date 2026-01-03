@@ -181,13 +181,13 @@ Throws an error if the skill cannot be found or is invalid."
    ((and (file-exists-p ref)
          (file-regular-p ref)
          (string-suffix-p ".md" ref))
-    (greger-skill--register-from-file ref))
+    (greger-skill--register-from-file ref t))
    ;; File path to directory containing SKILL.md
    ((and (file-exists-p ref)
          (file-directory-p ref))
     (let ((skill-file (expand-file-name "SKILL.md" ref)))
       (if (file-exists-p skill-file)
-          (greger-skill--register-from-file skill-file)
+          (greger-skill--register-from-file skill-file t)
         (error "Skill directory '%s' does not contain SKILL.md" ref))))
    ;; File path that doesn't exist
    ((or (string-suffix-p ".md" ref)
