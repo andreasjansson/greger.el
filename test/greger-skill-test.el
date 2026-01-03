@@ -123,6 +123,11 @@
   (should (gethash "skill" greger-tools-registry))
   (should (gethash "skill-list" greger-tools-registry)))
 
+(ert-deftest greger-skill-test-skill-tools-in-greger-tools ()
+  "Test that skill tools are in greger-tools (offered to model)."
+  (should (member "skill" greger-tools))
+  (should (member "skill-list" greger-tools)))
+
 (ert-deftest greger-skill-test-skill-tool-execution ()
   "Test executing the skill tool."
   (unwind-protect
