@@ -156,13 +156,14 @@ When users ask you to perform tasks, check if any of the available skills below 
                                              (description . "Name of the skill to load")))))
                      (required . ("name"))))))
 
-;; Register the skill tool
+;; Register the skill tool with dynamic schema
 (greger-register-tool "skill"
   :description "Load a skill to get specialized instructions for a task."
   :properties '((name . ((type . "string")
                          (description . "Name of the skill to load"))))
   :required '("name")
-  :function #'greger-skill--load)
+  :function #'greger-skill--load
+  :schema-fn #'greger-skill--get-tool-schema)
 
 ;; Buffer parsing for <skill> and <skill-disable> tags
 
