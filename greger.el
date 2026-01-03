@@ -875,9 +875,7 @@ Uses tree-sitter to find the last node and applies heuristics:
          (tools (greger-tools-get-schemas greger-tools))
          (server-tools (when greger-server-tools
                          (greger-server-tools-get-schemas greger-server-tools)))
-         (dialog (greger--inject-skills-into-dialog
-                  (greger-parser-markdown-buffer-to-dialog chat-buffer)
-                  chat-buffer))
+         (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
          (tool-use-metadata (greger-state-tool-use-metadata state))
          (current-iteration (greger-state-current-iteration state))
