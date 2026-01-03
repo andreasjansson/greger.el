@@ -209,7 +209,7 @@
       (let ((temp-dir (greger-skill-test--setup-temp-dir)))
         (greger-skill-test--create-skill "skill-a" "Skill A" "Content A")
         (greger-skill-test--create-skill "skill-b" "Skill B" "Content B")
-        (let ((greger-skill-directories (list temp-dir)))
+        (let ((default-directory temp-dir))
           (greger-skill-discover)
           (with-temp-buffer
             (insert "# SYSTEM\n\n<skill>skill-a</skill>\n<skill>skill-b</skill>\n\n# USER\n\nHello")
