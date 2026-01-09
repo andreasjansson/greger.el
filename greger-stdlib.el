@@ -795,6 +795,11 @@ If BUFFER is provided, it will be staged and committed with deleted files."
               (mapconcat #'identity (reverse deleted-files) ", ")
               git-result))))
 
+(defun greger-stdlib--save-buffer-without-rustic-format ()
+  "Save the current buffer without triggering rustic format-on-save."
+  (let ((rustic-format-on-save nil))
+    (save-buffer)))
+
 (defun greger-stdlib--replace-file (path contents git-commit-message &optional buffer)
   "Replace the entire contents of PATH with CONTENTS.
 GIT-COMMIT-MESSAGE will be used for the git commit.
@@ -818,8 +823,8 @@ If BUFFER is provided, it will be staged and committed along with the file."
       (erase-buffer)
       (insert contents)
 
-      ;; Save the file
-      (save-buffer))
+      ;; Save without triggering rustic format-on-save
+      (greger-stdlib--save-buffer-without-rustic-format))
 
     ;; Stage and commit the file
     (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
