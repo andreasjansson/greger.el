@@ -824,7 +824,7 @@ If BUFFER is provided, it will be staged and committed along with the file."
       (insert contents)
 
       ;; Save without triggering rustic format-on-save
-      (greger-stdlib--save-buffer-without-rustic-format))
+      (greger-stdlib--save-buffer-without-format))
 
     ;; Stage and commit the file
     (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
@@ -921,7 +921,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                 (setq replacements-made 1)))))
 
           ;; Save without triggering rustic format-on-save
-          (greger-stdlib--save-buffer-without-rustic-format)))
+          (greger-stdlib--save-buffer-without-format)))
 
       ;; Stage and commit the file
       (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer))
