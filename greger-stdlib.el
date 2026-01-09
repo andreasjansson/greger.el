@@ -920,8 +920,8 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                 (replace-match new-content nil t)
                 (setq replacements-made 1)))))
 
-          ;; Save the file
-          (save-buffer)))
+          ;; Save without triggering rustic format-on-save
+          (greger-stdlib--save-buffer-without-rustic-format)))
 
       ;; Stage and commit the file
       (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer))
