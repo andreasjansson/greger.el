@@ -795,8 +795,8 @@ If BUFFER is provided, it will be staged and committed with deleted files."
               (mapconcat #'identity (reverse deleted-files) ", ")
               git-result))))
 
-(defun greger-stdlib--save-buffer-without-rustic-format ()
-  "Save the current buffer without triggering rustic format-on-save."
+(defun greger-stdlib--save-buffer-without-format ()
+  "Save the current buffer without triggering auto-formatting."
   (let ((rustic-format-on-save nil))
     (save-buffer)))
 
