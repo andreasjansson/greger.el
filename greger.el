@@ -402,10 +402,13 @@ or slightly less bright than default for light themes."
    '((ERROR) @greger--apply-error-face))
   "Tree-sitter font-lock settings for `greger-mode'.")
 
-(defun greger--apply-error-face (start end &rest _)
-  "Apply `greger-error-face' to region and track that errors exist.
-START and END define the region."
-  (put-text-property start end 'face 'greger-error-face)
+(defun greger--apply-error-face (node override start end &rest _)
+  "Apply `greger-error-face' to NODE and track that errors exist.
+NODE is the tree-sitter node, OVERRIDE is the override spec,
+START and END define the fontification region."
+  (let ((node-start (treesit-node-start node))
+        (node-end (treesit-node-end node)))
+    (treesit-fontify-with-override node-start node-end 'greger-error-face override start end))
   (setq greger--had-error-faces t))
 
 (defvar greger--treesit-indent-rules
