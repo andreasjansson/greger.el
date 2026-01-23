@@ -399,8 +399,14 @@ or slightly less bright than default for light themes."
    :language 'greger
    :feature 'error
    :override t
-   '((ERROR) @greger-error-face))
+   '((ERROR) @greger--apply-error-face))
   "Tree-sitter font-lock settings for `greger-mode'.")
+
+(defun greger--apply-error-face (start end &rest _)
+  "Apply `greger-error-face' to region and track that errors exist.
+START and END define the region."
+  (put-text-property start end 'face 'greger-error-face)
+  (setq greger--had-error-faces t))
 
 (defvar greger--treesit-indent-rules
   `((greger
