@@ -54,12 +54,13 @@
   "Scan DIR/skills/ for SKILL.md files recursively."
   (let ((skills-dir (expand-file-name "skills" dir)))
     (when (file-directory-p skills-dir)
-      (directory-files-recursively skills-dir "^SKILL\\.md$"))))
+      (directory-files-recursively skills-dir "^SKILL\\.md$" nil nil t))))
 
 (defun greger-skill-discover ()
   "Discover and register skills from Claude-compatible directories.
 Scans:
 - ~/.claude/skills/**/SKILL.md (global)
+- ~/.config/opencode/skill/cloudflare/**/SKILL.md (opencode cloudflare)
 - .claude/skills/**/SKILL.md (project, walking up to git root)"
   (clrhash greger-skill-registry)
   (let ((skill-files '()))
@@ -68,6 +69,11 @@ Scans:
       (when (file-directory-p global-claude)
         (setq skill-files (append skill-files
                                   (greger-skill--scan-skills-in-dir global-claude)))))
+    ;; Opencode cloudflare skills
+    (let ((opencode-cloudflare (expand-file-name "~/.config/opencode/skill/cloudflare")))
+      (when (file-directory-p opencode-cloudflare)
+        (setq skill-files (append skill-files
+                                  (greger-skill--scan-skills-in-dir opencode-cloudflare)))))
     ;; Project .claude/skills/ directories (walking up)
     (dolist (claude-dir (greger-skill--find-project-claude-dirs))
       (setq skill-files (append skill-files
