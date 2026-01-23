@@ -561,9 +561,8 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
 
   (setq-local greger-current-thinking-budget greger-thinking-budget)
   
-  ;; Add hook to schedule cleanup of stale error faces after commands
-  ;; Uses idle timer so cleanup runs after font-lock finishes
-  (add-hook 'post-command-hook #'greger--schedule-error-face-cleanup nil t))
+  ;; Add hook to clean up stale error faces after buffer changes
+  (add-hook 'after-change-functions #'greger--clear-stale-error-faces nil t))
 
 ;;;###autoload
 (defun greger (&optional with-context)
