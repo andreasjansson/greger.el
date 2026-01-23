@@ -555,7 +555,10 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
   (use-local-map greger-mode-map)
 
-  (setq-local greger-current-thinking-budget greger-thinking-budget))
+  (setq-local greger-current-thinking-budget greger-thinking-budget)
+  
+  ;; Add hook to clean up stale error faces after commands
+  (add-hook 'post-command-hook #'greger--clear-stale-error-faces nil t))
 
 ;;;###autoload
 (defun greger (&optional with-context)
