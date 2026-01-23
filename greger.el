@@ -249,6 +249,47 @@ When nil, preserve point position using `save-excursion'.")
   "Face for parse errors in greger-mode."
   :group 'greger)
 
+(defvar-local greger--had-error-faces nil
+  "Non-nil if buffer previously had error faces applied.
+Used to optimize the stale error face cleanup.")
+
+(defun greger--clear-stale-error-faces ()
+  "Remove `greger-error-face' from positions that no longer have ERROR nodes.
+This fixes a bug where error faces persist after edits remove ERROR nodes."
+  (when (and greger--had-error-faces
+             (derived-mode-p 'greger-mode)
+             (treesit-parser-list))
+    (let* ((parser (car (treesit-parser-list)))
+           (root (treesit-parser-root-node parser))
+           (errors (treesit-query-capture root '((ERROR) @err)))
+           (error-ranges (mapcar (lambda (e)
+                                   (cons (treesit-node-start (cdr e))
+                                         (treesit-node-end (cdr e))))
+                                 errors)))
+      (if errors
+          ;; Still have errors - check if any error faces are outside error regions
+          (save-excursion
+            (goto-char (point-min))
+            (while (< (point) (point-max))
+              (when (eq (get-text-property (point) 'face) 'greger-error-face)
+                (let ((pos (point))
+                      (in-error nil))
+                  (dolist (range error-ranges)
+                    (when (and (>= pos (car range))
+                               (< pos (cdr range)))
+                      (setq in-error t)))
+                  (unless in-error
+                    (remove-text-properties pos (1+ pos) '(face nil)))))
+              (forward-char 1)))
+        ;; No errors - clear all error faces and reset flag
+        (save-excursion
+          (goto-char (point-min))
+          (while (< (point) (point-max))
+            (when (eq (get-text-property (point) 'face) 'greger-error-face)
+              (remove-text-properties (point) (1+ (point)) '(face nil)))
+            (forward-char 1)))
+        (setq greger--had-error-faces nil)))))
+
 (defface greger-code-content-face
   '((((class color) (background dark))
      (:background "#2a2a2a"))
