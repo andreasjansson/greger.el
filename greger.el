@@ -253,12 +253,10 @@ When nil, preserve point position using `save-excursion'.")
   "Non-nil if buffer previously had error faces applied.
 Used to optimize the stale error face cleanup.")
 
-(defvar-local greger--error-cleanup-timer nil
-  "Timer for cleaning up stale error faces.")
-
-(defun greger--clear-stale-error-faces ()
+(defun greger--clear-stale-error-faces (&optional _beg _end _len)
   "Remove `greger-error-face' from positions that no longer have ERROR nodes.
-This fixes a bug where error faces persist after edits remove ERROR nodes."
+This fixes a bug where error faces persist after edits remove ERROR nodes.
+Optional args BEG END LEN are ignored (for use with `after-change-functions')."
   (when (and greger--had-error-faces
              (derived-mode-p 'greger-mode)
              (treesit-parser-list))
@@ -292,19 +290,6 @@ This fixes a bug where error faces persist after edits remove ERROR nodes."
               (remove-text-properties (point) (1+ (point)) '(face nil)))
             (forward-char 1)))
         (setq greger--had-error-faces nil)))))
-
-(defun greger--schedule-error-face-cleanup ()
-  "Schedule cleanup of stale error faces after a short delay.
-The delay allows font-lock to finish before we check for stale faces."
-  (when greger--error-cleanup-timer
-    (cancel-timer greger--error-cleanup-timer))
-  (let ((buf (current-buffer)))
-    (setq greger--error-cleanup-timer
-          (run-with-idle-timer 0.05 nil
-                               (lambda ()
-                                 (when (buffer-live-p buf)
-                                   (with-current-buffer buf
-                                     (greger--clear-stale-error-faces))))))))
 
 (defface greger-code-content-face
   '((((class color) (background dark))
