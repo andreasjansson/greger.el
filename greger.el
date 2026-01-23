@@ -298,11 +298,13 @@ This fixes a bug where error faces persist after edits remove ERROR nodes."
 The delay allows font-lock to finish before we check for stale faces."
   (when greger--error-cleanup-timer
     (cancel-timer greger--error-cleanup-timer))
-  (setq greger--error-cleanup-timer
-        (run-with-idle-timer 0.1 nil
-                             (lambda ()
-                               (when (buffer-live-p (current-buffer))
-                                 (greger--clear-stale-error-faces))))))
+  (let ((buf (current-buffer)))
+    (setq greger--error-cleanup-timer
+          (run-with-idle-timer 0.05 nil
+                               (lambda ()
+                                 (when (buffer-live-p buf)
+                                   (with-current-buffer buf
+                                     (greger--clear-stale-error-faces))))))))
 
 (defface greger-code-content-face
   '((((class color) (background dark))
