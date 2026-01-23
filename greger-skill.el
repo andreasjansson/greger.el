@@ -69,11 +69,11 @@ Scans:
       (when (file-directory-p global-claude)
         (setq skill-files (append skill-files
                                   (greger-skill--scan-skills-in-dir global-claude)))))
-    ;; Opencode skills
+    ;; Opencode skills (scans directly, no /skills/ subdirectory)
     (let ((opencode-skills (expand-file-name "~/.config/opencode/skill")))
       (when (file-directory-p opencode-skills)
         (setq skill-files (append skill-files
-                                  (greger-skill--scan-skills-in-dir opencode-skills)))))
+                                  (directory-files-recursively opencode-skills "^SKILL\\.md$" nil nil t)))))
     ;; Project .claude/skills/ directories (walking up)
     (dolist (claude-dir (greger-skill--find-project-claude-dirs))
       (setq skill-files (append skill-files
