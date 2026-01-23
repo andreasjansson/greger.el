@@ -60,7 +60,7 @@
   "Discover and register skills from Claude-compatible directories.
 Scans:
 - ~/.claude/skills/**/SKILL.md (global)
-- ~/.config/opencode/skill/cloudflare/**/SKILL.md (opencode cloudflare)
+- ~/.config/opencode/skill/**/SKILL.md (opencode)
 - .claude/skills/**/SKILL.md (project, walking up to git root)"
   (clrhash greger-skill-registry)
   (let ((skill-files '()))
