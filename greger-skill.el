@@ -69,11 +69,11 @@ Scans:
       (when (file-directory-p global-claude)
         (setq skill-files (append skill-files
                                   (greger-skill--scan-skills-in-dir global-claude)))))
-    ;; Opencode cloudflare skills
-    (let ((opencode-cloudflare (expand-file-name "~/.config/opencode/skill/cloudflare")))
-      (when (file-directory-p opencode-cloudflare)
+    ;; Opencode skills
+    (let ((opencode-skills (expand-file-name "~/.config/opencode/skill")))
+      (when (file-directory-p opencode-skills)
         (setq skill-files (append skill-files
-                                  (greger-skill--scan-skills-in-dir opencode-cloudflare)))))
+                                  (greger-skill--scan-skills-in-dir opencode-skills)))))
     ;; Project .claude/skills/ directories (walking up)
     (dolist (claude-dir (greger-skill--find-project-claude-dirs))
       (setq skill-files (append skill-files
