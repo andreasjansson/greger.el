@@ -110,19 +110,41 @@ When called from <skill> tags, STRICT is t (report errors to user)."
 
 (defun greger-skill--parse-frontmatter ()
   "Parse YAML frontmatter from current buffer.
-Returns alist of key-value pairs.  Moves point past frontmatter."
+Returns alist of key-value pairs.  Moves point past frontmatter.
+Handles multi-line values using > (folded) or | (literal) block scalars."
   (goto-char (point-min))
   (when (looking-at "---\n")
     (forward-line 1)
     (let ((start (point))
           (result '()))
       (when (re-search-forward "^---$" nil t)
-        (let ((yaml-text (buffer-substring-no-properties start (match-beginning 0))))
-          (dolist (line (split-string yaml-text "\n" t))
-            (when (string-match "^\\([^:]+\\):\\s-*\\(.*\\)$" line)
-              (push (cons (string-trim (match-string 1 line))
-                          (string-trim (match-string 2 line)))
-                    result))))
+        (let* ((yaml-text (buffer-substring-no-properties start (match-beginning 0)))
+               (lines (split-string yaml-text "\n"))
+               (current-key nil)
+               (current-value nil)
+               (in-multiline nil))
+          (dolist (line lines)
+            (cond
+             ((and in-multiline
+                   (string-match "^\\s-+" line))
+              (setq current-value
+                    (concat current-value
+                            (if (eq in-multiline 'folded) " " "\n")
+                            (string-trim line))))
+             ((string-match "^\\([^:]+\\):\\s-*\\([>|]\\)\\s-*$" line)
+              (when current-key
+                (push (cons current-key (string-trim current-value)) result))
+              (setq current-key (string-trim (match-string 1 line)))
+              (setq current-value "")
+              (setq in-multiline (if (string= (match-string 2 line) ">") 'folded 'literal)))
+             ((string-match "^\\([^:]+\\):\\s-*\\(.*\\)$" line)
+              (when current-key
+                (push (cons current-key (string-trim current-value)) result))
+              (setq current-key (string-trim (match-string 1 line)))
+              (setq current-value (string-trim (match-string 2 line)))
+              (setq in-multiline nil))))
+          (when current-key
+            (push (cons current-key (string-trim current-value)) result)))
         (forward-line 1))
       result)))
 
