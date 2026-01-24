@@ -125,11 +125,10 @@ Handles multi-line values using > (folded) or | (literal) block scalars."
                (in-multiline nil))
           (dolist (line lines)
             (cond
-             ((and in-multiline
-                   (string-match "^\\s-+" line))
+             ((and in-multiline (string-match-p "^[ \t]+" line))
               (setq current-value
                     (concat current-value
-                            (if (eq in-multiline 'folded) " " "\n")
+                            (if (string-empty-p current-value) "" (if (eq in-multiline 'folded) " " "\n"))
                             (string-trim line))))
              ((string-match "^\\([^:]+\\):\\s-*\\([>|]\\)\\s-*$" line)
               (when current-key
